@@ -1,0 +1,19 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+# Supply-chain mitigation — refuse to resolve any package version
+# that was published less than 1 week ago. Mitigates the "malicious
+# version published, then yanked within hours" attack pattern.
+minimumReleaseAge: 10080 # minutes; 60 * 24 * 7
+
+# If a critical patch is published and needs to be installed sooner,
+# add the specific version here (commit + review like normal code):
+# minimumReleaseAgeExclude:
+#   - some-package@1.2.3
+
+# Allowlist for postinstall scripts (pnpm 11+). Deps NOT listed here
+# have their build scripts blocked. Add entries deliberately — each
+# one is permission to run arbitrary code at install time.
+allowBuilds:
+  esbuild: true # tsx ships esbuild and needs its native-binary postinstall
