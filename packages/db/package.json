@@ -6,7 +6,9 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "imports": {
-    "#client": "./src/client.ts"
+    "#client": "./src/client.ts",
+    "#repositories/*": "./src/repositories/*.ts",
+    "#scripts/*": "./src/scripts/*.ts"
   },
   "exports": {
     ".": {
@@ -16,11 +18,15 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "migrate": "tsx src/migrate.ts"
+    "migrate": "tsx src/migrate.ts",
+    "seed": "tsx src/scripts/seed.ts"
   },
   "dependencies": {
     "@simlm/config": "workspace:*",
-    "postgres": "^3.4.0"
+    "@simlm/normalizer": "workspace:*",
+    "@simlm/types": "workspace:*",
+    "postgres": "^3.4.0",
+    "yaml": "^2.0.0"
   },
   "devDependencies": {
     "@simlm/tsconfig": "workspace:*",

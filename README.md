@@ -17,3 +17,11 @@ _Filled in during Phase 11._
 ## Deployment
 
 _Filled in during Phase 11._
+
+## Third-party content
+
+`seeds/chatterbot/` contains a frozen snapshot of
+[chatterbot-corpus](https://github.com/gunthercox/chatterbot-corpus)
+by Gunther Cox, redistributed under the BSD-3-Clause license. See
+`seeds/chatterbot/LICENSE` for the full license text and
+`seeds/chatterbot/NOTICE` for the upstream commit SHA.

@@ -3,3 +3,8 @@
 docs/
 *.md
 pnpm-lock.yaml
+
+# Frozen upstream snapshot — see seeds/chatterbot/NOTICE for SHA.
+# Re-formatting would diverge from the committed upstream content and
+# defeat the point of pinning the snapshot.
+seeds/chatterbot/

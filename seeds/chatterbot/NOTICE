@@ -1,0 +1,25 @@
+chatterbot-corpus snapshot
+==========================
+
+Source:      https://github.com/gunthercox/chatterbot-corpus
+Path:        chatterbot_corpus/data/english/
+Commit:      eec45b284424c9784a5baab78368b1a9ff3b656f
+Snapshot:    2026-05-13
+
+Files:
+  greetings.yml     — from data/english/greetings.yml
+  conversations.yml — from data/english/conversations.yml
+  emotion.yml       — from data/english/emotion.yml
+  humor.yml         — from data/english/humor.yml
+  LICENSE           — from license.md (renamed for convention)
+
+License:     BSD-3-Clause — see LICENSE in this directory.
+Attribution: Copyright (c) 2017 Gunther Cox. All rights reserved.
+
+This is a frozen snapshot, not a live dependency. To refresh:
+  1. Bump the commit SHA above to the desired upstream revision.
+  2. Re-fetch the four .yml files and license.md at that SHA.
+  3. Re-run `pnpm seed:chatterbot` to reload.
+
+No network fetch occurs at install or runtime — the snapshot is
+checked in.
