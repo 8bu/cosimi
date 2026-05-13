@@ -1,18 +1,14 @@
 {
   "name": "simlm",
   "private": true,
-  "packageManager": "pnpm@11.0.0",
-  "engines": {
-    "node": ">=22",
-    "pnpm": ">=11.0"
-  },
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "lint": "turbo run lint",
+    "lint": "oxlint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "format": "prettier --write .",
+    "format": "oxfmt --ignore-path .gitignore --ignore-path .oxfmtignore",
+    "format:check": "oxfmt --check --ignore-path .gitignore --ignore-path .oxfmtignore",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "db:up": "docker compose -f docker-compose.dev.yml up -d postgres",
     "db:down": "docker compose -f docker-compose.dev.yml down",
@@ -22,9 +18,16 @@
     "seed:chatterbot": "pnpm --filter @simlm/db seed:chatterbot"
   },
   "devDependencies": {
+    "@simlm/oxlint-config": "workspace:*",
+    "oxfmt": "^0.47.0",
+    "oxlint": "^1.0.0",
+    "tsx": "^4.19.0",
     "turbo": "^2.3.0",
-    "prettier": "^3.4.0",
-    "typescript": "^5.7.0",
-    "tsx": "^4.19.0"
-  }
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=11.0"
+  },
+  "packageManager": "pnpm@11.0.0"
 }

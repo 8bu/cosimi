@@ -1,5 +1,10 @@
 {
   "name": "@simlm/tsconfig",
   "version": "0.0.0",
-  "private": true
+  "private": true,
+  "files": [
+    "base.json",
+    "node.json",
+    "react.json"
+  ]
 }

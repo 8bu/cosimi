@@ -1,0 +1,12 @@
+{
+  "name": "@simlm/oxlint-config",
+  "version": "0.0.0",
+  "private": true,
+  "files": [
+    "oxlintrc.json"
+  ],
+  "main": "./oxlintrc.json",
+  "exports": {
+    "./oxlintrc.json": "./oxlintrc.json"
+  }
+}

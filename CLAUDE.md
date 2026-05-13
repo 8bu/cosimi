@@ -9,7 +9,7 @@ A SimSimi-style pattern-matching chatbot. **No LLM at runtime** — replies come
 - **Runtime:** Node.js 22, pnpm 11 (pinned via `packageManager`), Turbo 2.
 - **Backend:** Hono.js on Node, Postgres 16 (FTS + `pg_trgm`).
 - **Frontend:** Vite + React, Tailwind v4.
-- **Tooling:** TypeScript 5.7, Prettier, tsx, valibot for env parsing, pino for logging.
+- **Tooling:** TypeScript 5.7, oxlint + oxfmt (oxc-project), tsx, valibot for env parsing, pino for logging, vitest for tests.
 
 ## Monorepo layout
 
@@ -27,7 +27,7 @@ packages/
   matcher/     # 3-tier matching engine
   logger/      # pino + redactInput() — shared by api + admin-api
   tsconfig/    # shared tsconfig bases
-  eslint-config/ # shared flat eslint config
+  oxlint-config/ # shared oxlint ruleset (JSON)
 seeds/
   vi/          # hand-curated Vietnamese seeds
   chatterbot/  # snapshot of chatterbot-corpus YAML
@@ -52,7 +52,9 @@ Phased build plan in `docs/SPEC_PHASE_0.md` … `docs/SPEC_PHASE_15.md`. Each sp
 - **Postinstall allowlist:** `allowBuilds` in `pnpm-workspace.yaml` is the per-package permission list for postinstall scripts. Every entry is permission to run arbitrary code at install time — add deliberately, document why.
 - **admin-api is a separate process bound to `127.0.0.1`:** the public `api` and internal `admin-api` never share a process. The admin API only accepts loopback connections; exposing it externally requires deliberate reverse-proxy work. This split is the security boundary, not a stylistic choice.
 - **No LLM at runtime:** never add OpenAI/Anthropic/etc. SDKs to `apps/api`. The matcher in `@simlm/matcher` is the only thing that produces replies.
+- **Env loading is a function call, not a module-load side effect.** `@simlm/config` exports `loadEnv()` — each consumer (api, admin-api, logger) calls it *once at startup*, not at import time. Importing the module does not read `process.env`, which keeps the module graph pure and lets tests inject synthetic env via `v.parse(EnvSchema, fakeEnv)`. Do not introduce a top-level `export const env = loadEnv()` singleton — that re-couples imports to the environment.
+- **Diacritic-stripping split:** `@simlm/normalizer` does NFC + lowercase + whitespace **but preserves diacritics**. Postgres handles diacritic-stripping server-side via `f_unaccent()` (added in Phase 2). Both write-time and query-time paths run the same JS→SQL pipeline, so the comparison key stays symmetric. Do not add `.replace(/[̀-ͯ]/g, '')` or similar to the JS normalizer — it would diverge from the server side.
 
 ## Next phase
 
-`docs/SPEC_PHASE_1.md` — Shared Package Skeletons. Starts filling in `packages/*` with their first real `package.json` (deps, scripts) and `tsconfig.json`/source skeletons.
+`docs/SPEC_PHASE_2.md` — DB Foundation. Fleshes out `@simlm/db` (postgres client, migrations including `f_unaccent` + `pg_trgm`, repositories) on top of the Phase 1 skeletons.

@@ -1,0 +1,5 @@
+# Editorial scope (oxfmt also reads .gitignore via the script flags)
+.claude/
+docs/
+*.md
+pnpm-lock.yaml
