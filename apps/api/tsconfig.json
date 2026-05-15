@@ -1,0 +1,4 @@
+{
+  "extends": "@simlm/tsconfig/node.json",
+  "include": ["src", "test"]
+}
