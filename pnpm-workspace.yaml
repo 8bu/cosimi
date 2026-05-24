@@ -17,3 +17,4 @@ minimumReleaseAge: 10080 # minutes; 60 * 24 * 7
 # one is permission to run arbitrary code at install time.
 allowBuilds:
   esbuild: true # tsx ships esbuild and needs its native-binary postinstall
+  "@swc/core": true # @vitejs/plugin-react-swc uses @swc/core; the postinstall fetches the platform-specific native binary. Without it, Vite's React transform can't load.

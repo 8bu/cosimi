@@ -1,0 +1,6 @@
+@import "tailwindcss";
+@import "@simlm/ui-tokens/theme.css";
+
+/* App-local additions — none yet for the chat app. Editorial aesthetic
+   stays minimal; resist adding flourishes here. Phase 11 wires the chat
+   view; component-level styles go alongside their components, not here. */

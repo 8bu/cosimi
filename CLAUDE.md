@@ -17,8 +17,8 @@ A SimSimi-style pattern-matching chatbot. **No LLM at runtime** — replies come
 apps/
   api/         # public Hono REST + SSE, binds PORT on 0.0.0.0
   admin-api/   # internal Hono REST, binds ADMIN_PORT on 127.0.0.1
-  web/         # public chat UI (Vite + React)
-  admin/       # internal admin dashboard (Vite + React)
+  web/         # public chat UI (Vite + React + Tailwind v4, scaffolded Phase 9)
+  admin/       # internal admin dashboard — stub only, lands Phase 12+
 packages/
   config/      # valibot env schema
   types/       # shared DTOs
@@ -26,6 +26,7 @@ packages/
   db/          # postgres client, migrations, repositories
   matcher/     # 3-tier matching engine
   logger/      # pino + redactInput() — shared by api + admin-api
+  ui-tokens/   # pure-CSS design tokens (Tailwind v4 @theme block) — shared by apps/web (and later apps/admin)
   tsconfig/    # shared tsconfig bases
   oxlint-config/ # shared oxlint ruleset (JSON)
 seeds/
@@ -86,7 +87,18 @@ Phased build plan in `docs/SPEC_PHASE_0.md` … `docs/SPEC_PHASE_15.md`. Each sp
 - **GC lives in-process in `apps/api`, not a separate worker.** `apps/api/src/lib/gc.ts` spins a single `setInterval` (period = `GC_INTERVAL_MS`, default 5min) that DELETEs expired rows from `sessions` and `session_teaches` in parallel. The interval handle is **`.unref()`'d** at registration — without that, Node's event loop would refuse to exit even after `server.close()` resolves on shutdown. `SIGINT`/`SIGTERM` calls `stopGc()` first, then `server.close(() => process.exit(0))`; that's the orderly path. Zero-row sweeps stay silent (`log.info` only fires when `sessions + teaches > 0`) — log noise discipline. If we ever go multi-instance, this becomes a Postgres advisory-lock dance or a dedicated worker, not a per-instance race; out of scope for MVP.
 - **PII redaction is belt-and-suspenders: pino path-redact AND `redactInput()`.** `@simlm/logger`'s `createLogger` ships a `redact.paths` list (`input`, `response`, `reply`, `message`, `body.message`, `body.reply`, `body.input`) so an accidental `log.info({ input: rawText })` at any level becomes `[REDACTED]`. The explicit `redactInput(text)` helper converts text to `{ length, hash: sha256[..8] }` for cases where you *do* want to log a non-reversible reference (size + identity). Convention: at INFO+ use `redactInput()` if you need to log anything about the text; at DEBUG, raw values go under `*_dbg`-suffixed field names so the redact list won't strip them. Both `apps/api/src/lib/logger.ts` and `apps/admin-api/src/lib/logger.ts` are thin `createLogger('<app>')` re-exports — **never** construct a pino instance directly in an app or you break the PII contract by skipping the shared redact config.
 - **`/healthz` runs a 1s-budgeted DB ping; the timeout's setTimeout is `.unref()`'d.** Both api and admin-api's health route race `sql\`SELECT 1\`` against a 1s `setTimeout`. The timer is unref'd *and* cleared in a `finally` — unref is the safety net so an in-flight slow ping during SIGINT/SIGTERM shutdown doesn't keep the event loop alive past `server.close()`. Response shape on 200: `{ ok: true, db: 'up', db_latency_ms: <ms>, uptime_s }`; on 503: same shape with `db_latency_ms: null`. The two route files are identical copies — if you touch one, touch the other (and if a third health check ever needs the same shape, extract to a shared helper).
+- **Tokens are shared via `@simlm/ui-tokens`; shadcn primitives are not.** `packages/ui-tokens/theme.css` holds a Tailwind v4 `@theme { ... }` block of CSS variables (warm-neutral surfaces, terracotta primary, serif chat body). Both apps/web and (later) apps/admin `@import` it from their `globals.css`. Per the shadcn-ui design philosophy, the component primitives themselves (`button`, `dialog`, `dropdown-menu`, etc.) are **copied per-app** under `apps/<name>/src/components/ui/*` — never extracted to a workspace package. Reason: token edits should propagate (visual identity stays coherent); component customizations should stay local (per-app freedom to deviate). If you find yourself "DRYing up" a primitive into a shared package, stop — you'll be fighting shadcn's customization model.
+- **Tailwind v4 uses CSS-first config — no `tailwind.config.{ts,js}`.** Configuration lives entirely in `apps/web/src/styles/globals.css` via `@import "tailwindcss"` then `@import "@simlm/ui-tokens/theme.css"`. The `@theme` block inside the imported file is what Tailwind v4 reads for design tokens; there is no PostCSS chain and no JS config. The Vite plugin is `@tailwindcss/vite`. If a contributor adds a `tailwind.config.ts`, it's a regression — the v4 CSS-first model is deliberate so that the shared token package can be a single CSS file rather than a JS preset.
+- **`apps/web` Vite dev proxy: `/api/*` → `http://localhost:3000` with `/api` stripped.** The api process binds public routes at the *root* (`/chat`, `/feedback`, `/stats`, `/healthz`) — there is no `/api` prefix server-side. The SPA uses `/api/*` as a stable client-side namespace so:
+  1. Production reverse proxies can route `/api/*` to the api process without touching non-api routes (static assets, future `/auth` etc.).
+  2. The api process never has to learn about the `/api` prefix (mirrors the convention used by admin-api too — no `/admin/*` prefix there either).
+  The rewrite lives in `apps/web/vite.config.ts`; the same rewrite must exist in whatever reverse proxy fronts production.
+- **`allowBuilds` in `pnpm-workspace.yaml` is the postinstall permission list.** Each entry is permission to run arbitrary code at install time. Add deliberately, only when `pnpm install` reports a build was blocked, and document *why* the postinstall is needed. Current entries:
+  - `esbuild: true` — `tsx` ships esbuild; postinstall fetches the platform-specific native binary.
+  - `@swc/core: true` — `@vitejs/plugin-react-swc` (apps/web) uses `@swc/core`; postinstall fetches the platform-specific native binary; without it Vite's React transform can't load.
+  - Never add wildcards; never silently bump entries.
+- **Workspace-shared tests against `simlm_test` race when run in parallel.** `packages/matcher`, `apps/api`, and `apps/admin-api` each have a `vitest globalSetup` that drops + recreates `public` in the shared `simlm_test` database. `pnpm -r test` runs packages concurrently by default and will stomp those setups on top of each other (you'll see migration 001 fail with `42883` because the extension was just dropped by the racing setup). Run with `pnpm -r --workspace-concurrency=1 test` or filter to one package at a time. Adding a fourth such suite is the threshold at which a shared `applyMigrations()` helper plus a single coordinated setup is worth extracting — don't paper over the race with retries.
 
 ## Next phase
 
-`docs/SPEC_PHASE_9.md` — Web App Scaffold. `apps/web` Vite + React + Tailwind chat UI that talks to `apps/api` via REST + SSE. First UI phase; matches the architecture diagram's `:5173` block in the README. Phase 8 (in-process GC + PII redaction + `/healthz` + README) is complete on `main`.
+`docs/SPEC_PHASE_10.md` — Web: API client + SSE consumer. `apps/web` gains a thin `fetch`-based SSE reader plus `@tanstack/react-query` for non-SSE calls (feedback, stats, health), all targeting the `/api/*` proxy contract documented above. No chat-view rendering yet — that's Phase 11. Phase 9 (apps/web scaffold + @simlm/ui-tokens + Tailwind v4 + shadcn primitives + Vite proxy) is complete on `main`.

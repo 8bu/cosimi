@@ -15,7 +15,7 @@ Two backend processes, two SPAs, one database:
    ┌──────────────┐         ┌──────────────────┐
    │  apps/web    │ ──REST──▶                  │
    │  (chat UI)   │ ◀──SSE── │  apps/api       │ ──┐
-   │   :5173 (*)  │         │  :3000  0.0.0.0  │   │
+   │   :5173      │         │  :3000  0.0.0.0  │   │
    └──────────────┘         └──────────────────┘   │
                                                    │
    ┌──────────────┐         ┌──────────────────┐   ├──▶ Postgres
@@ -25,10 +25,10 @@ Two backend processes, two SPAs, one database:
    └──────────────┘
 ```
 
-`(*)` `apps/web` and `apps/admin` land in **Phase 9** — see
-`docs/SPEC_PHASE_9.md` once drafted. Today, `pnpm dev` starts `apps/api` and
-`apps/admin-api` only. You can still drive the system end-to-end via curl
-(see [API recipes](#api-recipes)).
+`apps/web` (the public chat UI) is scaffolded as of **Phase 9** — see
+`docs/SPEC_PHASE_9.md`. `(*)` `apps/admin` lands in **Phase 12+**. `pnpm dev`
+starts `apps/api`, `apps/admin-api`, and `apps/web`. You can also drive the
+system end-to-end via curl (see [API recipes](#api-recipes)).
 
 - `apps/api` owns chat, `/teach` (inline command), feedback, public stats,
   health, and runs the GC sweeper.
@@ -219,7 +219,7 @@ not of route-mounting in code.
 ## Development commands
 
 ```bash
-pnpm dev           # turbo: api + admin-api (Phase 9 adds web + admin)
+pnpm dev           # turbo: api + admin-api + web (apps/admin lands in Phase 12+)
 pnpm typecheck     # tsc --noEmit across the workspace
 pnpm lint          # oxlint
 pnpm format        # oxfmt
@@ -243,8 +243,8 @@ pnpm seed:chatterbot
 apps/
   api/         # public Hono REST + SSE, binds PORT on 0.0.0.0, runs GC
   admin-api/   # internal Hono REST, binds ADMIN_PORT on 127.0.0.1
-  web/         # (Phase 9) public chat UI
-  admin/       # (Phase 9) internal admin dashboard
+  web/         # public chat UI (Vite + React, scaffold in Phase 9)
+  admin/       # internal admin dashboard (Phase 12+)
 packages/
   config/      # valibot env schema
   types/       # shared DTOs
@@ -252,6 +252,7 @@ packages/
   db/          # postgres client, migrations, repositories
   matcher/     # 3-tier matching engine
   logger/      # pino + redactInput()
+  ui-tokens/   # pure-CSS design tokens shared by apps/web (and later apps/admin)
   tsconfig/    # shared tsconfig bases
   oxlint-config/ # shared oxlint ruleset
 seeds/
