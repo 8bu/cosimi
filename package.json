@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "turbo run dev",
+    "dev:all": "if ! docker info > /dev/null 2>&1; then echo 'Docker daemon is not reachable. Start Docker Desktop (or colima/equivalent) and re-run pnpm dev:all.' >&2; exit 1; fi && pnpm db:up && pnpm migrate && pnpm dev",
     "build": "turbo run build",
     "lint": "oxlint",
     "typecheck": "turbo run typecheck",
@@ -10,10 +11,10 @@
     "format": "oxfmt --ignore-path .gitignore --ignore-path .oxfmtignore",
     "format:check": "oxfmt --check --ignore-path .gitignore --ignore-path .oxfmtignore",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
-    "db:up": "docker compose -f docker-compose.dev.yml up -d postgres",
+    "db:up": "docker compose -f docker-compose.dev.yml up -d --wait postgres",
     "db:down": "docker compose -f docker-compose.dev.yml down",
     "db:reset": "docker compose -f docker-compose.dev.yml down -v && pnpm db:up",
-    "migrate": "pnpm --filter @simlm/db migrate",
+    "migrate": "pnpm --filter @simlm/db migrate up",
     "seed": "tsx --env-file=.env packages/db/src/scripts/seed.ts seeds/vi/*.yaml seeds/chatterbot/*.yml",
     "seed:vi": "tsx --env-file=.env packages/db/src/scripts/seed.ts seeds/vi/*.yaml",
     "seed:chatterbot": "tsx --env-file=.env packages/db/src/scripts/seed.ts seeds/chatterbot/*.yml"
