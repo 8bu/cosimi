@@ -29,7 +29,54 @@ importers:
 
   apps/admin: {}
 
-  apps/admin-api: {}
+  apps/admin-api:
+    dependencies:
+      '@hono/node-server':
+        specifier: ^1.19.0
+        version: 1.19.14(hono@4.12.18)
+      '@simlm/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@simlm/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@simlm/logger':
+        specifier: workspace:*
+        version: link:../../packages/logger
+      '@simlm/normalizer':
+        specifier: workspace:*
+        version: link:../../packages/normalizer
+      '@simlm/types':
+        specifier: workspace:*
+        version: link:../../packages/types
+      hono:
+        specifier: ^4.10.0
+        version: 4.12.18
+      pino:
+        specifier: ^10.0.0
+        version: 10.3.1
+      valibot:
+        specifier: ^1.0.0
+        version: 1.4.0(typescript@5.9.3)
+    devDependencies:
+      '@simlm/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.17
+      postgres:
+        specifier: ^3.4.0
+        version: 3.4.9
+      tsx:
+        specifier: ^4.19.0
+        version: 4.21.0
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.4(@types/node@22.19.17)
 
   apps/api:
     dependencies:
