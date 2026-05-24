@@ -41,9 +41,10 @@ Phased build plan in `docs/SPEC_PHASE_0.md` … `docs/SPEC_PHASE_15.md`. Each sp
 
 ## Key commands
 
-- `pnpm dev` — turbo dev across all apps (Phase 2+).
-- `pnpm db:up` / `pnpm db:down` / `pnpm db:reset` — Postgres dev container.
-- `pnpm migrate` / `pnpm seed` / `pnpm seed:chatterbot` — db management via `@simlm/db`.
+- `pnpm dev:all` — one-shot start: Docker-daemon guard → `db:up --wait` → `migrate` → `dev`. Use this as the default. Falls back to a clear stderr message + exit 1 if the Docker daemon isn't reachable.
+- `pnpm dev` — turbo dev across all apps (api + admin-api + web). Assumes Postgres is already up and migrated; use `dev:all` to chain those.
+- `pnpm db:up` / `pnpm db:down` / `pnpm db:reset` — Postgres dev container. `db:up` uses `docker compose --wait`, blocking until the `pg_isready` healthcheck passes — chaining `migrate` immediately after is safe.
+- `pnpm migrate` / `pnpm seed` / `pnpm seed:chatterbot` — db management via `@simlm/db`. The root `migrate` script forwards the `up` subcommand by default; for `status` or `reset`, run `pnpm --filter @simlm/db migrate <subcommand>`.
 - `pnpm typecheck` / `pnpm lint` / `pnpm test` / `pnpm build` — turbo fan-out.
 
 ## Conventions

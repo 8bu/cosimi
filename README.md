@@ -219,6 +219,7 @@ not of route-mounting in code.
 ## Development commands
 
 ```bash
+pnpm dev:all       # one-shot: guards Docker daemon, then db:up (waits for healthy) → migrate → dev
 pnpm dev           # turbo: api + admin-api + web (apps/admin lands in Phase 12+)
 pnpm typecheck     # tsc --noEmit across the workspace
 pnpm lint          # oxlint
@@ -227,7 +228,7 @@ pnpm format:check  # oxfmt --check
 pnpm test          # vitest across all packages
 pnpm build         # turbo build
 
-pnpm db:up         # docker compose: Postgres
+pnpm db:up         # docker compose: Postgres (blocks until healthcheck passes)
 pnpm db:down
 pnpm db:reset      # drops the volume; combine with migrate + seed for a clean slate
 
@@ -236,6 +237,13 @@ pnpm seed          # all seed files
 pnpm seed:vi
 pnpm seed:chatterbot
 ```
+
+`pnpm dev:all` is the one-button start: it checks that the Docker daemon is
+reachable, brings up Postgres (waiting for the container's `pg_isready`
+healthcheck), runs idempotent migrations, then starts the three dev
+processes via turbo. Use the individual commands when you want to skip
+Docker (UI-only iteration on a deployed db) or split the steps for
+debugging.
 
 ## Repo layout
 
