@@ -6,7 +6,8 @@
     "suspicious": "warn"
   },
   "rules": {
-    "no-console": "off"
+    "no-console": "off",
+    "import/no-unassigned-import": "off"
   },
   "ignorePatterns": ["**/dist/**", "**/coverage/**", "**/node_modules/**", "**/.turbo/**"]
 }
