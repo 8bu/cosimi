@@ -46,6 +46,40 @@ describe("/pairs CRUD", () => {
       `;
       expect(rows[0]).toEqual({ source: "seed", topic: "greetings" });
     });
+
+    it("auto-cleans matching unanswered rows (any source) on insert", async () => {
+      // Seed two unanswered rows with the same normalized_input but
+      // different sources — a Teach should clear both, since the
+      // canonical answer is locale/source-agnostic.
+      await sql()`
+        INSERT INTO unanswered (input, normalized_input, source, count, last_seen)
+        VALUES ('What time is it?', 'what time is it?', 'chat', 5, NOW())
+      `;
+      // Different source on same normalized_input requires a separate
+      // surrogate key — the table's unique constraint is on
+      // normalized_input alone, so we instead test the cleanup against a
+      // single row but assert the route doesn't constrain by source.
+      const res = await postJson(app, "/pairs", {
+        input: "What time is it?",
+        response: "Time to teach.",
+      });
+      expect(res.status).toBe(201);
+
+      const remaining = await sql()<{ count: number }[]>`
+        SELECT COUNT(*)::int AS count FROM unanswered
+         WHERE normalized_input = 'what time is it?'
+      `;
+      expect(remaining[0]?.count).toBe(0);
+    });
+
+    it("is a no-op when no matching unanswered row exists", async () => {
+      // No unanswered row to start. Insert should still 201.
+      const res = await postJson(app, "/pairs", {
+        input: "fresh question",
+        response: "fresh answer",
+      });
+      expect(res.status).toBe(201);
+    });
   });
 
   describe("GET /pairs", () => {

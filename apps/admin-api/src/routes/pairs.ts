@@ -77,9 +77,23 @@ pairsRoute.post("/", async (c) => {
   const body = await c.req.json().catch(() => null);
   const parsed = v.safeParse(CreateSchema, body);
   if (!parsed.success) return c.json({ error: "invalid body" }, 400);
+
   // Canonical write path — insertPair handles normalize() and never lists
-  // the generated `normalized_unaccented` column.
-  const { id } = await insertPair(parsed.output);
+  // the generated `normalized_unaccented` column. The companion DELETE
+  // self-cleans any `unanswered` rows whose normalized_input matches the
+  // freshly-taught pair: both tables normalize via the same `normalize()`
+  // function, so equality is the right key. Source filter is omitted
+  // intentionally — a single Teach is the canonical answer for both
+  // 'chat' and 'llm' duplicates of the same normalized question.
+  // Atomic via db.begin: if the unanswered DELETE somehow fails the pair
+  // insert rolls back, preserving the "user clicked Teach but no row
+  // appeared in pairs" debuggability gap.
+  const db = sql();
+  const { id } = await db.begin(async (tx) => {
+    const inserted = await insertPair(parsed.output, tx);
+    await tx`DELETE FROM unanswered WHERE normalized_input = ${normalize(parsed.output.input)}`;
+    return inserted;
+  });
   return c.json({ id }, 201);
 });
 
