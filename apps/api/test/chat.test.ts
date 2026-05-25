@@ -40,6 +40,24 @@ describe("POST /chat", () => {
     expect(reconstructed).toBe("hi there");
   });
 
+  it("substitutes {{ name }} placeholders from app_config into the streamed response", async () => {
+    // Migration 009 seeds app_config with name=Bé Sim; the test TRUNCATE list
+    // does not include app_config, so the seeded row survives every reset.
+    await seedPairs([
+      { input: "hello", response: "mình tên {{ name }}, rất vui được gặp bạn", source: "seed" },
+    ]);
+
+    const res = await postJson(app, "/chat", { message: "hello" });
+    expect(res.status).toBe(200);
+
+    const events = await consumeChatStream(res);
+    const reconstructed = events
+      .filter((e) => e.type === "token")
+      .map((t) => (t.type === "token" ? t.content : ""))
+      .join("");
+    expect(reconstructed).toBe("mình tên Bé Sim, rất vui được gặp bạn");
+  });
+
   it("mints a session id when none is provided and echoes it in X-Session-Id", async () => {
     await seedPairs([{ input: "hello", response: "hi there", source: "seed" }]);
 
