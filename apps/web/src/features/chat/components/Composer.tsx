@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useChat } from "@/features/chat/store";
 import { TEACH_PREFIX_RE } from "@/features/chat/tokens";
+import { useTranslate } from "@/lib/i18n";
 
 const LINE_PX = 24;
 const MAX_LINES = 6;
@@ -13,6 +14,7 @@ export function Composer() {
   const isStreaming = useChat((s) => s.isStreaming);
   const isTeach = TEACH_PREFIX_RE.test(value);
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const t = useTranslate();
 
   // Auto-grow up to MAX_LINES; the inner element is `resize-none` so the
   // textarea never shows a manual drag handle. Setting height to 'auto'
@@ -51,7 +53,7 @@ export function Composer() {
           ref={taRef}
           rows={1}
           className="flex-1 bg-transparent outline-none resize-none py-1 leading-6 max-h-36"
-          placeholder="Message Bé Sim… or /teach <reply>"
+          placeholder={t("composer.placeholder")}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => {
@@ -67,18 +69,13 @@ export function Composer() {
           variant={value.trim() ? "default" : "ghost"}
           onClick={submit}
           disabled={!value.trim() || isStreaming}
-          aria-label="Send"
+          aria-label={t("composer.send")}
           className="shrink-0"
         >
           <Send className="size-4" />
         </Button>
       </div>
-      <p className="text-xs text-muted-foreground mt-2 px-1">
-        Type <code className="font-mono text-foreground/80">/teach reply</code> to teach a response
-        for your last message, or{" "}
-        <code className="font-mono text-foreground/80">{`/teach "input" => "reply"`}</code> to teach
-        a pair directly. Enter sends · Shift+Enter newlines.
-      </p>
+      <p className="text-xs text-muted-foreground mt-2 px-1">{t("composer.hint")}</p>
     </footer>
   );
 }

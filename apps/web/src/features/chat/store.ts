@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { streamChat } from "@/api/chat";
 import type { BotMsg, ChatMessage, MessageStatus } from "@/features/chat/types";
 import { TEACH_PREFIX_RE } from "@/features/chat/tokens";
+import { getLoadedDict, translate } from "@/lib/i18n";
+import { preferencesStore } from "@/store/preferences";
 
 interface ChatState {
   messages: ChatMessage[];
@@ -100,6 +102,7 @@ export const useChat = create<ChatState>((set, get) => ({
                           pairId: ev.pairId,
                           score: ev.score,
                           lowConfidence: ev.lowConfidence,
+                          locale: ev.locale,
                         },
                       }
                     : m,
@@ -110,9 +113,24 @@ export const useChat = create<ChatState>((set, get) => ({
           case "no_match":
             if (botId) {
               const id = botId;
+              // Server emits no_match as a pure signal — the FE owns the
+              // fallback wording. The dict's `noMatch.fallback` is a pool;
+              // pick a random index per event so back-to-back misses don't
+              // repeat verbatim. Locale is read at receipt time (not
+              // render time) so the message is frozen in the language the
+              // user was in when they sent it; switching locale later
+              // won't retroactively rewrite past misses.
+              const fallbackLocale = preferencesStore.getState().primaryLocale;
+              // getLoadedDict() is sync — LocaleSwitcher awaits the dynamic
+              // import before flipping the preference, so by the time
+              // we're reading here the dict is in cache. If it isn't (only
+              // possible during the first-paint race before main.tsx's
+              // preload settles), getLoadedDict falls back to vi.
+              const pool = getLoadedDict(fallbackLocale)["noMatch.fallback"];
+              const fallbackText = pool[Math.floor(Math.random() * pool.length)]!;
               set((s) => ({
                 messages: s.messages.map((m) =>
-                  m.kind === "bot" && m.id === id ? { ...m, noMatch: true } : m,
+                  m.kind === "bot" && m.id === id ? { ...m, noMatch: true, text: fallbackText } : m,
                 ),
               }));
             }
@@ -122,6 +140,10 @@ export const useChat = create<ChatState>((set, get) => ({
             break;
           case "teach_ack": {
             const queueId = ev.queue_id;
+            // Read locale imperatively at event time (mirrors api/chat.ts
+            // pattern) — the user may have switched locales mid-stream and
+            // we want the confirmation in their current language.
+            const locale = preferencesStore.getState().primaryLocale;
             set((s) => ({
               messages: [
                 ...s.messages.map((m) =>
@@ -133,7 +155,7 @@ export const useChat = create<ChatState>((set, get) => ({
                   kind: "system",
                   id: newId(),
                   variant: "success",
-                  text: "learned! i'll remember that next time.",
+                  text: translate(locale, "system.learned"),
                   createdAt: Date.now(),
                 },
               ],

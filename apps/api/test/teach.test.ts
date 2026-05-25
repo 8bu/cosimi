@@ -118,6 +118,62 @@ describe("POST /chat — /teach branch", () => {
     expect(events.some((e) => e.type === "no_match")).toBe(true);
   });
 
+  it("stamps locale on teach_queue + session_teaches when body.locale='en' (Phase 11.1)", async () => {
+    const sessionId = newSessionId();
+    const res = await postJson(app, "/chat", {
+      message: '/teach "pusi" => "cute kitten"',
+      session_id: sessionId,
+      locale: "en",
+    });
+    const events = await consumeChatStream(res);
+    const ack = events.find((e) => e.type === "teach_ack");
+    if (ack?.type !== "teach_ack") throw new Error("expected teach_ack");
+
+    const queue = await sql()<{ locale: string }[]>`
+      SELECT locale FROM teach_queue WHERE id = ${ack.queue_id}
+    `;
+    expect(queue[0]?.locale).toBe("en");
+
+    const cache = await sql()<{ locale: string }[]>`
+      SELECT locale FROM session_teaches WHERE teach_queue_id = ${ack.queue_id}
+    `;
+    expect(cache[0]?.locale).toBe("en");
+  });
+
+  it("defaults locale to 'und' when body.locale is omitted (Phase 11.1)", async () => {
+    const sessionId = newSessionId();
+    const res = await postJson(app, "/chat", {
+      message: '/teach "hi" => "hello"',
+      session_id: sessionId,
+    });
+    const events = await consumeChatStream(res);
+    const ack = events.find((e) => e.type === "teach_ack");
+    if (ack?.type !== "teach_ack") throw new Error("expected teach_ack");
+
+    const queue = await sql()<{ locale: string }[]>`
+      SELECT locale FROM teach_queue WHERE id = ${ack.queue_id}
+    `;
+    expect(queue[0]?.locale).toBe("und");
+  });
+
+  it("derives teach locale from locales[0] when body.locale is absent (Phase 11.1)", async () => {
+    const sessionId = newSessionId();
+    const res = await postJson(app, "/chat", {
+      message: '/teach "bonjour" => "salut"',
+      session_id: sessionId,
+      // No body.locale; the chat handler should fall back to locales[0].
+      locales: ["en", "und"],
+    });
+    const events = await consumeChatStream(res);
+    const ack = events.find((e) => e.type === "teach_ack");
+    if (ack?.type !== "teach_ack") throw new Error("expected teach_ack");
+
+    const queue = await sql()<{ locale: string }[]>`
+      SELECT locale FROM teach_queue WHERE id = ${ack.queue_id}
+    `;
+    expect(queue[0]?.locale).toBe("en");
+  });
+
   it("rejects an over-length reply with a TeachError-shaped SSE error event", async () => {
     const sessionId = newSessionId();
     const huge = "x".repeat(600); // default TEACH_MAX_LENGTH is 500

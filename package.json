@@ -16,8 +16,8 @@
     "db:reset": "docker compose -f docker-compose.dev.yml down -v && pnpm db:up",
     "migrate": "pnpm --filter @simlm/db migrate up",
     "seed": "tsx --env-file=.env packages/db/src/scripts/seed.ts seeds/vi/*.yaml seeds/chatterbot/*.yml",
-    "seed:vi": "tsx --env-file=.env packages/db/src/scripts/seed.ts seeds/vi/*.yaml",
-    "seed:chatterbot": "tsx --env-file=.env packages/db/src/scripts/seed.ts seeds/chatterbot/*.yml"
+    "seed:vi": "tsx --env-file=.env packages/db/src/scripts/seed.ts seeds/vi/*.yaml --locale=vi",
+    "seed:chatterbot": "tsx --env-file=.env packages/db/src/scripts/seed.ts seeds/chatterbot/*.yml --locale=en"
   },
   "devDependencies": {
     "@simlm/oxlint-config": "workspace:*",

@@ -10,11 +10,28 @@ export interface MatchResult {
   // session_teach tier (no underlying pair), populated for exact/fts/trigram.
   score: number | null;
   lowConfidence: boolean;
+  // The locale actually carried by the matched row (BCP-47, with 'und'
+  // for universal). Distinct from the *requested* primary locale: a Vi
+  // request that falls through to an 'und' row reports locale='und'
+  // here, which is what the UI badge surfaces (gated by
+  // EXPOSE_MATCH_INSIGHTS like tier/confidence/score).
+  locale: string;
 }
 
 export interface ChatRequest {
   message: string;
   session_id?: string;
+  // Ordered locale preference. The matcher tries each in turn (full
+  // session_teach→exact→fts→trigram cascade per locale) and returns the
+  // first hit. 'und'-tagged rows match alongside the requested locale.
+  // Missing → defaults to ['und']; a single value like ['vi'] sets primary
+  // with no fallback beyond the implicit 'und' overlap inside each tier.
+  locales?: string[];
+  // Locale to stamp on any /teach in this turn. The chat composer's
+  // current primary locale (set client-side). Distinct from locales[0]
+  // because admin tooling may want to teach in a locale that isn't the
+  // primary read locale. When omitted, the server derives from locales[0].
+  locale?: string;
 }
 
 /**
@@ -46,6 +63,9 @@ export type ChatStreamEvent =
       pairId: number | null;
       score: number | null;
       lowConfidence: boolean;
+      // BCP-47 code of the matched row. Null on the wire when
+      // EXPOSE_MATCH_INSIGHTS=false (same gating as tier/confidence/score).
+      locale: string | null;
     }
   | { type: "no_match" }
   | { type: "token"; content: string }
@@ -58,6 +78,9 @@ export interface TeachRequest {
   input?: string;
   topic?: string;
   session_id?: string;
+  // Locale of the new pair. Missing → 'und'. The chat composer sends the
+  // current UI primary locale; admin tools can pick freely.
+  locale?: string;
 }
 
 export interface FeedbackRequest {

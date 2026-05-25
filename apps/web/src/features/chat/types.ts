@@ -29,7 +29,7 @@ export interface BotMsg {
   text: string;
   status: MessageStatus;
   meta: null | {
-    // tier/confidence/score are null when the server runs with
+    // tier/confidence/score/locale are null when the server runs with
     // EXPOSE_MATCH_INSIGHTS=false. pairId stays for voting; lowConfidence
     // stays so the "Teach a better reply" CTA still surfaces.
     tier: MatchTier | null;
@@ -37,6 +37,7 @@ export interface BotMsg {
     pairId: number | null;
     score: number | null;
     lowConfidence: boolean;
+    locale: string | null;
   };
   noMatch: boolean;
   vote: -1 | 0 | 1;

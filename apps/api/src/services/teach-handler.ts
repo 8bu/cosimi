@@ -15,6 +15,13 @@ export interface TeachInput {
   input: string | null;
   reply: string;
   topic?: string;
+  /**
+   * BCP-47 locale of the new pair. Omitted → 'und' (universal). The chat
+   * handler derives this from the request body's `locale` (or `locales[0]`)
+   * so a Vi-primary user's teach lands on a `locale='vi'` row instead of
+   * leaking into the English experience.
+   */
+  locale?: string;
 }
 
 /**
@@ -71,9 +78,11 @@ export async function handleTeach(args: TeachInput): Promise<TeachOutcome> {
   // 5. Insert queue row + session cache atomically. The session cache is
   //    what the matcher's session_teach tier reads to serve this reply
   //    back to the same session for the next 10 minutes — without
-  //    waiting for admin approval.
+  //    waiting for admin approval. Both rows inherit the same locale so
+  //    the matcher's per-locale filter is symmetric across the two paths.
   const normalized_input = normalize(input);
   const ttl_minutes = env.SESSION_TEACH_TTL_MINUTES;
+  const locale = args.locale ?? "und";
 
   // RETURNING id::int because teach_queue.id is BIGSERIAL → postgres.js
   // ships BIGINT as string by default. We coerce here so the SSE event's
@@ -82,10 +91,10 @@ export async function handleTeach(args: TeachInput): Promise<TeachOutcome> {
     const queue = await tx<{ id: number }[]>`
       INSERT INTO teach_queue (
         input, normalized_input, response, topic,
-        submitted_by_session, status, flagged
+        submitted_by_session, status, flagged, locale
       ) VALUES (
         ${input}, ${normalized_input}, ${reply}, ${args.topic ?? null},
-        ${args.sessionId}::uuid, 'pending', ${flagged}
+        ${args.sessionId}::uuid, 'pending', ${flagged}, ${locale}
       )
       RETURNING id::int AS id
     `;
@@ -94,10 +103,10 @@ export async function handleTeach(args: TeachInput): Promise<TeachOutcome> {
     // (n || ' minutes')::interval would force a runtime cast we don't need.
     await tx`
       INSERT INTO session_teaches (
-        session_id, normalized_input, response, teach_queue_id, expires_at
+        session_id, normalized_input, response, teach_queue_id, expires_at, locale
       ) VALUES (
         ${args.sessionId}::uuid, ${normalized_input}, ${reply}, ${id},
-        NOW() + (${ttl_minutes} * INTERVAL '1 minute')
+        NOW() + (${ttl_minutes} * INTERVAL '1 minute'), ${locale}
       )
     `;
     return id;

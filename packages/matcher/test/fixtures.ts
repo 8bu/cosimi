@@ -23,6 +23,8 @@ export async function loadFixtures(): Promise<FixtureIds> {
   // All writes go through @simlm/db's canonical insertManyPairs path; that
   // keeps the test honest about the production code path (no direct
   // INSERT INTO pairs that bypasses normalization / generated columns).
+  // Pre-Phase-11.1 rows are untagged (default 'und' at the column); the
+  // locale-cascade tests append vi/en fixtures via seedLocaleFixtures().
   const rows: InsertPairInput[] = [
     { input: "Xin chào", response: "chào bạn!", source: "seed" },
     { input: "hello", response: "hi there", source: "seed" },
@@ -63,6 +65,50 @@ export async function loadFixtures(): Promise<FixtureIds> {
   await db`UPDATE pairs SET deleted_at = NOW() WHERE id = ${deletedPairId}`;
 
   return { exactPairId, helloPairId, deletedPairId, ftsPairIds, pingPairIds };
+}
+
+/**
+ * Locale-aware fixtures for Phase 11.1 cascade tests. Layered on top of
+ * loadFixtures() (which seeds 'und'-tagged rows by default) — we add a
+ * mixed-locale slice: 'meo meo' has both a vi and en pair; 'cat sound'
+ * exists only in en; 'only-und' exists only in 'und'. The cascade test
+ * exercises:
+ *   (a) vi primary against 'meo meo' returns the vi row
+ *   (b) en primary against 'meo meo' returns the en row
+ *   (c) vi primary against 'cat sound' falls through to en if the
+ *       request includes en as a fallback locale
+ *   (d) vi primary against 'only-und' returns the und row via the
+ *       per-tier locale='und' overlap (no fallback iteration needed)
+ */
+export interface LocaleFixtureIds {
+  meoViId: number;
+  meoEnId: number;
+  catEnId: number;
+  onlyUndId: number;
+}
+
+export async function seedLocaleFixtures(): Promise<LocaleFixtureIds> {
+  const rows: InsertPairInput[] = [
+    { input: "meo meo", response: "bé mèo đáng iu", source: "seed", locale: "vi" },
+    { input: "meo meo", response: "pusi pusi pusi", source: "seed", locale: "en" },
+    { input: "cat sound", response: "meow!", source: "seed", locale: "en" },
+    { input: "universal greeting", response: "hello, friend", source: "seed", locale: "und" },
+  ];
+  await insertManyPairs(rows);
+  const db = sql();
+  const inserted = await db<{ id: number; input: string; locale: string }[]>`
+    SELECT id::int AS id, input, locale FROM pairs
+    WHERE input IN ('meo meo', 'cat sound', 'universal greeting')
+    ORDER BY id ASC
+  `;
+  const findBy = (input: string, locale: string) =>
+    inserted.find((r) => r.input === input && r.locale === locale)!.id;
+  return {
+    meoViId: findBy("meo meo", "vi"),
+    meoEnId: findBy("meo meo", "en"),
+    catEnId: findBy("cat sound", "en"),
+    onlyUndId: findBy("universal greeting", "und"),
+  };
 }
 
 // session_teaches.teach_queue_id is NOT NULL with a real FK; create a queue row

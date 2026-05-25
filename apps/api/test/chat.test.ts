@@ -151,4 +151,62 @@ describe("POST /chat", () => {
     const res = await postJson(app, "/chat", { message: "x".repeat(2001) });
     expect(res.status).toBe(400);
   });
+
+  describe("locale-aware no_match + metadata.locale (Phase 11.1)", () => {
+    it("emits no_match as a pure signal — no fallback tokens (FE owns the wording)", async () => {
+      // The fallback message is FE chrome (i18n); the server keeps out of
+      // it so a client-side locale switch doesn't have to round-trip.
+      // Tokens MUST be absent on the no_match path — if a future change
+      // re-introduces them, this test guards against the regression.
+      const res = await postJson(app, "/chat", { message: "novel input vi", locales: ["vi"] });
+      const events = await consumeChatStream(res);
+      expect(events.some((e) => e.type === "no_match")).toBe(true);
+      const tokens = events.filter((e) => e.type === "token");
+      expect(tokens).toEqual([]);
+    });
+
+    it("locales=['en'] also yields a token-free no_match (server text-agnostic on the miss path)", async () => {
+      const res = await postJson(app, "/chat", { message: "novel input en", locales: ["en"] });
+      const events = await consumeChatStream(res);
+      expect(events.some((e) => e.type === "no_match")).toBe(true);
+      expect(events.filter((e) => e.type === "token")).toEqual([]);
+    });
+
+    it("carries metadata.locale when EXPOSE_MATCH_INSIGHTS=true (default in tests)", async () => {
+      await seedPairs([
+        { input: "meo meo", response: "bé mèo đáng iu", source: "seed", locale: "vi" },
+      ]);
+      const res = await postJson(app, "/chat", { message: "meo meo", locales: ["vi", "und"] });
+      const events = await consumeChatStream(res);
+      const meta = events.find((e) => e.type === "metadata");
+      if (meta?.type !== "metadata") throw new Error("expected metadata event");
+      expect(meta.locale).toBe("vi");
+      expect(meta.tier).toBe("exact");
+    });
+
+    it("returns the matched-row locale, not the requested locale, when a 'und' row catches the request", async () => {
+      await seedPairs([
+        { input: "universal", response: "hello, friend", source: "seed", locale: "und" },
+      ]);
+      const res = await postJson(app, "/chat", { message: "universal", locales: ["vi", "und"] });
+      const events = await consumeChatStream(res);
+      const meta = events.find((e) => e.type === "metadata");
+      if (meta?.type !== "metadata") throw new Error("expected metadata event");
+      expect(meta.locale).toBe("und");
+    });
+
+    it("falls through across locale list — picks en when vi has no hit", async () => {
+      await seedPairs([
+        { input: "novel cat phrase", response: "meow!", source: "seed", locale: "en" },
+      ]);
+      const res = await postJson(app, "/chat", {
+        message: "novel cat phrase",
+        locales: ["vi", "en"],
+      });
+      const events = await consumeChatStream(res);
+      const meta = events.find((e) => e.type === "metadata");
+      if (meta?.type !== "metadata") throw new Error("expected metadata event");
+      expect(meta.locale).toBe("en");
+    });
+  });
 });

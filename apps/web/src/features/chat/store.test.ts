@@ -47,6 +47,7 @@ describe("useChat.send — regular message flow", () => {
           pairId: 42,
           score: 0,
           lowConfidence: false,
+          locale: null,
         },
         { type: "token", content: "hello" },
         { type: "token", content: " world" },
@@ -111,20 +112,23 @@ describe("useChat.send — teach branch", () => {
 });
 
 describe("useChat.send — no_match branch", () => {
-  it("sets noMatch=true on the bot placeholder and settles cleanly", async () => {
-    mocks.streamChat.mockReturnValueOnce(
-      makeStream([{ type: "no_match" }, { type: "token", content: "hmm idk" }]),
-    );
+  it("on no_match: sets noMatch=true AND picks a fallback variant from en['noMatch.fallback'] pool", async () => {
+    // Server emits no_match as a pure signal — no token events follow.
+    // The reducer fills bot.text by random-picking from the dict's
+    // noMatch.fallback array. Assert pool MEMBERSHIP (not equality to a
+    // specific variant) because the pick is random.
+    const enDict = (await import("@/lib/i18n/en")).en;
+    mocks.streamChat.mockReturnValueOnce(makeStream([{ type: "no_match" }]));
 
     await useChat.getState().send("asdfqwer1234");
 
     const bot = useChat.getState().messages.find((m) => m.kind === "bot");
-    expect(bot).toMatchObject({
-      noMatch: true,
-      status: "settled",
-      meta: null,
-      text: "hmm idk",
-    });
+    if (bot?.kind !== "bot") throw new Error("expected bot message");
+    expect(bot.noMatch).toBe(true);
+    expect(bot.status).toBe("settled");
+    expect(bot.meta).toBeNull();
+    // Default primaryLocale is 'en' (preferences store default).
+    expect(enDict["noMatch.fallback"]).toContain(bot.text);
   });
 });
 
@@ -144,6 +148,7 @@ describe("useChat.send — finally-settle (no structured done event)", () => {
           pairId: 1,
           score: 0,
           lowConfidence: false,
+          locale: null,
         },
         { type: "token", content: "hi" },
       ]),
@@ -167,6 +172,7 @@ describe("useChat.send — error handling", () => {
           pairId: 1,
           score: 0,
           lowConfidence: false,
+          locale: null,
         },
         { type: "error", message: "internal error" },
       ]),
@@ -191,6 +197,7 @@ describe("useChat.send — error handling", () => {
         pairId: 2,
         score: 0,
         lowConfidence: false,
+        locale: null,
       };
       throw new Error("connection reset");
     });
@@ -219,6 +226,7 @@ describe("useChat.send — concurrency guard", () => {
         pairId: 1,
         score: 0,
         lowConfidence: false,
+        locale: null,
       };
       await gate;
     });
@@ -255,6 +263,7 @@ describe("useChat.setVote — optimistic + revert", () => {
           pairId: 99,
           score: 0,
           lowConfidence: false,
+          locale: null,
         },
         { type: "token", content: "hi" },
       ]),

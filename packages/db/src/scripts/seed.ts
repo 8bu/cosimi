@@ -62,7 +62,12 @@ async function loadFile(file: string): Promise<{ pairs: Pair[]; defaultTopic?: s
   }
 }
 
-async function seedFile(file: string, source: Source, topicOverride?: string): Promise<void> {
+async function seedFile(
+  file: string,
+  source: Source,
+  topicOverride?: string,
+  locale?: string,
+): Promise<void> {
   const { pairs, defaultTopic } = await loadFile(file);
   const topicForBatch = topicOverride ?? defaultTopic;
   const batchId = await createBatch(source, topicForBatch, `seed from ${file}`);
@@ -72,10 +77,13 @@ async function seedFile(file: string, source: Source, topicOverride?: string): P
     source,
     topic: topicOverride ?? p.topic ?? defaultTopic ?? null,
     batch_id: batchId,
+    locale,
   }));
   const count = await insertManyPairs(rows);
   await setBatchCount(batchId, count);
-  console.log(`seeded ${count} pairs from ${file} under batch #${batchId}`);
+  console.log(
+    `seeded ${count} pairs from ${file} under batch #${batchId} (locale=${locale ?? "und"})`,
+  );
 }
 
 async function main(): Promise<void> {
@@ -84,12 +92,17 @@ async function main(): Promise<void> {
     options: {
       source: { type: "string", default: "seed" },
       topic: { type: "string" },
+      // BCP-47 locale tag for every row in this run. Omitted → 'und'
+      // (Postgres default at the schema level; see migration 010).
+      locale: { type: "string" },
     },
     allowPositionals: true,
   });
 
   if (positionals.length === 0) {
-    console.error("usage: seed <file> [<file> ...] [--source=seed|user|chat|llm] [--topic=...]");
+    console.error(
+      "usage: seed <file> [<file> ...] [--source=seed|user|chat|llm] [--topic=...] [--locale=vi|en|...]",
+    );
     process.exit(2);
   }
 
@@ -100,7 +113,7 @@ async function main(): Promise<void> {
   }
 
   for (const file of positionals) {
-    await seedFile(file, source, values.topic);
+    await seedFile(file, source, values.topic, values.locale);
   }
 }
 
