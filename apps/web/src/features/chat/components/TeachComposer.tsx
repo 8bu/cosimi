@@ -2,25 +2,51 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useChat } from "@/features/chat/store";
 
-// Reusable inline composer. The parent (e.g. <BotMessage/>) owns the open
-// state and passes `onSubmit` to close itself; this component never reaches
-// into parent state. Same shape will be reusable when Phase 12+ adds an
-// admin-side teach affordance.
-export function TeachComposer({ onSubmit }: { onSubmit: () => void }) {
+/**
+ * Reusable inline composer. The parent owns the open state and passes
+ * `onSubmit` to close itself.
+ *
+ * `forInput` opt: when set, the teach is bound to that specific input
+ * via the explicit form `/teach "input" => "reply"`. Without it, falls
+ * back to the implicit form `/teach <reply>` which the server resolves
+ * against `sessions.last_input`. The inline CTA on a bot message always
+ * passes `forInput` (snapshot of the input that produced this turn) —
+ * that's the fix for the "I clicked teach on turn 1 but it taught turn
+ * 2 because I'd sent another message in between" race.
+ *
+ * The server's EXPLICIT_RE (`/^"([^"]+)"\s*=>\s*"([^"]+)"$/` in
+ * apps/api/src/services/teach-parser.ts) has no escape syntax — strings
+ * containing `"` would break parsing. We fall back to the implicit form
+ * in that case rather than producing a broken `/teach` command.
+ */
+export function TeachComposer({ onSubmit, forInput }: { onSubmit: () => void; forInput?: string }) {
   const [reply, setReply] = useState("");
   const send = useChat((s) => s.send);
 
   const submit = () => {
-    const trimmed = reply.trim();
-    if (!trimmed) return;
-    void send(`/teach ${trimmed}`);
+    const trimmedReply = reply.trim();
+    if (!trimmedReply) return;
+    const canExplicit = forInput && !forInput.includes('"') && !trimmedReply.includes('"');
+    const command = canExplicit
+      ? `/teach "${forInput}" => "${trimmedReply}"`
+      : `/teach ${trimmedReply}`;
+    void send(command);
     setReply("");
     onSubmit();
   };
 
   return (
     <div className="rounded-md border border-teach/30 bg-teach/[0.04] p-3 flex flex-col gap-2">
-      <p className="text-xs text-muted-foreground">What should I have said?</p>
+      <p className="text-xs text-muted-foreground">
+        {forInput ? (
+          <>
+            What should I have said to{" "}
+            <span className="font-mono text-foreground/80">{forInput}</span>?
+          </>
+        ) : (
+          <>What should I have said?</>
+        )}
+      </p>
       <textarea
         rows={2}
         value={reply}
