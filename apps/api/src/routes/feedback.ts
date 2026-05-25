@@ -3,6 +3,7 @@ import * as v from "valibot";
 
 import { sql } from "@simlm/db";
 import { loadEnv } from "@simlm/config";
+import type { FeedbackResponse } from "@simlm/types";
 
 import { withSession } from "../lib/session";
 
@@ -68,7 +69,8 @@ feedbackRoute.post("/", withSession, async (c) => {
     });
 
     if (!result) return c.json({ error: "pair not found" }, 404);
-    return c.json({ pair_id, ...result });
+    const payload: FeedbackResponse = { pair_id, ...result };
+    return c.json(payload);
   } catch (err) {
     // FK violation (pair deleted between SELECT and INSERT) — treat as 404
     if (err && typeof err === "object" && "code" in err && err.code === "23503") {

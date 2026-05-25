@@ -1,4 +1,5 @@
 import { sql } from "@simlm/db";
+import type { HealthResponse } from "@simlm/types";
 import { Hono } from "hono";
 
 const startedAt = Date.now();
@@ -34,13 +35,11 @@ healthRoute.get("/", async (c) => {
   } catch {
     dbOk = false;
   }
-  return c.json(
-    {
-      ok: dbOk,
-      db: dbOk ? "up" : "down",
-      db_latency_ms: dbLatencyMs,
-      uptime_s: Math.floor((Date.now() - startedAt) / 1000),
-    },
-    dbOk ? 200 : 503,
-  );
+  const payload: HealthResponse = {
+    ok: dbOk,
+    db: dbOk ? "up" : "down",
+    db_latency_ms: dbLatencyMs,
+    uptime_s: Math.floor((Date.now() - startedAt) / 1000),
+  };
+  return c.json(payload, dbOk ? 200 : 503);
 });
