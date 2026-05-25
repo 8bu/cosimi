@@ -94,12 +94,7 @@ export function UnansweredView() {
       </div>
 
       {(page > 0 || items.length === PAGE_SIZE) && (
-        <Pagination
-          page={page}
-          pageSize={PAGE_SIZE}
-          itemCount={items.length}
-          onPageChange={setPage}
-        />
+        <Pagination page={page} hasMore={items.length === PAGE_SIZE} onChange={setPage} />
       )}
 
       <TeachDialog open={teachOpen} onOpenChange={setTeachOpen} input={teachInput} />
