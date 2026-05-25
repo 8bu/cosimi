@@ -30,6 +30,7 @@ describe("parseSseStream", () => {
         tier: "exact",
         confidence: 1,
         pairId: 42,
+        score: 0,
         lowConfidence: false,
       })}\n\n`,
       `data: ${JSON.stringify({ type: "token", content: "hello " })}\n\n`,
@@ -40,7 +41,14 @@ describe("parseSseStream", () => {
     const events = await collect(streamOf([frames]));
     expect(events).toEqual([
       { type: "session", session_id: "abc" },
-      { type: "metadata", tier: "exact", confidence: 1, pairId: 42, lowConfidence: false },
+      {
+        type: "metadata",
+        tier: "exact",
+        confidence: 1,
+        pairId: 42,
+        score: 0,
+        lowConfidence: false,
+      },
       { type: "token", content: "hello " },
       { type: "token", content: "world" },
       { type: "done" },

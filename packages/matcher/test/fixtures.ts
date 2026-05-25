@@ -40,8 +40,11 @@ export async function loadFixtures(): Promise<FixtureIds> {
 
   await insertManyPairs(rows);
 
+  // `id::int AS id` mirrors the matcher tier SELECTs — BIGSERIAL ships as
+  // a string through postgres.js by default, so the cast is what keeps
+  // fixture ids as JS numbers matching MatchResult.pairId (also a number).
   const inserted = await db<{ id: number; input: string }[]>`
-    SELECT id, input FROM pairs ORDER BY id ASC
+    SELECT id::int AS id, input FROM pairs ORDER BY id ASC
   `;
   const find = (input: string) => inserted.find((r) => r.input === input)!.id;
   const findAll = (input: string) => inserted.filter((r) => r.input === input).map((r) => r.id);

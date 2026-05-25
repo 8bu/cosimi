@@ -22,6 +22,9 @@ export async function sessionTeachTier(
     tier: "session_teach",
     confidence: 1.0,
     pairId: null,
+    // No underlying pair — score is meaningless for this tier. UI omits
+    // the "· score N" trailer when score is null.
+    score: null,
     lowConfidence: false,
   };
 }

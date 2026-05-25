@@ -6,8 +6,12 @@ export async function exactTier(
   normalizedInput: string,
   topK: number,
 ): Promise<MatchResult | null> {
-  const rows = await sql()<{ id: number; response: string }[]>`
-    SELECT id, response
+  // `id::int AS id` — BIGSERIAL round-trips as a string through postgres.js
+  // by default; the cast lands a JS number to match MatchResult.pairId's
+  // type and keeps wire shapes numeric (the chat-handler emits this id in
+  // the SSE metadata event; feedback's valibot validator wants v.number()).
+  const rows = await sql()<{ id: number; response: string; score: number }[]>`
+    SELECT id::int AS id, response, score
     FROM pairs
     WHERE normalized_unaccented = f_unaccent(${normalizedInput})
       AND deleted_at IS NULL
@@ -21,6 +25,7 @@ export async function exactTier(
     tier: "exact",
     confidence: 1.0,
     pairId: pick.id,
+    score: pick.score,
     lowConfidence: false,
   };
 }
