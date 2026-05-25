@@ -57,8 +57,21 @@ export interface FeedbackRequest {
   session_id?: string;
 }
 
+export interface FeedbackResponse {
+  pair_id: number;
+  new_score: number;
+  was_pruned: boolean;
+}
+
 export interface StatsResponse {
   total_pairs_learned: number;
+}
+
+export interface HealthResponse {
+  ok: boolean;
+  db: "up" | "down";
+  db_latency_ms: number | null;
+  uptime_s: number;
 }
 
 export interface AdminPair {
