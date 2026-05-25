@@ -121,6 +121,28 @@ describe("/pairs CRUD", () => {
       expect(body.items.length).toBe(1);
     });
 
+    it("?batch_id= filters by import batch", async () => {
+      // Two batches; we expect ?batch_id=N to return only rows from N.
+      const batchA = await sql()<{ id: number }[]>`
+        INSERT INTO import_batches (source, topic, note)
+        VALUES ('seed', NULL, 'a') RETURNING id::int AS id
+      `;
+      const batchB = await sql()<{ id: number }[]>`
+        INSERT INTO import_batches (source, topic, note)
+        VALUES ('seed', NULL, 'b') RETURNING id::int AS id
+      `;
+      await seedPairs([
+        { input: "a1", response: "x", source: "seed", batch_id: batchA[0]!.id },
+        { input: "a2", response: "y", source: "seed", batch_id: batchA[0]!.id },
+        { input: "b1", response: "z", source: "seed", batch_id: batchB[0]!.id },
+      ]);
+      const res = await getJson(app, `/pairs?batch_id=${batchA[0]!.id}`);
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as { items: { input: string; batch_id: number }[] };
+      expect(body.items.map((p) => p.input).toSorted()).toEqual(["a1", "a2"]);
+      expect(body.items.every((p) => p.batch_id === batchA[0]!.id)).toBe(true);
+    });
+
     it("?q= fuzzy-matches on normalized_unaccented", async () => {
       await seedPairs([
         { input: "café au lait", response: "x", source: "seed" },

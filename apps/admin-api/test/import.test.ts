@@ -74,4 +74,49 @@ describe("POST /import", () => {
     const res2 = await postJson(app, "/import?source=user", []);
     expect(res2.status).toBe(400);
   });
+
+  it("clears matching unanswered rows whose normalized_input matches any imported pair", async () => {
+    // Two pending unanswered rows; one should be cleared by the import,
+    // the other should survive (no matching input). Mirrors the POST
+    // /pairs cleanup invariant — Phase 14 patches the same contract into
+    // bulk import so a freshly-imported corpus stops shadowing the
+    // operator's question queue.
+    await sql()`
+      INSERT INTO unanswered (input, normalized_input, source, count, last_seen)
+      VALUES ('What time is it?', 'what time is it?', 'chat', 5, NOW()),
+             ('Why is the sky blue?', 'why is the sky blue?', 'chat', 3, NOW())
+    `;
+
+    const res = await postJson(app, "/import?source=seed", [
+      { input: "What time is it?", response: "Time to teach." },
+      { input: "Something totally unrelated", response: "x" },
+    ]);
+    expect(res.status).toBe(200);
+
+    const remaining = await sql()<{ normalized_input: string }[]>`
+      SELECT normalized_input FROM unanswered ORDER BY normalized_input
+    `;
+    expect(remaining.map((r) => r.normalized_input)).toEqual(["why is the sky blue?"]);
+  });
+
+  it("JSONL streaming also clears matching unanswered rows across flushes", async () => {
+    await sql()`
+      INSERT INTO unanswered (input, normalized_input, source, count, last_seen)
+      VALUES ('seed line 0', 'seed line 0', 'chat', 1, NOW())
+    `;
+    // Use >FLUSH_AT lines so the matching row is reached after a flush;
+    // proves the per-batch reset doesn't lose the normalized-seen set.
+    const lines: string[] = [];
+    for (let i = 0; i < 600; i++) {
+      lines.push(JSON.stringify({ input: `seed line ${i}`, response: `r${i}` }));
+    }
+    const res = await postRaw(app, "/import?source=llm", lines.join("\n"), {
+      "content-type": "application/x-ndjson",
+    });
+    expect(res.status).toBe(200);
+    const remaining = await sql()<{ count: number }[]>`
+      SELECT COUNT(*)::int AS count FROM unanswered
+    `;
+    expect(remaining[0]?.count).toBe(0);
+  });
 });

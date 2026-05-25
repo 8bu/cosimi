@@ -1,7 +1,8 @@
 import { Hono } from "hono";
 import * as v from "valibot";
 
-import { createBatch, insertManyPairs, setBatchCount } from "@simlm/db";
+import { createBatch, insertManyPairs, setBatchCount, sql } from "@simlm/db";
+import { normalize } from "@simlm/normalizer";
 
 const ImportQuerySchema = v.object({
   source: v.picklist(["seed", "llm"] as const),
@@ -38,6 +39,16 @@ importRoute.post("/", async (c) => {
 
   const batchId = await createBatch(q.source, q.topic, "via /import");
   let total = 0;
+  // Phase 14 invariant: an imported pair whose normalized form matches a
+  // pending `unanswered` row should clear that row, same as the POST
+  // /pairs canonical write path's atomic DELETE. We collect normalized
+  // inputs across all flushes (the batch array is reset every 500 rows)
+  // and DELETE in one shot at the end. Scoped per-import so the seed CLI
+  // — which calls insertManyPairs directly through `pnpm seed:vi` — is
+  // unaffected (seeds run before any user traffic, so there's nothing to
+  // clean). If a future caller wants the cleanup, push it down into
+  // `@simlm/db` then; two call sites isn't the threshold.
+  const normalizedSeen = new Set<string>();
   const ct = c.req.header("content-type") ?? "";
 
   if (ct.includes("ndjson") || ct.includes("jsonl")) {
@@ -69,6 +80,7 @@ importRoute.post("/", async (c) => {
       const parsed = v.safeParse(ImportRowSchema, JSON.parse(trimmed));
       if (!parsed.success) throw new Error("invalid jsonl row");
       batch.push(parsed.output);
+      normalizedSeen.add(normalize(parsed.output.input));
     };
 
     for (;;) {
@@ -100,6 +112,14 @@ importRoute.post("/", async (c) => {
         batch_id: batchId,
       })),
     );
+    for (const r of parsed.output) normalizedSeen.add(normalize(r.input));
+  }
+
+  // Unanswered cleanup. Single statement, ANY(text[]) keeps the bind
+  // count constant regardless of import size.
+  if (normalizedSeen.size > 0) {
+    const normalizedList = Array.from(normalizedSeen);
+    await sql()`DELETE FROM unanswered WHERE normalized_input = ANY(${normalizedList})`;
   }
 
   await setBatchCount(batchId, total);

@@ -28,6 +28,10 @@ const ListQuerySchema = v.object({
   source: v.optional(v.picklist(["seed", "user", "chat", "llm"] as const)),
   topic: v.optional(v.string()),
   q: v.optional(v.string()),
+  // batch_id is wired as a navigation target from /import's success card;
+  // the Pairs UI doesn't surface a manual input for it (PairsFilters
+  // stays focused on the day-to-day filters). URL-driven only.
+  batch_id: v.optional(v.pipe(v.string(), v.decimal(), v.transform(Number), v.integer())),
   include_deleted: v.optional(
     v.pipe(
       v.string(),
@@ -50,6 +54,7 @@ pairsRoute.get("/", async (c) => {
   const deletedClause = q.include_deleted ? db`TRUE` : db`deleted_at IS NULL`;
   const sourceClause = q.source !== undefined ? db`AND source = ${q.source}` : db``;
   const topicClause = q.topic !== undefined ? db`AND topic = ${q.topic}` : db``;
+  const batchClause = q.batch_id !== undefined ? db`AND batch_id = ${q.batch_id}` : db``;
   // `q` filters on normalized_unaccented via ILIKE so callers can fuzzy-grep
   // the corpus. Wrapping with f_unaccent on both sides keeps the comparison
   // symmetric with the matcher's write/read pipeline.
@@ -66,6 +71,7 @@ pairsRoute.get("/", async (c) => {
      WHERE ${deletedClause}
        ${sourceClause}
        ${topicClause}
+       ${batchClause}
        ${searchClause}
      ORDER BY id DESC
      LIMIT ${q.limit} OFFSET ${q.offset}
