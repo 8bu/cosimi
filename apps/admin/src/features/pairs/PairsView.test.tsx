@@ -19,11 +19,11 @@ vi.mock("@/api/client", () => ({
 
 const { PairsView } = await import("@/features/pairs/PairsView");
 
-function renderView() {
+function renderView(initialEntries: string[] = ["/pairs"]) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={qc}>
-      <MemoryRouter>
+      <MemoryRouter initialEntries={initialEntries}>
         <PairsView />
       </MemoryRouter>
     </QueryClientProvider>,
@@ -127,5 +127,25 @@ describe("<PairsView>", () => {
     mocks.apiJson.mockResolvedValueOnce({ items: [], limit: 50, offset: 0 });
     renderView();
     expect(await screen.findByText("No matches.")).toBeInTheDocument();
+  });
+
+  it("URL ?batch_id=N feeds the query and renders a read-only filter chip", async () => {
+    mocks.apiJson.mockResolvedValueOnce({ items: pairs, limit: 50, offset: 0 });
+    renderView(["/pairs?batch_id=42"]);
+
+    await screen.findByText("hello");
+    // Chip shown for the active batch filter
+    expect(screen.getByText("#42")).toBeInTheDocument();
+    // Query URL includes batch_id
+    expect(mocks.apiJson).toHaveBeenCalledWith("/pairs?batch_id=42&limit=50&offset=0");
+  });
+
+  it("malformed ?batch_id= (non-numeric) is ignored — no chip, no batch_id query", async () => {
+    mocks.apiJson.mockResolvedValueOnce({ items: pairs, limit: 50, offset: 0 });
+    renderView(["/pairs?batch_id=abc"]);
+
+    await screen.findByText("hello");
+    expect(screen.queryByText("#abc")).not.toBeInTheDocument();
+    expect(mocks.apiJson).toHaveBeenCalledWith("/pairs?limit=50&offset=0");
   });
 });

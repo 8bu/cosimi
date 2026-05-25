@@ -51,6 +51,7 @@ export interface PairsListParams {
   source?: Source;
   topic?: string;
   q?: string;
+  batch_id?: number;
   include_deleted?: boolean;
   limit?: number;
   offset?: number;
@@ -73,6 +74,7 @@ export function buildPairsUrl(p: PairsListParams): string {
   if (p.source) qs.set("source", p.source);
   if (p.topic) qs.set("topic", p.topic);
   if (p.q) qs.set("q", p.q);
+  if (p.batch_id !== undefined) qs.set("batch_id", String(p.batch_id));
   if (p.include_deleted) qs.set("include_deleted", "true");
   qs.set("limit", String(p.limit ?? 50));
   qs.set("offset", String(p.offset ?? 0));
