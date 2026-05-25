@@ -98,6 +98,9 @@ importers:
       '@simlm/normalizer':
         specifier: workspace:*
         version: link:../../packages/normalizer
+      '@simlm/template':
+        specifier: workspace:*
+        version: link:../../packages/template
       '@simlm/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -144,6 +147,12 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.1.0
         version: 1.2.8(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      '@simlm/branding':
+        specifier: workspace:*
+        version: link:../../packages/branding
+      '@simlm/template':
+        specifier: workspace:*
+        version: link:../../packages/template
       '@simlm/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -208,6 +217,19 @@ importers:
       vitest:
         specifier: ^3.0.0
         version: 3.2.4(@types/node@22.19.17)(lightningcss@1.32.0)
+
+  packages/branding:
+    dependencies:
+      '@simlm/template':
+        specifier: workspace:*
+        version: link:../template
+    devDependencies:
+      '@simlm/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
 
   packages/config:
     dependencies:
@@ -319,6 +341,18 @@ importers:
         version: 3.2.4(@types/node@22.19.17)(lightningcss@1.32.0)
 
   packages/oxlint-config: {}
+
+  packages/template:
+    devDependencies:
+      '@simlm/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.4(@types/node@22.19.17)(lightningcss@1.32.0)
 
   packages/tsconfig: {}
 

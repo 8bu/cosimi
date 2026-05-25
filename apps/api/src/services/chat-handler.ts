@@ -3,8 +3,9 @@ import { normalize } from "@simlm/normalizer";
 import { getAppConfig, sql } from "@simlm/db";
 import { loadEnv, type Env } from "@simlm/config";
 
+import { renderTemplate } from "@simlm/template";
+
 import type { Emitter } from "../lib/sse";
-import { renderTemplate } from "../lib/template";
 import { tokenize, jitterMs, sleep } from "../lib/tokenizer";
 import { handleTeach, TeachError } from "./teach-handler";
 import { parseTeachCommand, looksLikeTeach } from "./teach-parser";

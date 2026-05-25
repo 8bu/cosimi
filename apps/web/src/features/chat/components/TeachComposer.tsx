@@ -1,3 +1,4 @@
+import { renderTemplate } from "@simlm/template";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useChat } from "@/features/chat/store";
@@ -37,7 +38,9 @@ export function TeachComposer({ onSubmit, forInput }: { onSubmit: () => void; fo
     onSubmit();
   };
 
-  const prompt = forInput ? t("teach.promptFor").replace("{input}", forInput) : t("teach.prompt");
+  const prompt = forInput
+    ? renderTemplate(t("teach.promptFor"), { input: forInput })
+    : t("teach.prompt");
 
   return (
     <div className="rounded-md border border-teach/30 bg-teach/[0.04] p-3 flex flex-col gap-2">

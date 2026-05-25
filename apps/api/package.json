@@ -16,6 +16,7 @@
     "@simlm/logger": "workspace:*",
     "@simlm/matcher": "workspace:*",
     "@simlm/normalizer": "workspace:*",
+    "@simlm/template": "workspace:*",
     "@simlm/types": "workspace:*",
     "hono": "^4.10.0",
     "pino": "^10.0.0",

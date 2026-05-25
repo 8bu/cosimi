@@ -1,3 +1,4 @@
+import { withBrand } from "@simlm/branding";
 import { Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -53,7 +54,7 @@ export function Composer() {
           ref={taRef}
           rows={1}
           className="flex-1 bg-transparent outline-none resize-none py-1 leading-6 max-h-36"
-          placeholder={t("composer.placeholder")}
+          placeholder={withBrand(t("composer.placeholder"))}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => {

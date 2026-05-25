@@ -1,3 +1,4 @@
+import { renderTemplate } from "@simlm/template";
 import { AlertTriangle } from "lucide-react";
 import type { MatchTier } from "@simlm/types";
 import type { BotMsg } from "@/features/chat/types";
@@ -48,7 +49,7 @@ export function MatchBadge({ meta, noMatch }: { meta: BotMsg["meta"]; noMatch?: 
           when it signals cross-language fallback (Vi user, En match). */}
       {meta.locale &&
         meta.locale !== "und" &&
-        ` · ${t("badge.fromLocale").replace("{locale}", meta.locale)}`}
+        ` · ${renderTemplate(t("badge.fromLocale"), { locale: meta.locale })}`}
     </span>
   );
 }
