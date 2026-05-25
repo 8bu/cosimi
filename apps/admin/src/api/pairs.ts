@@ -1,4 +1,5 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { AdminPair, Source } from "@simlm/types";
 import { apiJson } from "@/api/client";
 
 export interface CreatePairBody {
@@ -37,6 +38,98 @@ export function useCreatePair() {
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin", "unanswered"] });
+      qc.invalidateQueries({ queryKey: ["admin", "stats"] });
+      // Phase 13: a freshly-taught pair also belongs to the /pairs list.
+      qc.invalidateQueries({ queryKey: ["admin", "pairs"] });
+    },
+  });
+}
+
+// ---- Phase 13: list / edit / delete / restore --------------------------
+
+export interface PairsListParams {
+  source?: Source;
+  topic?: string;
+  q?: string;
+  include_deleted?: boolean;
+  limit?: number;
+  offset?: number;
+}
+
+export interface PairsListResponse {
+  items: AdminPair[];
+  limit: number;
+  offset: number;
+}
+
+/**
+ * URL build follows the buildUnansweredUrl convention: URLSearchParams,
+ * skip undefined / empty values so the wire shape stays minimal.
+ * include_deleted=false is omitted (the admin-api transform schema
+ * defaults to false).
+ */
+export function buildPairsUrl(p: PairsListParams): string {
+  const qs = new URLSearchParams();
+  if (p.source) qs.set("source", p.source);
+  if (p.topic) qs.set("topic", p.topic);
+  if (p.q) qs.set("q", p.q);
+  if (p.include_deleted) qs.set("include_deleted", "true");
+  qs.set("limit", String(p.limit ?? 50));
+  qs.set("offset", String(p.offset ?? 0));
+  return `/pairs?${qs.toString()}`;
+}
+
+export function usePairs(p: PairsListParams) {
+  return useQuery({
+    queryKey: ["admin", "pairs", p],
+    queryFn: () => apiJson<PairsListResponse>(buildPairsUrl(p)),
+    placeholderData: (prev) => prev,
+  });
+}
+
+/**
+ * Patch body mirrors admin-api's EditSchema: input/response/topic/
+ * source/flagged. `locale` is deliberately absent — AdminPair has no
+ * locale field, and the PATCH valibot schema doesn't accept it. Phase
+ * the locale-edit UX separately if/when product asks.
+ */
+export interface EditPairBody {
+  input?: string;
+  response?: string;
+  topic?: string;
+  source?: Source;
+  flagged?: boolean;
+}
+
+export function useEditPair() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (args: { id: number; patch: EditPairBody }) =>
+      apiJson<{ ok: true }>(`/pairs/${args.id}`, {
+        method: "PATCH",
+        body: JSON.stringify(args.patch),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "pairs"] }),
+  });
+}
+
+export function useDeletePair() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => apiJson<{ ok: true }>(`/pairs/${id}`, { method: "DELETE" }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "pairs"] });
+      qc.invalidateQueries({ queryKey: ["admin", "stats"] });
+    },
+  });
+}
+
+export function useRestorePair() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => apiJson<{ ok: true }>(`/pairs/${id}/restore`, { method: "POST" }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "pairs"] });
       qc.invalidateQueries({ queryKey: ["admin", "stats"] });
     },
   });

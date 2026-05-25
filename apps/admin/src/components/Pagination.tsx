@@ -3,25 +3,24 @@ import { Button } from "@/components/ui/button";
 
 interface Props {
   page: number; // zero-indexed
-  pageSize: number;
-  itemCount: number; // items currently on screen (not total — admin-api doesn't return total)
-  onPageChange: (next: number) => void;
+  hasMore: boolean; // caller computes (e.g. items.length === PAGE_SIZE)
+  onChange: (next: number) => void;
 }
 
 /**
  * Minimal prev/next pagination. We don't know the total row count
- * (admin-api's /unanswered returns `{ items, limit, offset }` without a
- * total — adding COUNT(*) would be a second seq-scan on the unanswered
- * table). "Has-next" is inferred from `itemCount === pageSize`: a full
- * page implies there might be more, an underfilled page is the end.
+ * (admin-api list routes return `{ items, limit, offset }` without a
+ * total — adding COUNT(*) would be a second seq-scan). The caller owns
+ * the "has-next" decision (typically `items.length === PAGE_SIZE`)
+ * because some lists may want different heuristics (e.g. server
+ * eventually returns a `next_cursor` token).
  *
- * False positive: when the result count is an exact multiple of pageSize,
- * Next is enabled and the next page renders empty. Acceptable — the
- * empty-state cell ("No rows.") still communicates the boundary.
+ * False positive: when the result count is an exact multiple of
+ * PAGE_SIZE, Next is enabled and the next page renders empty. Acceptable
+ * — the empty-state cell still communicates the boundary.
  */
-export function Pagination({ page, pageSize, itemCount, onPageChange }: Props) {
+export function Pagination({ page, hasMore, onChange }: Props) {
   const hasPrev = page > 0;
-  const hasNext = itemCount === pageSize;
   return (
     <div className="flex items-center justify-end gap-2 text-sm">
       <span className="text-muted-foreground">Page {page + 1}</span>
@@ -29,7 +28,7 @@ export function Pagination({ page, pageSize, itemCount, onPageChange }: Props) {
         variant="outline"
         size="sm"
         disabled={!hasPrev}
-        onClick={() => onPageChange(page - 1)}
+        onClick={() => onChange(page - 1)}
         aria-label="Previous page"
       >
         <ChevronLeft className="size-4" />
@@ -37,8 +36,8 @@ export function Pagination({ page, pageSize, itemCount, onPageChange }: Props) {
       <Button
         variant="outline"
         size="sm"
-        disabled={!hasNext}
-        onClick={() => onPageChange(page + 1)}
+        disabled={!hasMore}
+        onClick={() => onChange(page + 1)}
         aria-label="Next page"
       >
         <ChevronRight className="size-4" />
