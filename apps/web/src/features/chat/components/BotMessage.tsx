@@ -1,3 +1,4 @@
+import { withBrand } from "@simlm/branding";
 import { useState } from "react";
 import { MatchBadge } from "@/features/chat/components/MatchBadge";
 import { TeachComposer } from "@/features/chat/components/TeachComposer";
@@ -13,7 +14,7 @@ export function BotMessage({ msg }: { msg: BotMsg }) {
   return (
     <article className="flex flex-col gap-1.5 py-3 pl-4 border-l-2 border-primary/50">
       <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-primary">
-        {t("role.bot")}
+        {withBrand(t("role.bot"))}
       </div>
       <div className="prose-chat text-foreground whitespace-pre-wrap break-words">
         {msg.text}

@@ -1,3 +1,5 @@
+import { BRAND } from "@simlm/branding";
+import { renderTemplate } from "@simlm/template";
 import { useStats } from "@/api/stats";
 import { useSession } from "@/store/session";
 import { useTranslate } from "@/lib/i18n";
@@ -18,9 +20,9 @@ export function ChatHeader() {
     <header className="border-b pb-4 mb-4">
       <div className="flex items-baseline justify-between gap-4">
         <div>
-          <h1 className="font-serif text-2xl font-semibold tracking-tight">Bé Sim</h1>
+          <h1 className="font-serif text-2xl font-semibold tracking-tight">{BRAND.name}</h1>
           <p className="text-xs text-muted-foreground mt-1">
-            {t("header.subtitle").replace("{count}", count.toLocaleString())}
+            {renderTemplate(t("header.subtitle"), { count: count.toLocaleString() })}
           </p>
         </div>
         <div className="flex items-center gap-3 shrink-0">

@@ -14,10 +14,13 @@
 // surface for the dict layer isn't worth the ergonomics tax.
 
 export const vi = {
-  "header.subtitle": "Chatbot khớp mẫu · {count} cặp đã học",
+  "header.subtitle": "Chatbot khớp mẫu · {{ count }} cặp đã học",
   "role.you": "BẠN",
   "role.you.teaching": "BẠN · DẠY",
-  "role.bot": "BÉ SIM",
+  // Visual uppercase is CSS (text-transform: uppercase) at the call site;
+  // keeping a single canonical brand here means mixed-case acronyms
+  // (e.g. "SimML" → "SIMML") render consistently.
+  "role.bot": "{{ brand }}",
   "badge.exact": "khớp chính xác",
   "badge.fts": "khớp một phần",
   "badge.trigram": "khớp gần đúng",
@@ -25,14 +28,14 @@ export const vi = {
   "badge.lowConfidence": "độ tin cậy thấp",
   "badge.noMatch": "không khớp",
   "badge.score": "điểm",
-  "badge.fromLocale": "khớp từ {locale}",
+  "badge.fromLocale": "khớp từ {{ locale }}",
   "cta.teachBetter": "Dạy câu trả lời khác",
-  "composer.placeholder": "Nhắn cho Bé Sim… hoặc /teach <câu trả lời>",
+  "composer.placeholder": "Nhắn cho {{ brand }}… hoặc /teach <câu trả lời>",
   "composer.hint":
     "Gõ /teach <câu trả lời> để dạy câu trả lời cho tin nhắn vừa rồi. Enter để gửi · Shift+Enter để xuống dòng.",
   "composer.send": "Gửi",
   "teach.prompt": "Mình nên trả lời là gì?",
-  "teach.promptFor": "Mình nên trả lời {input} là gì?",
+  "teach.promptFor": "Mình nên trả lời {{ input }} là gì?",
   "teach.cancel": "Huỷ",
   "teach.submit": "Dạy",
   "system.learned": "đã học! lần sau mình sẽ nhớ.",

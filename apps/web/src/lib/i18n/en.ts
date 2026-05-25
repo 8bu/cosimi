@@ -6,10 +6,10 @@
 import type { vi } from "./vi";
 
 export const en: typeof vi = {
-  "header.subtitle": "A pattern-matching chatbot · {count} pairs learned",
+  "header.subtitle": "A pattern-matching chatbot · {{ count }} pairs learned",
   "role.you": "YOU",
   "role.you.teaching": "YOU · TEACHING",
-  "role.bot": "BÉ SIM",
+  "role.bot": "{{ brand }}",
   "badge.exact": "exact match",
   "badge.fts": "partial match",
   "badge.trigram": "fuzzy match",
@@ -17,14 +17,14 @@ export const en: typeof vi = {
   "badge.lowConfidence": "low confidence",
   "badge.noMatch": "no match",
   "badge.score": "score",
-  "badge.fromLocale": "matched in {locale}",
+  "badge.fromLocale": "matched in {{ locale }}",
   "cta.teachBetter": "Teach a better reply",
-  "composer.placeholder": "Message Bé Sim… or /teach <reply>",
+  "composer.placeholder": "Message {{ brand }}… or /teach <reply>",
   "composer.hint":
     "Type /teach <reply> to teach a response for your last message. Enter to send · Shift+Enter for newline.",
   "composer.send": "Send",
   "teach.prompt": "What should I have said?",
-  "teach.promptFor": "What should I have said to {input}?",
+  "teach.promptFor": "What should I have said to {{ input }}?",
   "teach.cancel": "Cancel",
   "teach.submit": "Teach",
   "system.learned": "learned! i'll remember that next time.",
