@@ -8,11 +8,13 @@ export async function ftsTier(
   minRank: number,
   topK: number,
 ): Promise<MatchResult | null> {
-  const rows = await sql()<{ id: number; response: string; rank: number }[]>`
-    SELECT id, response, rank
+  // `id::int AS id` — BIGSERIAL ships as string through postgres.js;
+  // cast so MatchResult.pairId is a number (see exact.ts for full rationale).
+  const rows = await sql()<{ id: number; response: string; rank: number; score: number }[]>`
+    SELECT id, response, rank, score
     FROM (
       SELECT
-        id,
+        id::int AS id,
         response,
         score,
         ts_rank(
@@ -35,6 +37,7 @@ export async function ftsTier(
     tier: "fts",
     confidence: Math.min(pick.rank, 1.0),
     pairId: pick.id,
+    score: pick.score,
     lowConfidence: false,
   };
 }

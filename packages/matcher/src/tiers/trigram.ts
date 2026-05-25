@@ -9,10 +9,13 @@ export async function trigramTier(
   minSim: number,
   topK: number,
 ): Promise<MatchResult | null> {
-  const rows = await sql()<{ id: number; response: string; sim: number }[]>`
+  // `id::int AS id` — BIGSERIAL ships as string through postgres.js;
+  // cast so MatchResult.pairId is a number (see exact.ts for full rationale).
+  const rows = await sql()<{ id: number; response: string; sim: number; score: number }[]>`
     SELECT
-      id,
+      id::int AS id,
       response,
+      score,
       similarity(normalized_unaccented, f_unaccent(${normalizedInput})) AS sim
     FROM pairs
     WHERE deleted_at IS NULL
@@ -28,6 +31,7 @@ export async function trigramTier(
     tier: "trigram",
     confidence: pick.sim,
     pairId: pick.id,
+    score: pick.score,
     lowConfidence: true,
   };
 }

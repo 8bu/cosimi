@@ -93,11 +93,16 @@ async function runMatchBranch(args: RunChatArgs, env: Env): Promise<void> {
   `;
 
   if (result) {
+    // EXPOSE_MATCH_INSIGHTS gates the three "how the matcher decided" fields.
+    // pairId stays because /feedback needs it; lowConfidence stays because the
+    // UI's "Teach a better reply" CTA + amber pill are user-facing affordances,
+    // not internal insights.
     await args.emit({
       type: "metadata",
-      tier: result.tier,
-      confidence: result.confidence,
+      tier: env.EXPOSE_MATCH_INSIGHTS ? result.tier : null,
+      confidence: env.EXPOSE_MATCH_INSIGHTS ? result.confidence : null,
       pairId: result.pairId,
+      score: env.EXPOSE_MATCH_INSIGHTS ? result.score : null,
       lowConfidence: result.lowConfidence,
     });
     await streamTokens(result.response, args.emit, env);

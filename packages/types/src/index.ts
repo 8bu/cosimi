@@ -6,6 +6,9 @@ export interface MatchResult {
   tier: MatchTier;
   confidence: number;
   pairId: number | null;
+  // `pairs.score` (vote tally — INTEGER, can be negative). null for the
+  // session_teach tier (no underlying pair), populated for exact/fts/trigram.
+  score: number | null;
   lowConfidence: boolean;
 }
 
@@ -32,10 +35,16 @@ export interface ChatRequest {
 export type ChatStreamEvent =
   | { type: "session"; session_id: string }
   | {
+      // tier/confidence/score are nullable on the wire when the server is
+      // configured to hide match insights (EXPOSE_MATCH_INSIGHTS=false in
+      // @simlm/config — the production default). pairId and lowConfidence
+      // always ship because voting and the "low confidence" / "no match"
+      // CTAs depend on them.
       type: "metadata";
-      tier: MatchTier;
-      confidence: number;
+      tier: MatchTier | null;
+      confidence: number | null;
       pairId: number | null;
+      score: number | null;
       lowConfidence: boolean;
     }
   | { type: "no_match" }
