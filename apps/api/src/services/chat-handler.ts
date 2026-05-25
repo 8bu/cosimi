@@ -1,9 +1,10 @@
 import { match } from "@simlm/matcher";
 import { normalize } from "@simlm/normalizer";
-import { sql } from "@simlm/db";
+import { getAppConfig, sql } from "@simlm/db";
 import { loadEnv, type Env } from "@simlm/config";
 
 import type { Emitter } from "../lib/sse";
+import { renderTemplate } from "../lib/template";
 import { tokenize, jitterMs, sleep } from "../lib/tokenizer";
 import { handleTeach, TeachError } from "./teach-handler";
 import { parseTeachCommand, looksLikeTeach } from "./teach-parser";
@@ -67,10 +68,14 @@ async function runTeachBranch(args: RunChatArgs, _env: Env): Promise<void> {
 
 async function runMatchBranch(args: RunChatArgs, env: Env): Promise<void> {
   const normalized = normalize(args.message);
-  const result = await match({
-    normalizedInput: normalized,
-    sessionId: args.sessionId,
-  });
+  // Issued in parallel: the matcher hits pairs/teaches, getAppConfig hits a
+  // tiny indexed table. Both resolve before we touch result.response, so any
+  // {{ placeholder }} in the matched reply or the fallback substitutes
+  // before tokenization. See lib/template.ts for the substitution rules.
+  const [result, config] = await Promise.all([
+    match({ normalizedInput: normalized, sessionId: args.sessionId }),
+    getAppConfig(),
+  ]);
 
   // Sessions upsert happens regardless of match outcome — even a miss
   // updates last_input so a following `/teach <reply>` can pick it up.
@@ -105,7 +110,7 @@ async function runMatchBranch(args: RunChatArgs, env: Env): Promise<void> {
       score: env.EXPOSE_MATCH_INSIGHTS ? result.score : null,
       lowConfidence: result.lowConfidence,
     });
-    await streamTokens(result.response, args.emit, env);
+    await streamTokens(renderTemplate(result.response, config), args.emit, env);
     return;
   }
 
@@ -119,7 +124,7 @@ async function runMatchBranch(args: RunChatArgs, env: Env): Promise<void> {
       last_seen = NOW()
   `;
   await args.emit({ type: "no_match" });
-  await streamTokens(env.FALLBACK_MESSAGE, args.emit, env);
+  await streamTokens(renderTemplate(env.FALLBACK_MESSAGE, config), args.emit, env);
 }
 
 async function streamTokens(text: string, emit: Emitter, env: Env): Promise<void> {
