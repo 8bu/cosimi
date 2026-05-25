@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useChat } from "@/features/chat/store";
+import { useTranslate } from "@/lib/i18n";
 
 /**
  * Reusable inline composer. The parent owns the open state and passes
@@ -22,6 +23,7 @@ import { useChat } from "@/features/chat/store";
 export function TeachComposer({ onSubmit, forInput }: { onSubmit: () => void; forInput?: string }) {
   const [reply, setReply] = useState("");
   const send = useChat((s) => s.send);
+  const t = useTranslate();
 
   const submit = () => {
     const trimmedReply = reply.trim();
@@ -35,18 +37,11 @@ export function TeachComposer({ onSubmit, forInput }: { onSubmit: () => void; fo
     onSubmit();
   };
 
+  const prompt = forInput ? t("teach.promptFor").replace("{input}", forInput) : t("teach.prompt");
+
   return (
     <div className="rounded-md border border-teach/30 bg-teach/[0.04] p-3 flex flex-col gap-2">
-      <p className="text-xs text-muted-foreground">
-        {forInput ? (
-          <>
-            What should I have said to{" "}
-            <span className="font-mono text-foreground/80">{forInput}</span>?
-          </>
-        ) : (
-          <>What should I have said?</>
-        )}
-      </p>
+      <p className="text-xs text-muted-foreground">{prompt}</p>
       <textarea
         rows={2}
         value={reply}
@@ -56,10 +51,10 @@ export function TeachComposer({ onSubmit, forInput }: { onSubmit: () => void; fo
       />
       <div className="flex gap-2 justify-end">
         <Button size="sm" variant="ghost" onClick={onSubmit}>
-          Cancel
+          {t("teach.cancel")}
         </Button>
         <Button size="sm" onClick={submit} disabled={!reply.trim()}>
-          Teach
+          {t("teach.submit")}
         </Button>
       </div>
     </div>

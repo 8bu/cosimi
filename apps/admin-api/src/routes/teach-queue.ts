@@ -40,6 +40,7 @@ interface QueueRowInternal {
   response: string;
   topic: string | null;
   flagged: boolean;
+  locale: string;
 }
 
 export const teachQueueRoute = new Hono();
@@ -81,7 +82,7 @@ teachQueueRoute.post("/:id/approve", async (c) => {
   const db = sql();
   const result = await db.begin(async (tx) => {
     const rows = await tx<QueueRowInternal[]>`
-      SELECT id::int AS id, input, normalized_input, response, topic, flagged
+      SELECT id::int AS id, input, normalized_input, response, topic, flagged, locale
         FROM teach_queue
        WHERE id = ${id} AND status = 'pending'
        FOR UPDATE
@@ -96,6 +97,7 @@ teachQueueRoute.post("/:id/approve", async (c) => {
         source: "chat",
         topic: queueRow.topic,
         flagged: queueRow.flagged,
+        locale: queueRow.locale,
       },
       tx,
     );
@@ -155,7 +157,7 @@ teachQueueRoute.post("/batch", async (c) => {
   const db = sql();
   const result = await db.begin(async (tx) => {
     const queued = await tx<QueueRowInternal[]>`
-      SELECT id::int AS id, input, normalized_input, response, topic, flagged
+      SELECT id::int AS id, input, normalized_input, response, topic, flagged, locale
         FROM teach_queue
        WHERE id = ANY(${b.ids}) AND status = 'pending'
        FOR UPDATE
@@ -169,6 +171,7 @@ teachQueueRoute.post("/batch", async (c) => {
           source: "chat",
           topic: q.topic,
           flagged: q.flagged,
+          locale: q.locale,
         },
         tx,
       );

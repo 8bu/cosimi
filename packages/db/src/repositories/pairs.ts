@@ -10,6 +10,11 @@ export interface InsertPairInput {
   topic?: string | null;
   batch_id?: number | null;
   flagged?: boolean;
+  // BCP-47 locale tag. Missing → 'und' (universal); the column has a
+  // matching default at the schema level (migration 010), but routing
+  // the default through the helper keeps the JS-side write shape
+  // explicit so admin tools / tests don't accidentally drop it.
+  locale?: string;
 }
 
 // postgres.Sql is the pool client; postgres.TransactionSql is the handle
@@ -30,7 +35,7 @@ export async function insertPair(p: InsertPairInput, tx?: Executor): Promise<{ i
   const db = tx ?? sql();
   const normalized = normalize(p.input);
   const [row] = await db<{ id: number }[]>`
-    INSERT INTO pairs (input, normalized_input, response, source, topic, batch_id, flagged)
+    INSERT INTO pairs (input, normalized_input, response, source, topic, batch_id, flagged, locale)
     VALUES (
       ${p.input},
       ${normalized},
@@ -38,7 +43,8 @@ export async function insertPair(p: InsertPairInput, tx?: Executor): Promise<{ i
       ${p.source},
       ${p.topic ?? null},
       ${p.batch_id ?? null},
-      ${p.flagged ?? false}
+      ${p.flagged ?? false},
+      ${p.locale ?? "und"}
     )
     RETURNING id::int AS id
   `;
@@ -56,6 +62,7 @@ export async function insertManyPairs(rows: InsertPairInput[], tx?: Executor): P
     topic: r.topic ?? null,
     batch_id: r.batch_id ?? null,
     flagged: r.flagged ?? false,
+    locale: r.locale ?? "und",
   }));
   // postgres.js bulk-insert helper: `db(rows, ...cols)` interpolates a
   // multi-row VALUES block. Caller-supplied column list never includes
@@ -70,6 +77,7 @@ export async function insertManyPairs(rows: InsertPairInput[], tx?: Executor): P
       "topic",
       "batch_id",
       "flagged",
+      "locale",
     )}
   `;
   return prepared.length;

@@ -3,16 +3,20 @@ import { MatchBadge } from "@/features/chat/components/MatchBadge";
 import { TeachComposer } from "@/features/chat/components/TeachComposer";
 import { VoteButtons } from "@/features/chat/components/VoteButtons";
 import type { BotMsg } from "@/features/chat/types";
+import { useTranslate } from "@/lib/i18n";
 
 export function BotMessage({ msg }: { msg: BotMsg }) {
   const [teachOpen, setTeachOpen] = useState(false);
+  const t = useTranslate();
   const showCta = msg.status === "settled" && (msg.noMatch || msg.meta?.lowConfidence === true);
 
   return (
     <article className="flex flex-col gap-1.5 py-3 pl-4 border-l-2 border-primary/50">
-      <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-primary">Bé Sim</div>
+      <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-primary">
+        {t("role.bot")}
+      </div>
       <div className="prose-chat text-foreground whitespace-pre-wrap break-words">
-        {msg.text || (msg.noMatch ? "hmm idk, tell me more?" : "")}
+        {msg.text}
         {msg.status === "streaming" && (
           <span
             aria-hidden
@@ -31,7 +35,7 @@ export function BotMessage({ msg }: { msg: BotMsg }) {
               onClick={() => setTeachOpen((o) => !o)}
               className="text-primary hover:underline underline-offset-2 focus:outline-none focus:ring-2 focus:ring-primary/40 rounded"
             >
-              Teach a better reply
+              {t("cta.teachBetter")}
             </button>
           )}
         </div>

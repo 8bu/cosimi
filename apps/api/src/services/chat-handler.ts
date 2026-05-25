@@ -14,6 +14,12 @@ export interface RunChatArgs {
   sessionId: string;
   message: string;
   emit: Emitter;
+  // Ordered locale preference for the matcher. Defaults to ['und'] when
+  // the client omits it (legacy callers, tests that don't care).
+  locales?: string[];
+  // Locale to stamp on any /teach in this turn. Defaults to locales[0]
+  // (the primary) when omitted; falls through to 'und' if neither is set.
+  locale?: string;
 }
 
 /**
@@ -43,6 +49,17 @@ export async function runChat(args: RunChatArgs): Promise<void> {
   await runMatchBranch(args, env);
 }
 
+function resolveLocales(args: RunChatArgs): string[] {
+  return args.locales && args.locales.length > 0 ? args.locales : ["und"];
+}
+
+function resolveTeachLocale(args: RunChatArgs): string {
+  // Explicit body.locale wins (admin/automation can pin a teach to a
+  // specific locale regardless of the primary). Otherwise derive from
+  // locales[0] — that's the UI's current primary — and finally 'und'.
+  return args.locale ?? args.locales?.[0] ?? "und";
+}
+
 async function runTeachBranch(args: RunChatArgs, _env: Env): Promise<void> {
   const parsed = parseTeachCommand(args.message);
   if (!parsed.ok) {
@@ -54,6 +71,7 @@ async function runTeachBranch(args: RunChatArgs, _env: Env): Promise<void> {
       sessionId: args.sessionId,
       input: parsed.input,
       reply: parsed.reply,
+      locale: resolveTeachLocale(args),
     });
     await args.emit({ type: "teach_ack", queue_id: outcome.queue_id });
   } catch (err) {
@@ -68,12 +86,13 @@ async function runTeachBranch(args: RunChatArgs, _env: Env): Promise<void> {
 
 async function runMatchBranch(args: RunChatArgs, env: Env): Promise<void> {
   const normalized = normalize(args.message);
-  // Issued in parallel: the matcher hits pairs/teaches, getAppConfig hits a
-  // tiny indexed table. Both resolve before we touch result.response, so any
-  // {{ placeholder }} in the matched reply or the fallback substitutes
-  // before tokenization. See lib/template.ts for the substitution rules.
+  const locales = resolveLocales(args);
+  // Issued in parallel: the matcher hits pairs/teaches, getAppConfig is a
+  // tiny indexed table read used only on the match-success branch for
+  // {{ name }} substitution. The no-match branch doesn't read config —
+  // the fallback wording is FE chrome (i18n), not server-owned text.
   const [result, config] = await Promise.all([
-    match({ normalizedInput: normalized, sessionId: args.sessionId }),
+    match({ normalizedInput: normalized, sessionId: args.sessionId, locales }),
     getAppConfig(),
   ]);
 
@@ -98,10 +117,10 @@ async function runMatchBranch(args: RunChatArgs, env: Env): Promise<void> {
   `;
 
   if (result) {
-    // EXPOSE_MATCH_INSIGHTS gates the three "how the matcher decided" fields.
-    // pairId stays because /feedback needs it; lowConfidence stays because the
-    // UI's "Teach a better reply" CTA + amber pill are user-facing affordances,
-    // not internal insights.
+    // EXPOSE_MATCH_INSIGHTS gates the four "how the matcher decided" fields
+    // (tier, confidence, score, locale). pairId stays because /feedback
+    // needs it; lowConfidence stays because the UI's "Teach a better reply"
+    // CTA + amber pill are user-facing affordances, not internal insights.
     await args.emit({
       type: "metadata",
       tier: env.EXPOSE_MATCH_INSIGHTS ? result.tier : null,
@@ -109,13 +128,18 @@ async function runMatchBranch(args: RunChatArgs, env: Env): Promise<void> {
       pairId: result.pairId,
       score: env.EXPOSE_MATCH_INSIGHTS ? result.score : null,
       lowConfidence: result.lowConfidence,
+      locale: env.EXPOSE_MATCH_INSIGHTS ? result.locale : null,
     });
     await streamTokens(renderTemplate(result.response, config), args.emit, env);
     return;
   }
 
-  // No match: log to `unanswered` for admin review, emit no_match,
-  // then stream the fallback so the UX still feels responsive.
+  // No match: log to `unanswered` for admin review and emit the no_match
+  // signal. The FE renders the localized fallback text from its i18n
+  // dict — server stays out of UX chrome, so a locale switch in the
+  // composer doesn't have to round-trip to the server to update the
+  // wording. `locales` is still resolved above so the unanswered/sessions
+  // upserts run, and so future analytics can correlate "no_match in <X>".
   await sql()`
     INSERT INTO unanswered (input, normalized_input, source, count, last_seen)
     VALUES (${args.message}, ${normalized}, 'chat', 1, NOW())
@@ -124,7 +148,6 @@ async function runMatchBranch(args: RunChatArgs, env: Env): Promise<void> {
       last_seen = NOW()
   `;
   await args.emit({ type: "no_match" });
-  await streamTokens(renderTemplate(env.FALLBACK_MESSAGE, config), args.emit, env);
 }
 
 async function streamTokens(text: string, emit: Emitter, env: Env): Promise<void> {
