@@ -67,6 +67,10 @@ export const useChat = create<ChatState>((set, get) => ({
         meta: null,
         noMatch: false,
         vote: 0,
+        // Snapshot the input so the inline TeachComposer on this bot
+        // message can teach against THIS turn even after the user has
+        // sent more messages and sessions.last_input has moved on.
+        userInput: trimmed,
         createdAt: Date.now(),
       };
       botId = placeholder.id;

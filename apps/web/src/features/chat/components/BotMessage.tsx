@@ -39,7 +39,7 @@ export function BotMessage({ msg }: { msg: BotMsg }) {
 
       {teachOpen && (
         <div className="mt-2">
-          <TeachComposer onSubmit={() => setTeachOpen(false)} />
+          <TeachComposer onSubmit={() => setTeachOpen(false)} forInput={msg.userInput} />
         </div>
       )}
     </article>

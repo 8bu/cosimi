@@ -40,6 +40,14 @@ export interface BotMsg {
   };
   noMatch: boolean;
   vote: -1 | 0 | 1;
+  // The user input this bot reply responded to. Captured at placeholder
+  // creation so the inline TeachComposer can teach against the *specific*
+  // input the user clicked "Teach a better reply" on, instead of relying
+  // on server-side sessions.last_input which moves with every new turn.
+  // Undefined for bot messages not preceded by user input (none today —
+  // teach branches don't create bot placeholders — kept optional for
+  // future shapes).
+  userInput?: string;
   createdAt: number;
 }
 
