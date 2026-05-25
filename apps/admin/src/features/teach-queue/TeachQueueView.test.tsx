@@ -105,6 +105,45 @@ describe("<TeachQueueView>", () => {
     expect(bar!.textContent).toContain("1 selected");
   });
 
+  it("prunes selected ids that no longer exist after a refetch", async () => {
+    // First load: 2 rows. Select both. Then a refetch returns only row 2 —
+    // simulates row 1 being rejected via its per-row button. The bulk bar
+    // should drop to "1 selected", not stay stale at "2 selected".
+    mocks.apiJson
+      .mockResolvedValueOnce({ items: rows, limit: 50, offset: 0 })
+      .mockResolvedValueOnce({ items: rows.slice(1), limit: 50, offset: 0 });
+    const user = userEvent.setup();
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const utils = render(
+      <QueryClientProvider client={qc}>
+        <MemoryRouter>
+          <TeachQueueView />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+    await screen.findByText("what is the meaning of life");
+
+    await user.click(screen.getByLabelText("Select submission 1"));
+    await user.click(screen.getByLabelText("Select submission 2"));
+    const beforeBar = (await screen.findByText("Approve all")).closest(
+      "div.flex.items-center.justify-between",
+    );
+    expect(beforeBar!.textContent).toContain("2 selected");
+
+    // Force a refetch by invalidating the cache.
+    qc.invalidateQueries({ queryKey: ["admin", "teach-queue"] });
+    await waitFor(() => {
+      expect(screen.queryByText("what is the meaning of life")).not.toBeInTheDocument();
+    });
+
+    // Bar should still be visible (submission 2 still selected) and now read "1 selected".
+    const afterBar = (await screen.findByText("Approve all")).closest(
+      "div.flex.items-center.justify-between",
+    );
+    expect(afterBar!.textContent).toContain("1 selected");
+    utils.unmount();
+  });
+
   it("renders empty-state row when items is empty", async () => {
     mocks.apiJson.mockResolvedValueOnce({ items: [], limit: 50, offset: 0 });
     renderView();

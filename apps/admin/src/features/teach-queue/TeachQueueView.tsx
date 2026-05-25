@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTeachQueue, type QueueStatus } from "@/api/teach-queue";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Pagination } from "@/components/Pagination";
@@ -17,6 +17,24 @@ export function TeachQueueView() {
     offset: page * PAGE_SIZE,
   });
   const items = data?.items ?? [];
+
+  // Prune `selected` to ids still present in `items`. A per-row Approve
+  // or Reject removes its row on refetch, but the parent's Set kept the
+  // orphan id — leaving the bulk-action bar showing a stale count and
+  // queueing dead ids for the next bulk operation. Keying on the joined
+  // id list keeps the effect stable across React's reference-fresh
+  // arrays. The early-return preserves the Set identity when nothing
+  // changed (avoids re-render churn).
+  const itemIdsKey = items.map((i) => i.id).join(",");
+  useEffect(() => {
+    setSelected((prev) => {
+      if (prev.size === 0) return prev;
+      const live = new Set(items.map((i) => i.id));
+      const pruned = new Set([...prev].filter((id) => live.has(id)));
+      return pruned.size === prev.size ? prev : pruned;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [itemIdsKey]);
 
   const toggle = (id: number) =>
     setSelected((s) => {
