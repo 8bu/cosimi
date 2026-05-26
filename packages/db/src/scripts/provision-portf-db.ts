@@ -41,7 +41,11 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     process.exit(2);
   }
   // Replace the path component with /postgres for the maintenance connection.
-  const maintenanceUrl = portfUrl.replace(/\/[^/?]*(\?|$)/, "/postgres$1");
+  // Using new URL() handles edge cases (no path, query strings, IPv6) cleanly
+  // and avoids the regex anchor ambiguity in the prior implementation.
+  const u = new URL(portfUrl);
+  u.pathname = "/postgres";
+  const maintenanceUrl = u.toString();
 
   provisionPortfDb(maintenanceUrl)
     .then((created) => {

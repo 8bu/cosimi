@@ -4,7 +4,15 @@ import { provisionPortfDb } from "./provision-portf-db.js";
 
 // Talks to the actual local dev Postgres; this is an integration test by design.
 // CI is expected to run docker-compose up before invoking vitest at the repo root.
-const MAINTENANCE_URL = "postgres://postgres:postgres@localhost:5432/postgres";
+// Derive the maintenance URL from DATABASE_URL if set (CI may use different
+// credentials), falling back to the standard local dev shape.
+const MAINTENANCE_URL = (() => {
+  const env = process.env.DATABASE_URL;
+  if (!env) return "postgres://postgres:postgres@localhost:5432/postgres";
+  const u = new URL(env);
+  u.pathname = "/postgres";
+  return u.toString();
+})();
 
 async function dropPortfDb() {
   const sql = postgres(MAINTENANCE_URL);
