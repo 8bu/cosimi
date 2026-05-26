@@ -21,14 +21,8 @@ type WordmarkProps = {
 export function Wordmark({ size = 14, sub = "Senior Web Developer" }: WordmarkProps) {
   return (
     <span className="wm" style={{ fontSize: size }}>
-      <span
-        className="wm-mark wm-mark-blockcursor"
-        style={{ display: "inline-flex" }}
-      >
-        <span
-          className="wm-mark-blockcursor-badge"
-          style={{ fontSize: size * 0.62 }}
-        >
+      <span className="wm-mark wm-mark-blockcursor" style={{ display: "inline-flex" }}>
+        <span className="wm-mark-blockcursor-badge" style={{ fontSize: size * 0.62 }}>
           8BU<span className="wm-blink-caret">_</span>
         </span>
       </span>

@@ -14,9 +14,7 @@ function HomePane() {
       }}
     >
       <Wordmark size={32} sub="Senior Web Developer" />
-      <p style={{ fontSize: "0.875rem", opacity: 0.7 }}>
-        Portfolio scaffold — Phase C
-      </p>
+      <p style={{ fontSize: "0.875rem", opacity: 0.7 }}>Portfolio scaffold — Phase C</p>
     </main>
   );
 }
