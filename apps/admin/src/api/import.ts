@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { API_BASE } from "@/lib/env";
+import { getApiBase } from "@/config/api-base";
 
 export interface ImportArgs {
   file: File;
@@ -34,7 +34,7 @@ export function useImport() {
       if (topic) qs.set("topic", topic);
       const lower = file.name.toLowerCase();
       const isJsonl = lower.endsWith(".jsonl") || lower.endsWith(".ndjson");
-      const res = await fetch(`${API_BASE}/import?${qs.toString()}`, {
+      const res = await fetch(`${getApiBase()}/import?${qs.toString()}`, {
         method: "POST",
         headers: { "content-type": isJsonl ? "application/x-ndjson" : "application/json" },
         body: file,

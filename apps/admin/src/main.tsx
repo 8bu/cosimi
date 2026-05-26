@@ -4,12 +4,18 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 import App from "@/App";
 import { Toaster } from "@/components/ui/sonner";
+import { bootstrapApiBase } from "@/config/api-base";
 import { bootstrapTheme } from "@/lib/theme";
 import "@/styles/globals.css";
 
 // Apply persisted theme to <html data-theme> before render to avoid a
 // light → dark flash for persisted-dark users (mirrors apps/web).
 bootstrapTheme();
+// Phase 16: self-heal a stale activePresetId and attach the cross-tab
+// `storage` listener so a foreign-tab switch reloads this tab. Must be
+// sync — do not refactor to top-level await; the call order
+// (theme → api-base → render) is the contract.
+bootstrapApiBase();
 
 // Same defaults as apps/web: retry once on transient network blips,
 // don't refetch on focus (admin tables are tabular dashboards, not
