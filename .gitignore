@@ -7,5 +7,6 @@ dist/
 .DS_Store
 coverage/
 docs/SPEC_*.md
+docs/screenshots/
 *.tsbuildinfo
 .claude/

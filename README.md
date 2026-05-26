@@ -7,25 +7,6 @@ English seed data ship in-tree. The repo is a pnpm + Turbo monorepo so the
 public chat API, the internal admin API, and the two SPAs share typed
 packages.
 
-## Screenshots
-
-| Public chat (light) | Public chat (dark) |
-|---|---|
-| <img src="docs/screenshots/web-chat-light.png" alt="Chat UI, light theme" width="420" /> | <img src="docs/screenshots/web-chat-dark.png" alt="Chat UI, dark theme" width="420" /> |
-
-The chat surface is an editorial-feeling conversation: serif body, terracotta
-accent for matches, quiet trailing chrome (language switcher, theme toggle,
-session id). `/teach <reply>` queues a learned response (the admin reviews
-later).
-
-| Admin · Unanswered | Admin · Teach Queue |
-|---|---|
-| <img src="docs/screenshots/admin-unanswered-light.png" alt="Admin Unanswered view" width="420" /> | <img src="docs/screenshots/admin-teach-queue.png" alt="Admin Teach Queue view" width="420" /> |
-
-| Admin · Pairs | Admin · Import success |
-|---|---|
-| <img src="docs/screenshots/admin-pairs.png" alt="Admin Pairs view" width="420" /> | <img src="docs/screenshots/admin-import.png" alt="Admin Import success card with sonner toast" width="420" /> |
-
 ## Architecture
 
 Two backend processes, two SPAs, one database:
@@ -315,7 +296,7 @@ packages/
 seeds/
   vi/          # hand-curated Vietnamese seeds
   chatterbot/  # snapshot of chatterbot-corpus (BSD-3, see NOTICE)
-docs/          # phased specs, requirements, LLM import format, screenshots
+docs/          # phased specs, requirements, LLM import format
 ```
 
 See [`CLAUDE.md`](./CLAUDE.md) for the conventions, invariants, and
