@@ -9,6 +9,7 @@ dist/
 coverage/
 docs/SPEC_*.md
 docs/screenshots/
+docs/superpowers/*
 *.tsbuildinfo
 .claude/
 .agents/
