@@ -1,56 +1,80 @@
 # simlm — SimSimi-style chatbot
 
-A pattern-matching chatbot in the spirit of SimSimi: **no LLM at runtime**.
-Replies come from a curated/learned pattern store, scored by a three-tier
-matching engine (exact → Postgres FTS → trigram, gated by an in-session
-teach cache). Vietnamese and English seed data ship in-tree. The repo is a
-pnpm + Turbo monorepo so the public chat API, the internal admin API, and
-the two SPAs share typed packages.
+A pattern-matching chatbot in the spirit of SimSimi. **No LLM at runtime** —
+replies come from a curated/learned pattern store, scored by a four-tier
+matching engine (`session_teach → exact → FTS → trigram`). Vietnamese and
+English seed data ship in-tree. The repo is a pnpm + Turbo monorepo so the
+public chat API, the internal admin API, and the two SPAs share typed
+packages.
+
+## Screenshots
+
+| Public chat (light) | Public chat (dark) |
+|---|---|
+| <img src="docs/screenshots/web-chat-light.png" alt="Chat UI, light theme" width="420" /> | <img src="docs/screenshots/web-chat-dark.png" alt="Chat UI, dark theme" width="420" /> |
+
+The chat surface is an editorial-feeling conversation: serif body, terracotta
+accent for matches, quiet trailing chrome (language switcher, theme toggle,
+session id). `/teach <reply>` queues a learned response (the admin reviews
+later).
+
+| Admin · Unanswered | Admin · Teach Queue |
+|---|---|
+| <img src="docs/screenshots/admin-unanswered-light.png" alt="Admin Unanswered view" width="420" /> | <img src="docs/screenshots/admin-teach-queue.png" alt="Admin Teach Queue view" width="420" /> |
+
+| Admin · Pairs | Admin · Import success |
+|---|---|
+| <img src="docs/screenshots/admin-pairs.png" alt="Admin Pairs view" width="420" /> | <img src="docs/screenshots/admin-import.png" alt="Admin Import success card with sonner toast" width="420" /> |
 
 ## Architecture
 
 Two backend processes, two SPAs, one database:
 
 ```
-   ┌──────────────┐         ┌──────────────────┐
-   │  apps/web    │ ──REST──▶                  │
-   │  (chat UI)   │ ◀──SSE── │  apps/api       │ ──┐
-   │   :5173      │         │  :3000  0.0.0.0  │   │
-   └──────────────┘         └──────────────────┘   │
-                                                   │
-   ┌──────────────┐         ┌──────────────────┐   ├──▶ Postgres
-   │  apps/admin  │ ──REST──▶ apps/admin-api  │   │
-   │  (internal)  │         │  :3001 127.0.0.1│ ──┘
-   │   :5174 (*)  │         └──────────────────┘
-   └──────────────┘
+                                                       ┌───────────────┐
+   ┌──────────────┐    /api/* (Vite)    ┌──────────┐   │               │
+   │  apps/web    │ ──────────────────▶ │ apps/api │ ─▶│  Postgres 16  │
+   │  (chat UI)   │ ◀── SSE stream ──── │  :3000   │ ─▶│  + pg_trgm    │
+   │   :5173      │                     │  0.0.0.0 │   │  + unaccent   │
+   └──────────────┘                     └──────────┘   │               │
+                                                       │               │
+   ┌──────────────┐    /api/* (Vite)  ┌────────────┐   │               │
+   │  apps/admin  │ ────────────────▶ │ admin-api  │ ─▶│               │
+   │  (internal)  │                   │  :3001     │   │               │
+   │   :5174      │                   │  127.0.0.1 │   │               │
+   └──────────────┘                   └────────────┘   └───────────────┘
+            ▲                              ▲
+    operator browser              loopback bind only
+    (via VPN/Tailscale)           (no app-layer auth)
 ```
 
-`apps/web` (the public chat UI) is scaffolded as of **Phase 9** — see
-`docs/SPEC_PHASE_9.md`. `(*)` `apps/admin` lands in **Phase 12+**. `pnpm dev`
-starts `apps/api`, `apps/admin-api`, and `apps/web`. You can also drive the
-system end-to-end via curl (see [API recipes](#api-recipes)).
-
-- `apps/api` owns chat, `/teach` (inline command), feedback, public stats,
-  health, and runs the GC sweeper.
-- `apps/admin-api` owns the admin surface: pairs CRUD, teach-queue review,
-  bulk LLM import, batch rollback. **Binds `127.0.0.1` by default.**
+- **`apps/api`** owns chat, `/teach` (inline command), feedback, public stats,
+  health, and runs the GC sweeper. Binds `0.0.0.0:PORT` — public.
+- **`apps/admin-api`** owns the admin surface: pairs CRUD, teach-queue review,
+  bulk LLM import, batch rollback. **Binds `127.0.0.1:ADMIN_PORT` by default.**
+  No `/admin/*` prefix server-side — the entire process is the admin surface.
 - Both share `@simlm/{db, types, config, normalizer, logger}`.
 
-### Matching engine
+### How matching works
 
 The matcher cascades through four tiers and short-circuits on the first
-non-null:
+non-null result:
 
-1. **session_teach** — recent in-session `/teach` overrides (10-min TTL).
-2. **exact** — normalized + diacritic-stripped string match.
-3. **fts** — Postgres `tsvector` rank against the `simple` text-search
+1. **`session_teach`** — recent in-session `/teach` overrides (10-min TTL).
+   Lets a user correct a wrong reply immediately without waiting for an admin.
+2. **`exact`** — normalized + diacritic-stripped equality (Postgres
+   `f_unaccent()` on both sides).
+3. **`fts`** — Postgres `tsvector` rank against the `simple` text-search
    config; gated by `MATCH_FTS_MIN`.
-4. **trigram** — `pg_trgm` similarity; gated by `MATCH_TRGM_MIN` (the
-   `%` index op AND the explicit similarity filter — see
-   [CLAUDE.md](./CLAUDE.md) for why).
+4. **`trigram`** — `pg_trgm` similarity; gated by `MATCH_TRGM_MIN`
+   (`%` index operator AND an explicit similarity filter — see
+   [`CLAUDE.md`](./CLAUDE.md) for why both are required).
 
-If all four miss, the bot replies with `FALLBACK_MESSAGE` and adds the
-input to `unanswered` so an operator can teach a response later.
+If all four tiers miss, the bot replies with the locale's `fallback_message_*`
+from `app_config` and the input is added to `unanswered` so an operator can
+teach a response later. Within the winning tier, the matcher picks randomly
+from the top-K rows (`MATCH_TOP_K`, default 5) so back-to-back identical
+queries don't always return the same canned answer.
 
 ## Setup
 
@@ -65,16 +89,21 @@ corepack enable         # pnpm version is pinned via packageManager
 pnpm install
 cp .env.example .env    # defaults are good for local dev
 
-pnpm db:up              # docker compose: Postgres 16 on :5432
-pnpm migrate            # applies packages/db/migrations/*.sql in order
+# One-button start: guards Docker, brings up Postgres (waits for
+# healthcheck), runs migrations, starts api + admin-api + web via turbo.
+pnpm dev:all
 
-# Seed the patterns:
+# Then in a second terminal, start the admin SPA:
+pnpm --filter @simlm/admin dev
+```
+
+The first time you boot, the matcher has nothing to match against. Seed it:
+
+```bash
 pnpm seed               # loads seeds/vi/*.yaml + seeds/chatterbot/*.yml
-# …or be selective:
+# …or selectively:
 pnpm seed:vi
 pnpm seed:chatterbot
-
-pnpm dev                # turbo runs apps/api + apps/admin-api
 ```
 
 To start clean (drops the Postgres volume):
@@ -103,16 +132,23 @@ for the schema.
 | `MATCH_FTS_MIN` | `0.1` | FTS `ts_rank` threshold |
 | `MATCH_TRGM_MIN` | `0.4` | Trigram similarity threshold |
 | `MATCH_TOP_K` | `5` | Random pick from top-K within the winning tier |
-| `SSE_DELAY_MODE` | `token` | `char` \| `token` pacing |
+| `EXPOSE_MATCH_INSIGHTS` | `false` | Include tier/score in `/chat` metadata events |
+| `SSE_DELAY_MODE` | `token` | `char` \| `token` pacing for streamed replies |
 | `SSE_DELAY_BASE_MS` | `30` | Base delay between SSE chunks |
 | `SSE_DELAY_JITTER_MS` | `20` | Random jitter added to each chunk delay |
 | `TEACH_RATE_LIMIT_PER_HOUR` | `10` | `/teach` calls per session per hour |
 | `TEACH_MAX_LENGTH` | `500` | Max chars in a `/teach` payload |
 | `TEACH_BLOCKLIST_REGEX` | *empty* | Optional pattern that rejects teach payloads |
-| `FALLBACK_MESSAGE` | `hmm idk, tell me more?` | Reply when every matcher tier misses |
+| `FALLBACK_MESSAGE` | `hmm idk, tell me more?` | Last-resort no-match reply |
 | `PRUNE_SCORE_THRESHOLD` | `-3` | Net-vote threshold below which a pair is considered prune-worthy |
 
-## API recipes
+`FALLBACK_MESSAGE` is the **last resort**. The chat handler first reads
+`app_config['fallback_message_<locale>']` and falls back to
+`app_config['fallback_message_und']` before reaching the env default. Add a
+new locale's fallback via a single `INSERT INTO app_config` migration; never
+edit migration 010 in place.
+
+## API recipes (port 3000)
 
 ```bash
 # Chat (SSE — streams session → metadata → token… → done)
@@ -145,16 +181,18 @@ curl http://localhost:3000/stats
 curl http://localhost:3000/healthz
 ```
 
-## Admin recipes
+## Admin recipes (port 3001, 127.0.0.1)
 
-> Admin endpoints live on a **separate process** at `127.0.0.1:3001` —
-> there is no `/admin/*` prefix; the entire process is the admin surface.
+> Admin endpoints live on a **separate process** at `127.0.0.1:3001`. There
+> is no `/admin/*` prefix — the entire process is the admin surface (see
+> [Deployment security](#deployment-security)).
 
 ```bash
 # Top unanswered prompts
 curl http://127.0.0.1:3001/unanswered
 
-# Add a pair directly (bypasses the teach queue)
+# Add a pair directly (bypasses the teach queue + atomically clears
+# matching unanswered rows server-side)
 curl -X POST http://127.0.0.1:3001/pairs \
   -H 'content-type: application/json' \
   -d '{"input":"hi","response":"hello!","topic":"greetings"}'
@@ -167,13 +205,19 @@ curl -X POST http://127.0.0.1:3001/teach-queue/batch \
   -H 'content-type: application/json' \
   -d '{"ids":[1,2,3,4,5],"action":"approve"}'
 
-# LLM bulk import (newline-delimited JSON; one pair per line)
+# List pairs filtered by an import batch
+curl 'http://127.0.0.1:3001/pairs?batch_id=42&limit=50'
+
+# LLM bulk import (newline-delimited JSON; one pair per line). Streamed
+# server-side so 10k-row imports stay OOM-safe.
 curl -X POST "http://127.0.0.1:3001/import?source=llm&topic=humor" \
   -H 'content-type: application/x-ndjson' \
   --data-binary @humor.jsonl
-# → { batch_id, inserted }
+# → { batch_id, count }
 
-# Roll back an import batch (soft-deletes every pair from that batch)
+# Roll back an import batch (soft-deletes every pair from that batch).
+# Re-running with the same body is a no-op; restore individually from
+# the Pairs view if needed.
 curl -X POST http://127.0.0.1:3001/rollback \
   -H 'content-type: application/json' \
   -d '{"batch_id": 42}'
@@ -182,7 +226,8 @@ curl -X POST http://127.0.0.1:3001/rollback \
 curl http://127.0.0.1:3001/healthz
 ```
 
-For the LLM import format, see [`docs/LLM_IMPORT_FORMAT.md`](./docs/LLM_IMPORT_FORMAT.md).
+For the LLM import file format, see
+[`docs/LLM_IMPORT_FORMAT.md`](./docs/LLM_IMPORT_FORMAT.md).
 
 ## Deployment security
 
@@ -195,15 +240,16 @@ controlled by `ADMIN_HOST` / `ADMIN_PORT`. Threat model:
   chat / feedback / stats / health.
 - ✅ Admin `apps/admin-api` on port `3001` (`127.0.0.1`) — admin surface,
   unreachable from outside the host.
-- ⚠️ Setting `ADMIN_HOST=0.0.0.0` exposes the admin surface to anyone on
-  the network. The process logs a `warn` line on startup when this happens.
-  **Don't do this without a network-layer gate** (Cloudflare Zero Trust,
-  VPN, Tailscale, mTLS, etc.) in front.
+- ⚠️ Setting `ADMIN_HOST=0.0.0.0` exposes the admin surface to anyone on the
+  network. The process logs a `warn` line on startup when this happens.
+  **Don't do this without a network-layer gate** (Cloudflare Zero Trust, VPN,
+  Tailscale, mTLS, etc.) in front. There is no per-route auth — adding it
+  would imply the admin routes are safe to expose externally, which is false.
 
-Misconfiguring the *public* API's network (e.g. exposing port 3000
-publicly) does **not** expose admin — different process, different socket,
-different port. Security is a property of *where the admin process binds*,
-not of route-mounting in code.
+Misconfiguring the *public* API's network (e.g. exposing port 3000 publicly)
+does **not** expose admin — different process, different socket, different
+port. Security is a property of *where the admin process binds*, not of
+route-mounting in code.
 
 ## Logging & PII
 
@@ -213,14 +259,16 @@ not of route-mounting in code.
   way to log a non-reversible reference: `{ length, hash }`.
 - `LOG_LEVEL=debug` lets handlers emit raw values, by convention under
   `*_dbg`-suffixed field names so the redact list doesn't strip them.
-- The two backend processes import the same `@simlm/logger` — no
-  divergence in PII policy between api and admin-api.
+- The two backend processes import the same `@simlm/logger` — no divergence
+  in PII policy between api and admin-api.
 
 ## Development commands
 
 ```bash
-pnpm dev:all       # one-shot: guards Docker daemon, then db:up (waits for healthy) → migrate → dev
-pnpm dev           # turbo: api + admin-api + web (apps/admin lands in Phase 12+)
+pnpm dev:all       # one-shot: guards Docker, then db:up (waits for healthy) → migrate → dev
+pnpm dev           # turbo: api + admin-api + web
+pnpm --filter @simlm/admin dev   # start the admin SPA (port 5174)
+
 pnpm typecheck     # tsc --noEmit across the workspace
 pnpm lint          # oxlint
 pnpm format        # oxfmt
@@ -238,12 +286,10 @@ pnpm seed:vi
 pnpm seed:chatterbot
 ```
 
-`pnpm dev:all` is the one-button start: it checks that the Docker daemon is
-reachable, brings up Postgres (waiting for the container's `pg_isready`
-healthcheck), runs idempotent migrations, then starts the three dev
-processes via turbo. Use the individual commands when you want to skip
-Docker (UI-only iteration on a deployed db) or split the steps for
-debugging.
+> ⚠️ The matcher, api, and admin-api test suites all share the
+> `simlm_test` database. Run with `pnpm -r --workspace-concurrency=1 test`
+> to avoid parallel test-suite setups stomping on each other (see
+> [`CLAUDE.md`](./CLAUDE.md) for details).
 
 ## Repo layout
 
@@ -251,30 +297,49 @@ debugging.
 apps/
   api/         # public Hono REST + SSE, binds PORT on 0.0.0.0, runs GC
   admin-api/   # internal Hono REST, binds ADMIN_PORT on 127.0.0.1
-  web/         # public chat UI (Vite + React, scaffold in Phase 9)
-  admin/       # internal admin dashboard (Phase 12+)
+  web/         # public chat UI (Vite + React + Tailwind v4)
+  admin/       # internal admin dashboard (Vite + React + Tailwind v4)
 packages/
   config/      # valibot env schema
   types/       # shared DTOs
   normalizer/  # pure NFC + case + whitespace
   db/          # postgres client, migrations, repositories
-  matcher/     # 3-tier matching engine
+  matcher/     # 4-tier matching engine
   logger/      # pino + redactInput()
-  ui-tokens/   # pure-CSS design tokens shared by apps/web (and later apps/admin)
+  ui-tokens/   # pure-CSS design tokens (incl. [data-theme="dark"]
+               # override) shared by apps/web and apps/admin
+  template/    # {{ var }} placeholder renderer for app_config
+  branding/    # shared brand name + helpers
   tsconfig/    # shared tsconfig bases
   oxlint-config/ # shared oxlint ruleset
 seeds/
   vi/          # hand-curated Vietnamese seeds
   chatterbot/  # snapshot of chatterbot-corpus (BSD-3, see NOTICE)
-docs/          # phased specs, requirements, LLM import format
+docs/          # phased specs, requirements, LLM import format, screenshots
 ```
 
 See [`CLAUDE.md`](./CLAUDE.md) for the conventions, invariants, and
 "don't-repeat-this-mistake" rules accreted across the phased build.
 
+## Project status
+
+**Complete.** All 16 phases (0–15) are merged on `main`. Test count:
+**211 across 8 suites** (api + admin-api + matcher + web + admin +
+normalizer + template + i18n). Standing gates green.
+
+Deferred to potential future work — explicitly out of scope for the MVP:
+
+- Internationalization of UI chrome. Chat content is bilingual (vi/en) but
+  the admin chrome is English-only. Add when the operator base requires it.
+- Multi-user accounts / sharing. The product is single-user-per-browser by
+  design (session id in `localStorage`).
+- Telemetry / observability dashboards. Pino → stdout → your log pipeline is
+  the v1 story. OpenTelemetry would be the natural next step.
+
 ## Credits
 
 - Vietnamese seed data: hand-curated.
 - English seed data: [chatterbot-corpus](https://github.com/gunthercox/chatterbot-corpus)
-  by Gunther Cox, BSD-3 license. See [`seeds/chatterbot/LICENSE`](./seeds/chatterbot/LICENSE)
-  and [`seeds/chatterbot/NOTICE`](./seeds/chatterbot/NOTICE).
+  by Gunther Cox, BSD-3 license. See
+  [`seeds/chatterbot/LICENSE`](./seeds/chatterbot/LICENSE) and
+  [`seeds/chatterbot/NOTICE`](./seeds/chatterbot/NOTICE).
