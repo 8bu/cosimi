@@ -29,7 +29,7 @@ export async function provisionPortfDb(maintenanceUrl: string): Promise<boolean>
   }
 }
 
-// CLI entrypoint: tsx scripts/provision-portf-db.ts
+// CLI entrypoint: tsx packages/db/src/scripts/provision-portf-db.ts
 //
 // Reads DATABASE_URL from env (typically loaded via --env-file=.env.portf
 // or --env-file=.env, doesn't matter — we rewrite the DB to `postgres`
