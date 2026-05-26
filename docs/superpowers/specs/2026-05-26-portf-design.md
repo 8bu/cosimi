@@ -132,16 +132,15 @@ apps/portf/
 │  │  ├─ theme.css         # Tailwind v4 @theme block — base tokens; 25 [data-theme=...] overrides
 │  │  └─ components.css    # .frame, .bubble, .chip, .input-row, .v1-*, .v2-*, .artifact-* — ported from design styles.css
 │  ├─ components/
-│  │  ├─ AppShell.tsx      # data-theme + data-logo + data-hover wrapper, Sonner toaster
-│  │  ├─ Wordmark.tsx      # 5 logo variants, CSS-toggled by [data-logo]
-│  │  ├─ DevTweaks.tsx     # development-only floating panel; theme + logo + hover + locale (gated by import.meta.env.DEV)
-│  │  └─ ui/               # shadcn primitives copied (button, dialog, input, textarea, tabs, dropdown-menu, tooltip)
+│  │  ├─ AppShell.tsx      # data-theme="press" wrapper, Sonner toaster (no data-logo / data-hover — single variant each ships)
+│  │  ├─ Wordmark.tsx      # blockcursor only (Silkscreen 8BU badge + blinking caret); other logo variants from the design are NOT ported
+│  │  └─ ui/               # shadcn primitives copied (button, dialog, input, textarea) — dropdown/tooltip added only when a feature needs them
 │  ├─ features/
-│  │  ├─ home/             # V2 spotlight
-│  │  ├─ chat/             # V1 sidebar + thread, mostly ported from apps/web/src/features/chat
+│  │  ├─ home/             # V2 spotlight (the "/" pane)
+│  │  ├─ chat/             # V1 sidebar + thread pane; thread mgmt UI (revisit/rename/delete) lives here
 │  │  └─ artifact/         # V3 pane + ProjectView / WritingView / CVView wrappers + MDX components + matcher
-│  ├─ routes/              # Home, Chat, Artifact, NotFound — thin route shells
-│  ├─ store/               # session.ts, preferences.ts, threads.ts, artifacts.ts
+│  ├─ routes/              # PortfShell (always-mounted), Home, ChatView, ArtifactPane, NotFound — see §5 for the nested-route shape
+│  ├─ store/               # session.ts, preferences.ts, threads.ts (persisted thread list w/ rename/delete), artifacts.ts
 │  ├─ api/                 # client.ts (apiFetch/apiJson copied), chat.ts (streamChat copied), feedback.ts, health.ts
 │  ├─ lib/
 │  │  ├─ sse-parser.ts     # copied verbatim from apps/web
@@ -177,11 +176,18 @@ volumes:
 
 Postgres' init-scripts only run on **first** container init (i.e., volume creation). `pnpm db:reset` already recreates the volume (`docker compose down -v && db:up`), so the init reliably re-runs after a reset. For incremental contributors who already have a SimML volume: a `pnpm db:provision-portf` one-shot script connects to the `postgres` maintenance DB and runs the `CREATE DATABASE` idempotently, so they don't have to nuke their simlm data.
 
-Both databases share the same `@simlm/db` migrations. The migrate runner reads `DATABASE_URL` from env — so we call it twice with different URLs.
+Both databases share the same migrations. The migration runner currently lives in `packages/db/src/migrate.ts` with SQL files at `packages/db/migrations/`.
+
+> **Open question — migration ownership.** User flagged this location as inconvenient. Two reasonable refactors, both deferred until after the portf MVP lands so we don't entangle a structural change with a product launch:
+>
+> 1. **Move to `apps/api/migrations/` + `apps/api/scripts/migrate.ts`** — apps/api is the *only* process that owns this schema; co-locating its migrations matches "the app owns its data" convention. `apps/admin-api` still reads via `@simlm/db` repositories (unchanged); only the migrate runner relocates. Trade-off: when contributors run `pnpm migrate`, they're invoking an apps/* script which feels less library-like.
+> 2. **Keep where it is, fix the invocation ergonomics** — current spec already does this (root `migrate:portf` calls `tsx --env-file=.env.portf packages/db/src/migrate.ts up` directly, no `pnpm --filter` ceremony).
+>
+> The spec proceeds with option 2 for now; option 1 is a tracked follow-up.
 
 ### 4.3 New `.env.portf` file
 
-A second env file sits at repo root. Loaded via `tsx --env-file=...env.portf`:
+A second env file sits at repo root. Loaded via `tsx --env-file=.env.portf`:
 
 ```env
 NODE_ENV=development
@@ -194,24 +200,30 @@ LOG_LEVEL=info
 # random near-misses on small corpus are worse here than a fallback.
 MATCH_FTS_MIN=0.15
 MATCH_TRGM_MIN=0.5
-FALLBACK_MESSAGE=hmm, that one's not in my answer bank yet — try a chip, or DM me at hvanlong@pm.me
 ```
 
+`FALLBACK_MESSAGE` is intentionally omitted — that env var is on the deprecation path and will be dropped from the repo's `.env` template. The portfolio fallback comes from `app_config[fallback_message_en]` per the existing `chat-handler.ts` lookup chain (see CLAUDE.md "`app_config[fallback_message_<locale>]` is the canonical no-match line").
+
 ### 4.4 New root scripts
+
+**Naming rule the user set:** `dev:simlm` and `dev:portf` are parallel namespaces. Each boots its own product's processes only. There is no umbrella `dev:all`.
 
 ```jsonc
 {
   "scripts": {
-    // …existing simlm scripts unchanged…
+    // Rename existing dev → dev:simlm. dev:simlm and dev:portf are siblings.
+    "dev:simlm":       "turbo run dev",                                                 // existing dev task, unchanged behavior
+    "dev:portf":       "turbo run dev:portf",                                           // fan-out: every package with dev:portf runs
 
-    // portf — separate instances, separate db
-    "dev:portf":       "turbo run dev:portf",                                                 // fan-out: every package that defines dev:portf runs it
-    "migrate:portf":   "pnpm --filter @simlm/db exec tsx --env-file=../../.env.portf src/migrate.ts up",
+    "migrate":         "tsx --env-file=.env packages/db/src/migrate.ts up",             // tighter than `pnpm --filter @simlm/db migrate up`
+    "migrate:portf":   "tsx --env-file=.env.portf packages/db/src/migrate.ts up",
     "seed:portf":      "tsx --env-file=.env.portf packages/db/src/scripts/seed.ts seeds/portf/*.yaml --locale=en",
     "provision:portf": "tsx scripts/provision-portf-db.ts"
   }
 }
 ```
+
+`dev:simlm` keeps the existing `turbo run dev` semantics (Phase 0–13 untouched); the rename is just the alias. The original `dev` and `dev:all` root scripts get renamed in a tiny pre-phase commit so muscle memory and CI both keep working: keep `dev` as an alias of `dev:simlm` for one release, then drop. `dev:all:simlm` → `dev:all` line in the original spec was a mistake; replaced.
 
 Turbo's `dev:portf` task fans out across every workspace that defines a `dev:portf` script:
 
@@ -223,12 +235,10 @@ Turbo's `dev:portf` task fans out across every workspace that defines a `dev:por
 "dev:portf": "tsx watch --env-file=../../.env.portf src/index.ts"
 
 // apps/portf/package.json
-"dev:portf": "vite"   // alias of dev; lets `pnpm dev:portf` boot all three with one turbo invocation
+"dev:portf": "vite"   // alias of dev; lets one turbo invocation boot all three
 ```
 
-`turbo.json` needs a `dev:portf` task definition mirroring the existing `dev` task (`{"persistent": true, "cache": false}`). No source changes to `apps/api` or `apps/admin-api`. Running `pnpm dev:portf` boots all three processes in parallel; `Ctrl-C` tears them all down via turbo's signal propagation.
-
-An umbrella `dev:all` that boots both products is deferred — process-count and port management gets noisy and the user already wants phase-by-phase visibility before adding more parallelism.
+`turbo.json` needs a `dev:portf` task definition mirroring the existing `dev` task (`{"persistent": true, "cache": false}`). No source changes to `apps/api` or `apps/admin-api`. Running `pnpm dev:portf` boots all three portf processes in parallel; `Ctrl-C` tears them all down via turbo's signal propagation. Running `pnpm dev:simlm` boots the existing four simlm processes the same way. Run them in two terminals if you want both products live.
 
 ### 4.5 Admin reuse — switching DBs
 
@@ -242,61 +252,115 @@ VITE_ADMIN_API_TARGET=http://127.0.0.1:3011 pnpm --filter @simlm/admin dev
 
 ## 5. Routes & client behavior
 
+### 5.1 Hard rule: one shell, never unmount
+
+The user's directive: navigating between Home, a chat thread, and an artifact must be **seamless** — widgets snap in and out of a single, always-mounted shell. No full-page transitions. No mid-flight loss of input state. The route tree is built around this.
+
+### 5.2 Route tree (React Router 7 nested routes)
+
+```tsx
+<Routes>
+  <Route element={<PortfShell />}>                            {/* never unmounts; owns sidebar + Outlet */}
+    <Route index element={<HomePane />} />                    {/* / — V2 spotlight */}
+    <Route path="chat/:threadId" element={<ChatPane />}>      {/* V1 conversation */}
+      <Route path="artifact/:kind/:slug" element={<ArtifactPane />} />  {/* opens in ChatPane's right outlet */}
+    </Route>
+    <Route path="artifact/:kind/:slug" element={<ArtifactStandalone />} /> {/* deep-link, no current thread */}
+    <Route path="*" element={<NotFound />} />
+  </Route>
+</Routes>
 ```
-/                         V2 Home (spotlight)
-                          - top bar: Wordmark + "● Open for senior roles · Q3 '26"
-                          - center: big serif headline, sub line, InputRow, chips, mono try-suggestions
 
-/chat                     → redirect /chat/<new-uuid>
-/chat/:threadId           V1 Chat
-                          - desktop: V1Sidebar (220px) + V1Conversation
-                          - mobile: collapsed sidebar → ≡ burger; tap opens V1MobileMenu
+**Resulting URL → DOM shape table:**
 
-/artifact/:kind/:slug     V3 Artifact (deep-linkable)
-                          - desktop: chat (46%) + artifact (54%) split, like V3Desktop
-                          - mobile: fullscreen artifact with ← BACK pill (artifact-back) returning to ?back= or /
+| URL | `PortfShell` renders | Notes |
+|---|---|---|
+| `/` | Sidebar (empty state) · `<HomePane>` | V2 spotlight, no thread |
+| `/chat` | redirect to `/chat/<freshUuid>` | `<Navigate>` element on `/chat` index |
+| `/chat/:id` | Sidebar · `<ChatPane>` (full width) | V1 conversation, no artifact |
+| `/chat/:id/artifact/:kind/:slug` | Sidebar · `<ChatPane>` (left 46%) · `<ArtifactPane>` (right 54%, slides in via CSS transition) | Both panes mounted; ChatPane stays interactive |
+| `/artifact/:kind/:slug` | Sidebar · `<ArtifactStandalone>` (full width) | Direct-deep-link, no thread context. Mobile: fullscreen with ← BACK to `/` |
+| `*` | Sidebar · `<NotFound>` | Sidebar still rendered so user can pick a thread |
 
-*                         NotFound — single Wordmark + "404 · no thread here" + back-to-/ link
+**Why this works:**
+
+- `PortfShell` mounts once and lives for the session — sidebar, theme wrapper, sonner toaster never get torn down.
+- `ChatPane` mounts on first navigation to `/chat/:id` and stays mounted as long as the URL prefix matches. Going from `/chat/:id` to `/chat/:id/artifact/:kind/:slug` adds a child segment — React Router renders the child into `<Outlet />`, ChatPane re-renders but doesn't unmount, the composer keeps its typed-but-not-sent text.
+- The split view is layout, not navigation: `<ChatPane>` renders a flex container and conditionally widths itself based on whether `<Outlet />` has children (`useMatches()` checks for nested artifact match).
+- Sidebar thread switching (`/chat/A` → `/chat/B`) re-mounts `<ChatPane>` because `:threadId` changes. To avoid losing scroll/state across thread switches, ChatPane uses `useParams().threadId` as a key on its inner `<ThreadView key={threadId}>` so React resets thread-local state cleanly, but the shell + sidebar + outer composer chrome stay live.
+- Closing the artifact: `<ArtifactPane>`'s × calls `navigate('..')` which drops the trailing artifact segment — `Outlet` becomes empty, `ChatPane` widens back to full. No layout flash because the right pane animates out via CSS `translateX(100%)` + the `<ArtifactPane>` is render-prop-wrapped in `<AnimatePresence>`-style logic (`react-transition-group` or a hand-rolled exit-delay).
+
+**Mobile responsive shape (same routes, different CSS):**
+
+- `<PortfShell>` collapses the sidebar to a `≡` burger trigger and renders `<MobileSidebarSheet>` (a dialog) on tap.
+- On `/chat/:id/artifact/:kind/:slug`, the artifact takes the full viewport (the chat is visually hidden but stays mounted in the DOM); ← BACK navigates to `..`.
+- On `/artifact/:kind/:slug` (no thread), ← BACK navigates to `/`.
+
+### 5.3 Stores (zustand)
+
+- `session.ts` — `sessionId` + setter, persisted under `portf.session`; copied from apps/web.
+- `preferences.ts` — `primaryLocale: 'en' | 'vi'` (default `'en'`) + `theme: ThemeName` (default `'press'`). Persisted under `portf.preferences`. **No** `logo` / `hover` / `devTweaksOpen` keys — those options are removed entirely (see §7).
+- `threads.ts` — persisted thread list `{ id, title, lastSnippet, ts, pinned? }[]` under `portf.threads`. Actions:
+  - `create(title?) → id` — mints a new thread (uuid v4), inserts at index 0, returns id; called by `/` submit and the sidebar "+ New chat".
+  - `rename(id, title)` — used by the sidebar's inline-edit-on-double-click affordance.
+  - `remove(id)` — used by the sidebar row's context menu / hover-`×`. If the currently-routed `:threadId` is removed, `navigate('/')`.
+  - `revisit(id)` — `navigate('/chat/' + id)`; the sidebar row click handler.
+  - `touch(id, lastSnippet)` — called after each successful assistant reply; bubbles the thread to top + updates the snippet preview.
+  - `setTitle(id, title)` — auto-titling: the first 32 chars of the first user message become the initial title; can be renamed later.
+- `artifacts.ts` — actually unnecessary. Currently-open artifact is fully derived from the URL (`useParams().kind/slug`). Skip the store; read params at the render boundary. (Original spec planned this store; removed during review.)
+
+### 5.4 Match-and-route logic
+
+`onComposerSubmit(input, currentThreadId | null)`:
+
+```ts
+const matched = matchArtifact(input);                                // {direct?, ambiguous?, miss}
+
+if (matched.kind === 'direct') {
+  const threadId = currentThreadId ?? threads.create();              // ensure a thread exists
+  threads.append(threadId, { role: 'user', text: input });           // we still log the prompt in the thread
+  navigate(`/chat/${threadId}/artifact/${matched.ref.kind}/${matched.ref.slug}`);
+  return;                                                            // NO /chat API call
+}
+
+// ambiguous + miss both call the API
+const threadId = currentThreadId ?? threads.create();
+navigate(`/chat/${threadId}`);                                       // no-op if already there
+threads.append(threadId, { role: 'user', text: input });
+streamChat({ message: input, sessionId, locale: prefs.primaryLocale })
+  .onEvent(/* … */);                                                 // assistant bubble fills in
+
+if (matched.kind === 'ambiguous') {
+  // Render disambiguation chip row above the assistant bubble.
+  threads.appendDisambig(threadId, matched.candidates);              // chip click → navigate(`…/artifact/…`)
+}
 ```
 
-State (zustand stores):
-
-- `session.ts` — `sessionId` + setter, persisted; copied from apps/web, reused.
-- `preferences.ts` — `primaryLocale: 'en' | 'vi'` (default `'en'` for portfolio, opposite of SimML default), plus 4 new keys: `theme`, `logo`, `hover`, `devTweaksOpen`. All persisted to localStorage under `portf.preferences`.
-- `threads.ts` — local-only thread list `{id, title, lastSnippet, ts}[]`, persisted. The portfolio has no server-side thread storage; the api's `sessions` table stores the SESSION but not the THREAD list. Each new `/chat/:id` creates a new thread row client-side.
-- `artifacts.ts` — `currentArtifact: {kind, slug} | null` plus history stack for back navigation.
-
-### 5.1 V2 → V1 transition
-
-On V2, submitting the input row:
-
-1. `matchArtifact(input)` runs synchronously against the in-memory catalog.
-2. If `direct`: `navigate('/artifact/<kind>/<slug>')` — no `/chat` call.
-3. If `ambiguous` or `miss`: create a new thread, navigate to `/chat/<newId>`, push the user message, fire `streamChat`. On `ambiguous`, also render the disambiguation chip row above the assistant bubble. The chips on click navigate to the matched artifact without firing a new `/chat`.
-
-### 5.2 In-thread artifact opens
-
-While in `/chat/:threadId`, the same `matchArtifact` runs on every submit. A direct hit:
-
-- **Desktop**: triggers an inline `<ArtifactPane>` that overlays the right 54% of the viewport (`fixed` positioned, slides in from right). Chat stays interactive on the left. The pane's close `×` returns to the chat-only layout. The URL stays `/chat/:threadId?artifact=project/wegopro` so reloads restore the open pane.
-- **Mobile**: navigates to `/artifact/<kind>/<slug>?back=/chat/<threadId>` — the fullscreen view, with ← BACK returning to the chat.
-
-The `?artifact=` querystring approach (instead of a sub-route) keeps the chat-route stable; otherwise React Router would unmount the chat on open and lose typing state.
+Calling `navigate(`/chat/${id}/artifact/…`)` from `/chat/${id}` adds the nested segment — `ChatPane` stays mounted; `Outlet` paints the artifact; the right pane animates in. No remount, no scroll loss, no composer-text loss.
 
 ## 6. SSE protocol — no changes
 
 `apps/api`'s `/chat` SSE stream is unchanged. The portfolio doesn't need new event types because artifact opens are client-driven, not server-driven. The matcher still returns `pairId`, `tier`, `confidence`, `score`, `lowConfidence` — all consumed by the existing `parseSseStream` from `@simlm/types`.
 
-## 7. Tweaks panel (dev-only)
+## 7. Baked defaults — no tweaks panel ships
 
-`<DevTweaks>` floats at bottom-right when `import.meta.env.DEV === true`. Three select dropdowns + one toggle, persisted to `preferences.ts`:
+User decision: **drop the runtime tweaks panel entirely**. Defaults are hardcoded; logo and hover have **only one variant** each in the codebase; theme keeps all 25 CSS variants in the stylesheet so a future theme switcher (separate phase, not this spec) can flip `[data-theme=…]` at runtime without a code change.
 
-- **Theme** — 25 options (all the named themes from the design source: cream, mono, riso, salmon, newsprint, sage, plum, mint, burgundy, steel, putty, linen, indigo, cocoa, brutalism, glass, brutalism2, glass2, editorial, pavilion, carbon, vermillion, onyx, press, massimo, cover, engraver, quartz). Default `press`.
-- **Logo** — 5 options (badge, mono, bracket, pixel, blockcursor). Default `blockcursor`.
-- **Hover** — 5 options (tint, border, slide, mark, underline). Default `tint`.
-- **Locale** — `en` / `vi`. Default `en`.
+Baked defaults (per the user's screenshot, 2026-05-26):
 
-In production builds, the panel is tree-shaken out (dead code via the `import.meta.env.DEV` gate). The chosen defaults are baked into `preferences.ts`'s initial state. The user will pick the final defaults before launch.
+| Token | Value | Source |
+|---|---|---|
+| `data-theme` | `press` | `<PortfShell data-theme="press">` (literal — preferences store does not own it for v1) |
+| Logo | `blockcursor` | Wordmark.tsx renders the Silkscreen 8BU badge + blinking caret only. No CSS `[data-logo]` selectors needed. |
+| Sidebar row hover | `tint` | Sidebar CSS uses only the `:hover { background: var(--cream-card) }` variant. No `[data-hover]` selectors. |
+
+**Concretely the ports differ from the design:**
+
+- `Wordmark.tsx` ports only the `wm-mark-blockcursor` markup from `primitives.jsx`. The other four marks (`badge`, `mono`, `bracket`, `pixel`) are not copied. CSS for `.wm-mark-badge`, `.wm-mark-mono`, etc. is also dropped — the file shrinks substantially.
+- `components.css` ports only the `[data-hover="tint"]` ruleset — but the `[data-hover="tint"]` attribute selector is removed from the rules entirely; styles apply directly to `.v1-thread:not(.active):hover`. The other four hover modes (`border`, `slide`, `mark`, `underline`) are not copied.
+- `theme.css` ports **all 25** `[data-theme=…]` rulesets verbatim (cream, mono, riso, salmon, newsprint, sage, plum, mint, burgundy, steel, putty, linen, indigo, cocoa, brutalism, glass, brutalism2, glass2, editorial, pavilion, carbon, vermillion, onyx, press, massimo, cover, engraver, quartz) plus their theme-specific element overrides at the file's bottom. The CSS is the entire surface area of the future switcher.
+
+If a theme switcher ships later, it just flips `<PortfShell data-theme="X">` from a select — no code change needed in `theme.css`. The future ticket is "add a theme switcher UI"; this spec ensures the data is already there.
 
 ## 8. i18n
 
@@ -306,49 +370,93 @@ Translatable strings live in `en.ts` (chrome only — chip labels, button text, 
 
 ## 9. Seeds
 
-`seeds/portf/` holds chat-fallback Q&A — answers for when `matchArtifact` misses but the visitor still asks something the portfolio should handle (e.g., "What's your salary expectation?", "Are you open to relocating?", "What's your favorite editor?"). Format: same YAML the existing seed CLI consumes:
+`seeds/portf/` will hold chat-fallback Q&A for when `matchArtifact` misses but the visitor asks something the portfolio should handle (salary expectations, relocation, favorite editor, etc.). Format follows the existing seed CLI's YAML. **Concrete seed authoring is deferred** — placeholder file ships in phase B with a few smoke-test entries; we'll brainstorm the actual portfolio Q&A corpus as its own session before writing it out.
 
 ```yaml
-- input: What's your salary expectation?
-  response: '{{ name }} prefers to talk numbers after we both confirm the work is interesting. DM hvanlong@pm.me.'
-  topic: portfolio/hire
-  locale: en
-- input: Are you open to relocating?
-  response: Currently based in Hanoi · open to remote-first roles globally.
-  topic: portfolio/hire
+# seeds/portf/_placeholder.yaml — phase B smoke test only; replace before launch
+- input: ping
+  response: pong — portfolio matcher alive
+  topic: portfolio/smoke
   locale: en
 ```
 
-The `{{ name }}` template uses the existing `@simlm/template` (`app_config[name]`); we seed `name=Long Nguyễn` into the portf `app_config` via a one-shot migration-style insert in the seed CLI (since `app_config` is excluded from TRUNCATE per existing rules, the row survives test resets).
+The `{{ name }}` template hook (existing `@simlm/template` reading `app_config[name]`) will be used in the real seeds; seeding `name=Long Nguyễn` happens in phase B as a tiny INSERT alongside the placeholder rows so the template path is exercised from day one.
 
-## 10. Open questions left for implementation
+## 10. Threads — persistence and management
 
-- **Threads persistence across reloads** — zustand's `persist` keeps them in localStorage; no server-side thread table needed. Confirm this is fine for a portfolio with low traffic and no need to recover threads cross-device.
-- **`?artifact=` querystring vs sub-route** — the spec picks querystring to keep chat state stable. Reconsider if URL ugliness bothers the user before phase G.
+Persisted via zustand's `persist` middleware under `portf.threads` in localStorage. **No server-side thread table** — the api's `sessions` row stores the session, not the thread list. Threads are a client-only construct that maps `id → (title, lastSnippet, ts, messages)`. Trade-off: threads are device-local (no cross-device sync); for a portfolio with low traffic and visitor-driven sessions, that's acceptable.
+
+The sidebar is the management surface. From the design:
+
+```
+┌───────────────────────┐
+│ 8BU_  Senior Web Dev  │
+│ [+ New chat]          │
+│ ─── Today ───────     │
+│ • About me      now   │  ← active row: filled background + coral dot
+│ • Best project? 2m    │
+│ • Stack & tools 5m    │
+│ ─── Earlier ─────     │
+│ • Hire me      12m    │
+│ • Past roles    1h    │
+│ • Coffee chat?  1d    │
+│ ─── (avatar) ───      │
+│ ◉ hvanlong@pm.me      │
+└───────────────────────┘
+```
+
+Operations the sidebar must support (zustand actions in `threads.ts`):
+
+| Action | UI affordance | Behavior |
+|---|---|---|
+| **Create** | `[+ New chat]` button at top | Mints uuid, navigates to `/chat/<id>`. Empty thread shows V2 spotlight inside the chat pane (composer + chips, no messages yet) — V2 isn't a separate route, it's the empty state of a thread. *Revision: see §5.2 — `/` (HomePane) renders V2 standalone; an empty `/chat/:id` renders V2-shaped welcome in the conversation area until the first message lands.* |
+| **Revisit** | Click thread row | `navigate('/chat/' + id)` — ChatPane swaps its inner `<ThreadView key={id}>`. |
+| **Rename** | Double-click title (desktop) / long-press (mobile) | Inline contenteditable; commit on Enter/blur, discard on Esc. Auto-title on first message: thread title is set to the first 32 chars of the user's first message if untitled. |
+| **Delete** | Hover-revealed `×` on the right side of the row (desktop) / swipe-left (mobile) | Confirms via `<Dialog>` (shadcn) — "Delete '<title>'?" — then removes the thread; if the currently-routed `:threadId` is removed, `navigate('/')`. |
+| **Pin** *(stretch)* | Right-click → "Pin" or a context menu | Pinned threads sort to the top under a "Pinned" section header above "Today". Deferred to a post-MVP polish phase. |
+| **Group by recency** | Section labels "Today" / "Earlier" | Pure render-time grouping: `threads.filter(t => Date.now() - t.ts < 24*3600*1000)` vs the rest. No persisted state. |
+
+The grouping logic ("Today" / "Earlier") and the `touch(id, lastSnippet)` bubble-to-top behavior on assistant reply are non-negotiable — both visible in the design's `V1Sidebar` and called out implicitly by the design's `meta: "now" | "2m" | "1d"` labels. Phase E implements all of these except **Pin**, which is the only stretch item.
+
+## 11. Open questions left for implementation
+
+- **Threads cross-device sync** — out of scope (device-local only). If the user ever wants visitor history persisted across devices, a `threads` table on the api + an "import threads from this device" button covers it; spec'd later if needed.
 - **Admin DB switcher in UI** — out of scope; revisit after both DBs have real content.
+- **Migration ownership relocation** — see §4.2's open question. Deferred refactor.
+- **Empty `/chat/:id` UX** — §10 picks "V2-shaped welcome inside the conversation area until the first message". Phase E may want to revisit if the duplication with `HomePane` feels wrong; one option is to redirect empty threads back to `/`.
 
-## 11. Phase plan
+## 12. Phase plan
 
-The user explicitly wants phase-by-phase review. Phases below; each lands as its own PR-equivalent commit cluster on `main` per existing project discipline.
+The user explicitly wants phase-by-phase review. Phases below; each lands as its own PR-equivalent commit cluster on `main` per existing project discipline. **Major phases can be broken into sub-tasks for finer review** at the user's request before they start.
 
 | Phase | Title | Lands |
 |---|---|---|
-| A | Workspace plumbing | `.env.portf`, docker init, root scripts, `dev:portf` per-app scripts, `provision:portf` one-shot |
-| B | Portfolio seeds + first matcher hit | `seeds/portf/*.yaml`, `portf` DB migrated, `pnpm seed:portf` works, `curl :3010/chat` returns a portfolio answer |
-| C | `apps/portf` scaffold | Vite/Tailwind/React mirror of apps/web, `dev:portf` boots, blank `/` route renders Wordmark + press theme |
-| D | V2 Home + Wordmark + tokens + DevTweaks | The spotlight page works; theme/logo/hover switchable in dev panel; chips don't yet submit |
-| E | V1 Chat (sidebar + thread) | Submitting on V2 routes to a new `/chat/:id`, SSE chat works end-to-end against portf api, sidebar shows local thread list |
-| F | MDX catalog + client-side artifact matcher + direct-hit open | Project/Writing/CV MDX files render, `matchArtifact` triggers direct opens, ambiguous shows disambiguation chips, miss falls back to chat |
-| G | V3 Artifact pane (desktop) + mobile fullscreen + deep links | Full V3 from the design, `/artifact/:kind/:slug` deep-linkable, `?artifact=` querystring restores pane on reload |
-| H | i18n wiring + final polish | `lib/i18n` mirrors apps/web, NotFound, mobile burger menu, real avatar + CV PDF in `/assets/`, README |
+| A | Workspace plumbing + script rename | `.env.portf`, docker init, root scripts (incl. `dev` → `dev:simlm` rename + `dev:portf`), per-app `dev:portf` scripts, `provision:portf` one-shot, `turbo.json` task def, admin `VITE_ADMIN_API_TARGET` patch |
+| B | Portf DB up + smoke seed | `portf` DB migrated, `seeds/portf/_placeholder.yaml` works, `curl :3010/chat -d '{"message":"ping"}'` returns "pong" through portf api instance |
+| C | `apps/portf` scaffold | Vite/Tailwind/React mirror of apps/web, `dev:portf` boots, blank `/` route renders Wordmark + press theme, all 25 themes shipped in theme.css |
+| D | V2 Home (`HomePane`) | Spotlight page renders; composer submits and routes to `/chat/<newId>` (chat itself stubbed until phase E) |
+| E | V1 Chat (`PortfShell` + sidebar + `ChatPane`) + threads store | Sidebar with create/revisit/rename/delete + "Today/Earlier" grouping + auto-title, SSE chat works end-to-end against portf api, mobile burger sheet |
+| F | MDX catalog + client-side artifact matcher + direct-hit routing | `content/artifacts/**/*.mdx` glob-imported, `matchArtifact()` returns direct/ambiguous/miss, direct opens jump to nested route, ambiguous shows disambiguation chip row, miss falls back to chat |
+| G | `ArtifactPane` (split, nested) + `ArtifactStandalone` (deep link) + mobile fullscreen | Project / Writing / CV renderers, nested `/chat/:id/artifact/:kind/:slug` slides in without remounting `ChatPane`, mobile fullscreen with ← BACK, all transitions seamless |
+| H | i18n + final polish | `lib/i18n` mirrors apps/web (en + vi), NotFound, real avatar + CV PDF in `/assets/`, README |
 
-Each phase's commit message mirrors existing project convention (`feat: implement phase X portf …`). User reviews each phase before the next starts.
+Each phase's commit message mirrors existing project convention (`feat: implement phase X portf …`). User reviews each phase before the next starts. Phases E and G are the largest — expect to break them into sub-tasks during implementation.
 
-## 12. CLAUDE.md updates
+## 13. CLAUDE.md updates — deferred to a separate task
 
-After phase H lands, `CLAUDE.md` gets a new "## apps/portf — portfolio web app" section with rules learned in implementation. Anticipated additions:
+User decision: **do not modify the root `CLAUDE.md` in this work**. Instead, the implementation captures observed rules in a new file at repo root:
+
+`CLAUDE.note.md` — a running buffer of paragraphs that should eventually become `CLAUDE.md` entries. Format: one section per phase, each section a list of bullet-format claims about discipline learned in implementation. A separate agent (not this thread) will fold these into `CLAUDE.md` in a future task, preserving the existing organization.
+
+Why this separation: `CLAUDE.md` is already dense and structured around SimML; adding portfolio rules inline risks merge conflicts and breaks the SimML-focused narrative until a dedicated curation pass can integrate them properly. The buffer file is cheap to create, cheap to read, and zero-risk for the existing doc.
+
+Anticipated entries (these will be written into `CLAUDE.note.md` as phases land — listed here so we know what to capture):
 
 - "Artifact matching is client-side first; the matcher is the fallback, not the primary."
-- "Two-instance api launch pattern — `.env.portf` is the source of truth for the second instance; never duplicate vars into a third file."
+- "Two-instance api launch pattern — `.env.portf` is the source of truth for the second instance; no third env file or in-process multi-tenancy."
 - "MDX content is glob-imported at build; adding an artifact = add one .mdx; no JS registry to update."
-- "Portfolio default locale is `'en'`, not `'vi'`. The SimML rule about `'und'` fallback in matcher still applies; portfolio seeds are `'en'`, but matcher will still cascade to `'und'` rows if any leak in."
+- "Portfolio default locale is `'en'`, not `'vi'`. The SimML `'und'` fallback rule still applies."
+- "Portf web has no shadcn theme switcher in v1 — all 25 themes ship in `theme.css` for a future switcher to flip without code change."
+- "`dev:simlm` and `dev:portf` are siblings — there is no `dev:all`. Run each in its own terminal if you need both products live."
+- "`PortfShell` never unmounts. `ChatPane` stays mounted across artifact open/close because the artifact is a nested route, not a sibling."
+- "Threads are client-only (localStorage). The api's `sessions` table stores session keys, not thread lists."
