@@ -224,3 +224,11 @@ anywhere in `CLAUDE.md` without re-reading the source.
   the press theme tokens. Keep them separate even if duplication of common
   primitives (radii, etc.) appears later — extracting a shared lower-level
   primitive layer is its own future RFC, not a side-effect of feature work.
+
+- **`apps/portf`'s `build` script is `vite build` alone — typecheck is the
+  separate `typecheck` task.** Combining them as `tsc --noEmit && vite build`
+  (apps/web's pattern) breaks on a fresh clone because TanStack Router's
+  `routeTree.gen.ts` is gitignored, written by the vite plugin, so tsc errors
+  on the missing import before vite gets to run. CI runs `pnpm -r typecheck`
+  and `pnpm -r build` as separate gates anyway, so the decoupling costs
+  nothing and gains fresh-clone resilience.
