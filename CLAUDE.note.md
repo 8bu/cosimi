@@ -76,3 +76,13 @@ anywhere in `CLAUDE.md` without re-reading the source.
   (background process + kill), follow up with `lsof -nP -iTCP:3010
   -sTCP:LISTEN` and explicit `kill -9` on the listed PIDs. This is a
   known turbo behavior, not a bug in our code.
+
+- **`pnpm seed:portf` requires `seeds/portf/*.yaml` to exist (Phase B
+  creates the dir).** The script's positional glob expands in the shell
+  before tsx runs. Under zsh (the dev environment), an unmatched glob
+  raises `zsh: no matches found: seeds/portf/*.yaml` and the script
+  never starts. Phase B must create at least one file under `seeds/portf/`
+  (e.g., the planned `_placeholder.yaml` smoke seed) before `seed:portf`
+  is runnable. No defensive change in Phase A — adding a `.gitkeep`
+  wouldn't help (still no `.yaml` match) and pre-creating an empty seed
+  file would be off-scope for plumbing.
