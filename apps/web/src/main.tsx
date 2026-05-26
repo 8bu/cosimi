@@ -3,9 +3,17 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 import App from "@/App";
+import { Toaster } from "@/components/ui/sonner";
 import { loadLocale } from "@/lib/i18n";
+import { bootstrapTheme } from "@/lib/theme";
 import { usePreferences } from "@/store/preferences";
 import "@/styles/globals.css";
+
+// Apply the persisted theme to <html data-theme> BEFORE rendering so
+// dark-on-dark users don't see a one-frame flash of the light defaults.
+// Idempotent with the zustand store's initial value (both read the same
+// resolveInitialTheme()).
+bootstrapTheme();
 
 // retry: 1 — one quick retry covers transient blips without hiding real
 // errors behind a long backoff. refetchOnWindowFocus: false — the chat
@@ -36,6 +44,11 @@ void (async () => {
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <App />
+          {/* Toaster mounts at the root, NOT inside <App />. Routes
+              transition independently; sonner's portal-mounted toast
+              tray must outlive route remounts so an in-flight toast
+              doesn't disappear when the user navigates. */}
+          <Toaster position="top-right" richColors closeButton />
         </BrowserRouter>
       </QueryClientProvider>
     </StrictMode>,

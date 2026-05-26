@@ -19,9 +19,15 @@ export function BotMessage({ msg }: { msg: BotMsg }) {
       <div className="prose-chat text-foreground whitespace-pre-wrap break-words">
         {msg.text}
         {msg.status === "streaming" && (
+          // Soft 1.5s ease-in-out fade (Phase 15). Previously a sharper
+          // `animate-pulse` block-cursor; the slower fade reads as
+          // "still thinking" rather than "frozen UI" and is easier on
+          // the eye during multi-second streams. Switched to a
+          // utility-driven animation rather than animate-pulse so the
+          // duration/curve are obvious at the call site.
           <span
             aria-hidden
-            className="inline-block w-[2px] h-[1.1em] ml-0.5 align-text-bottom bg-foreground/70 animate-pulse"
+            className="inline-block w-[2px] h-[1.1em] ml-0.5 align-text-bottom bg-foreground/70 motion-safe:animate-[caret-fade_1.5s_ease-in-out_infinite]"
           />
         )}
       </div>

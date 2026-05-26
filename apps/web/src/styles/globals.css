@@ -1,6 +1,22 @@
 @import "tailwindcss";
 @import "@simlm/ui-tokens/theme.css";
 
-/* App-local additions — none yet for the chat app. Editorial aesthetic
-   stays minimal; resist adding flourishes here. Phase 11 wires the chat
-   view; component-level styles go alongside their components, not here. */
+/* Streaming-caret fade — softer than Tailwind's built-in pulse. Used by
+ * BotMessage during the streaming state; `motion-safe:` on the utility
+ * means the prefers-reduced-motion override in @simlm/ui-tokens already
+ * kills the animation cleanly. Defined here (app-local) rather than in
+ * the shared token package because it's a chat-specific affordance —
+ * the admin SPA has no streaming UI. */
+@theme {
+  --animate-caret-fade: caret-fade 1.5s ease-in-out infinite;
+}
+
+@keyframes caret-fade {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}

@@ -42,7 +42,13 @@ export function Composer() {
   };
 
   return (
-    <footer className="border-t pt-4 mt-2">
+    // sticky bottom + a tinted backdrop ensures the composer stays
+    // anchored to the visual bottom on mobile (iOS Safari's collapsing
+    // address bar means dvh shifts the layout — sticky absorbs that
+    // shift; absolute would dock to the viewport bottom and clip).
+    // The `pb-[env(safe-area-inset-bottom)]` keeps the input clear of
+    // the iOS home indicator.
+    <footer className="sticky bottom-0 z-10 border-t bg-background/95 backdrop-blur-sm pt-4 mt-2 pb-[env(safe-area-inset-bottom)]">
       <div
         className={`flex gap-2 items-end rounded-lg border bg-card px-3 py-2 transition-colors ${
           isTeach

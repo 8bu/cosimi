@@ -68,10 +68,47 @@
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
 }
 
-/* Dark-mode tokens via prefers-color-scheme. Phase 15 will add the explicit
-   [data-theme="dark"] / [data-theme="light"] overrides for the toggle. */
+/* Dark-mode tokens.
+ *
+ * Two activation paths, in precedence order:
+ *   1. `[data-theme="dark"]` on <html> — explicit user choice, persisted
+ *      to localStorage.simlm.theme by the apps' ThemeToggle. Wins over
+ *      everything below.
+ *   2. `[data-theme="light"]` — explicit user choice of light, even if
+ *      the OS prefers dark. Re-applies the light defaults by NOT applying
+ *      the dark block (the @media rule below skips when data-theme is
+ *      either value).
+ *   3. `prefers-color-scheme: dark` AND no `[data-theme]` set — OS
+ *      default for first-time visitors and anyone who hasn't toggled.
+ *
+ * The :not([data-theme]) guard on the media query is what makes the
+ * explicit-light choice stick: without it, a dark-OS user who picks
+ * light would still get dark tokens because both selectors would match
+ * with equal specificity and source order would win (the @media block
+ * comes later). Adding the negated attribute selector raises the
+ * specificity tie-breaker in our favor without bumping importance.
+ */
+:root[data-theme="dark"] {
+  --color-background: oklch(0.17 0.008 60);
+  --color-foreground: oklch(0.94 0.005 60);
+  --color-card: oklch(0.2 0.008 60);
+  --color-card-foreground: oklch(0.94 0.005 60);
+  --color-popover: oklch(0.22 0.008 60);
+  --color-popover-foreground: oklch(0.94 0.005 60);
+  --color-muted: oklch(0.24 0.01 60);
+  --color-muted-foreground: oklch(0.65 0.012 60);
+  --color-border: oklch(0.28 0.01 60);
+  --color-input: oklch(0.28 0.01 60);
+  --color-primary: oklch(0.7 0.13 40);
+  --color-primary-foreground: oklch(0.15 0.005 60);
+  --color-secondary: oklch(0.26 0.01 60);
+  --color-secondary-foreground: oklch(0.9 0.008 60);
+  --color-accent: oklch(0.3 0.04 40);
+  --color-accent-foreground: oklch(0.85 0.06 40);
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
     --color-background: oklch(0.17 0.008 60);
     --color-foreground: oklch(0.94 0.005 60);
     --color-card: oklch(0.2 0.008 60);
@@ -88,6 +125,26 @@
     --color-secondary-foreground: oklch(0.9 0.008 60);
     --color-accent: oklch(0.3 0.04 40);
     --color-accent-foreground: oklch(0.85 0.06 40);
+  }
+}
+
+/* Reduced motion: respect user preference. Disables the streaming caret
+ * pulse, the bulk-action-bar slide-in, and any other Tailwind
+ * `animate-*` / `transition-*` driven motion. Instant transitions still
+ * fire (state changes), but visual animation is suppressed.
+ *
+ * Using `!important` is justified here — `prefers-reduced-motion` is a
+ * platform accessibility signal, and per-component overrides would be
+ * fragile. Tailwind's own animate-* utilities use `animation:` shorthand
+ * which our rule overrides cleanly. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
