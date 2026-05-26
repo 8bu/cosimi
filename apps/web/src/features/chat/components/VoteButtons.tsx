@@ -29,7 +29,7 @@ export function VoteButtons({ msg }: { msg: BotMsg }) {
         onClick={() => submit(1)}
         aria-pressed={msg.vote === 1}
         aria-label={t("vote.up")}
-        className={`p-1 rounded ${
+        className={`p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
           msg.vote === 1 ? "text-success" : "text-muted-foreground hover:text-foreground"
         }`}
       >
@@ -40,7 +40,7 @@ export function VoteButtons({ msg }: { msg: BotMsg }) {
         onClick={() => submit(-1)}
         aria-pressed={msg.vote === -1}
         aria-label={t("vote.down")}
-        className={`p-1 rounded ${
+        className={`p-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
           msg.vote === -1 ? "text-destructive" : "text-muted-foreground hover:text-foreground"
         }`}
       >

@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { create } from "zustand";
 import { streamChat } from "@/api/chat";
 import type { BotMsg, ChatMessage, MessageStatus } from "@/features/chat/types";
@@ -166,24 +167,29 @@ export const useChat = create<ChatState>((set, get) => ({
             if (botId) get().finishBot(botId, "settled");
             break;
           case "error":
+            // Server-emitted error (TeachError surface, rate limits,
+            // etc). The message is user-facing per the api contract
+            // (see services/chat-handler.ts) — toast it directly so the
+            // chat log stays a conversation transcript instead of
+            // accumulating system noise. The teach branch's `acked`
+            // state still reflects the failure (no queue_id arrives),
+            // so the in-message chrome doesn't lie.
             if (botId) get().finishBot(botId, "error");
-            set((s) => ({
-              messages: [
-                ...s.messages,
-                {
-                  kind: "system",
-                  id: newId(),
-                  variant: "error",
-                  text: ev.message,
-                  createdAt: Date.now(),
-                },
-              ],
-            }));
+            toast.error(ev.message);
             break;
         }
       }
-    } catch {
+    } catch (err) {
       if (botId) get().finishBot(botId, "error");
+      // Network / parse failure (the typed `error` event above is the
+      // server's surface; this is "couldn't even reach the server"). Use
+      // the localized chat-error string, not the raw exception message —
+      // a "TypeError: failed to fetch" string is wrong vocabulary for
+      // the chat surface and switches language unexpectedly.
+      const locale = preferencesStore.getState().primaryLocale;
+      toast.error(translate(locale, "error.chat"), {
+        description: err instanceof Error ? err.message : undefined,
+      });
     } finally {
       // The server's lib/sse.ts writes only the literal `[DONE]` terminator
       // and never a structured `{type:'done'}` event — parseSseStream

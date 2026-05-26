@@ -162,7 +162,7 @@ describe("useChat.send — finally-settle (no structured done event)", () => {
 });
 
 describe("useChat.send — error handling", () => {
-  it("on stream `error` event: marks bot status=error, appends error system msg", async () => {
+  it("on stream `error` event: marks bot status=error (Phase 15: error surfaces via toast, not system msg)", async () => {
     mocks.streamChat.mockReturnValueOnce(
       makeStream([
         {
@@ -184,7 +184,11 @@ describe("useChat.send — error handling", () => {
     const bot = msgs.find((m) => m.kind === "bot");
     const sys = msgs.find((m) => m.kind === "system");
     expect(bot).toMatchObject({ status: "error" });
-    expect(sys).toMatchObject({ variant: "error", text: "internal error" });
+    // Phase 15: the in-chat system error message was replaced by a
+    // sonner toast — keep the transcript free of error chrome and
+    // surface failures in the toast tray instead. No system row for
+    // the error event.
+    expect(sys).toBeUndefined();
     expect(useChat.getState().isStreaming).toBe(false);
   });
 

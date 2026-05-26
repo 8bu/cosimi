@@ -42,6 +42,15 @@ export const vi = {
   "vote.up": "Thích",
   "vote.down": "Không thích",
   "localeSwitcher.label": "Ngôn ngữ",
+  "empty.greeting": "Chào! Hỏi mình bất cứ điều gì.",
+  "empty.hint":
+    "Mình học từ những gì bạn dạy. Gõ /teach <câu trả lời> nếu mình chưa biết câu trả lời.",
+  "scroll.toBottom": "Xuống dưới cùng",
+  "error.chat": "Gửi tin nhắn thất bại — kiểm tra kết nối và thử lại.",
+  "error.feedback": "Lưu đánh giá thất bại.",
+  "notFound.title": "Lạc trong cuộc trò chuyện",
+  "notFound.body": "Trang bạn tìm không tồn tại.",
+  "notFound.back": "Quay lại chat",
   // Pool: caller picks one variant per no_match event. Keeps back-to-back
   // misses from repeating verbatim; mirrors the server matcher's top-K
   // random selection.
