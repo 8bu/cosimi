@@ -80,7 +80,11 @@ describe("<RollbackView>", () => {
       });
     });
 
-    expect(await screen.findByText("5")).toBeInTheDocument();
+    // Phase 15: inline success card was removed — success surfaces via
+    // sonner toast (skipped here per the test brief). The mutation
+    // call assertion above is the behavior contract; the toast wiring
+    // lives in useRollback's onSuccess and is exercised by sonner's
+    // own test suite.
   });
 
   it("Cancel closes the ConfirmDialog without firing the mutation", async () => {

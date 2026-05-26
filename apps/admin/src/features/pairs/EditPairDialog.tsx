@@ -100,11 +100,9 @@ export function EditPairDialog({ open, onOpenChange, pair }: Props) {
             />
             Flagged
           </label>
-          {edit.isError && (
-            <p className="text-xs text-destructive" role="alert">
-              {edit.error instanceof Error ? edit.error.message : "Failed to save."}
-            </p>
-          )}
+          {/* Phase 15: error display moved to sonner toast (see
+              useEditPair onError). Keeping an inline alert here would
+              double-surface the same failure. */}
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>

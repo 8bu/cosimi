@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { Upload } from "lucide-react";
 import { useUnanswered, type UnansweredSource } from "@/api/unanswered";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { TableSkeleton } from "@/components/ui/skeleton";
 import { Pagination } from "@/components/Pagination";
 import { RelativeTime } from "@/components/RelativeTime";
 import { SourceTabs } from "./SourceTabs";
@@ -58,6 +59,7 @@ export function UnansweredView() {
             </tr>
           </thead>
           <tbody>
+            {isLoading && items.length === 0 && <TableSkeleton rows={5} cols={5} />}
             {items.map((row) => (
               <tr key={row.id} className="border-b last:border-0 hover:bg-muted/40">
                 <td className="px-4 py-3">{row.input}</td>
@@ -84,8 +86,12 @@ export function UnansweredView() {
             ))}
             {!isLoading && items.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                  No rows.
+                <td colSpan={5} className="px-4 py-12 text-center text-sm text-muted-foreground">
+                  <div className="font-medium text-foreground">No unanswered yet</div>
+                  <p className="mt-1">
+                    Questions the matcher couldn&apos;t answer show up here. Try chatting with the
+                    bot.
+                  </p>
                 </td>
               </tr>
             )}

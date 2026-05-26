@@ -57,7 +57,7 @@ export function ImportView() {
           <select
             value={source}
             onChange={(e) => setSource(e.target.value as "seed" | "llm")}
-            className="rounded-md border bg-card p-2 text-sm"
+            className="rounded-md border bg-card p-2 text-sm outline-none focus:ring-2 focus:ring-ring"
             aria-label="Source"
           >
             <option value="llm">llm — LLM-generated batch</option>
@@ -71,7 +71,7 @@ export function ImportView() {
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
             placeholder="e.g. humor, greetings, smalltalk"
-            className="rounded-md border bg-card p-2 text-sm"
+            className="rounded-md border bg-card p-2 text-sm outline-none focus:ring-2 focus:ring-ring"
             aria-label="Topic"
           />
           <span className="text-xs text-muted-foreground">
@@ -123,14 +123,10 @@ export function ImportView() {
             </Link>
           </div>
         )}
-        {imp.isError && (
-          <div
-            role="alert"
-            className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm"
-          >
-            {imp.error.message}
-          </div>
-        )}
+        {/* Phase 15: error display moved to sonner toast (see useImport
+            onError). The success card stays inline — it carries a
+            durable "View rows" link the operator may want to click
+            after the toast auto-dismisses. */}
       </div>
     </section>
   );

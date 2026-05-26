@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { API_BASE } from "@/lib/env";
 
 export interface ImportArgs {
@@ -44,10 +45,17 @@ export function useImport() {
       }
       return (await res.json()) as ImportResult;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["admin", "pairs"] });
       qc.invalidateQueries({ queryKey: ["admin", "stats"] });
       qc.invalidateQueries({ queryKey: ["admin", "unanswered"] });
+      // The view also renders an inline success card (with a "View
+      // rows" link to the batch-filtered pairs page); the toast is the
+      // peripheral notice in case the operator already scrolled the
+      // form off-screen during a multi-MB import.
+      toast.success(`Imported ${data.count} pairs (batch #${data.batch_id})`);
     },
+    onError: (e) =>
+      toast.error(`Import failed — ${e instanceof Error ? e.message : "request failed"}`),
   });
 }

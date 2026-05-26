@@ -1,10 +1,12 @@
 import { Outlet, Route, Routes } from "react-router";
+import { KeyboardShortcuts } from "@/components/KeyboardShortcuts";
 import { Sidebar } from "@/components/Sidebar";
 import UnansweredRoute from "@/routes/unanswered";
 import PairsRoute from "@/routes/pairs";
 import TeachQueueRoute from "@/routes/teach-queue";
 import ImportRoute from "@/routes/import";
 import RollbackRoute from "@/routes/rollback";
+import NotFound from "@/routes/NotFound";
 
 function Layout() {
   return (
@@ -13,6 +15,9 @@ function Layout() {
       <main className="flex-1 overflow-y-auto px-6 py-6">
         <Outlet />
       </main>
+      {/* Global `?` cheatsheet — listens at the window level. Lives at
+          the layout root so it's available in every admin view. */}
+      <KeyboardShortcuts />
     </div>
   );
 }
@@ -26,6 +31,7 @@ export default function App() {
         <Route path="/teach-queue" element={<TeachQueueRoute />} />
         <Route path="/import" element={<ImportRoute />} />
         <Route path="/rollback" element={<RollbackRoute />} />
+        <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
   );

@@ -90,7 +90,13 @@ describe("<ImportView>", () => {
     expect(init.headers["content-type"]).toBe("application/json");
   });
 
-  it("renders the server error message when the import fails (400)", async () => {
+  it("does NOT render the success card on a 4xx error", async () => {
+    // Phase 15: inline error alert was removed — failures surface via
+    // sonner toast (skipped here per the test brief: 'sonner renders
+    // in a portal that's finicky to test; assert the mutation
+    // completes and trust sonner's own test suite'). Assert that the
+    // success card stays hidden so a failed import can't be confused
+    // for a successful one.
     fetchMock.mockResolvedValueOnce(jsonResponse({ error: "invalid body" }, 400));
     const user = userEvent.setup();
     renderView();
@@ -99,7 +105,11 @@ describe("<ImportView>", () => {
     await user.upload(screen.getByLabelText("File"), file);
     await user.click(screen.getByRole("button", { name: "Import" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("invalid body");
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+    // Success card carries the "View rows" link — verify absent.
+    expect(screen.queryByRole("link", { name: "View rows" })).not.toBeInTheDocument();
   });
 
   it("Import button stays disabled until a file is chosen", () => {
