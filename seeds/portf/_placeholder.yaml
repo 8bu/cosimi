@@ -1,0 +1,22 @@
+# Placeholder smoke seed for Phase B. Three pairs under one topic so a
+# future bulk-delete (or rollback via import_batches) is one filter.
+# Replaced wholesale by the real portfolio Q&A corpus from the dedicated
+# brainstorm session before launch — DO NOT extend this file with serious
+# content; create a new YAML in seeds/portf/ instead and let the seed CLI
+# pick them all up via the existing glob.
+#
+# Note: locale stamping comes from the `pnpm seed:portf` root script's
+# `--locale=en` flag (see Phase A); do NOT add `locale:` per row — the
+# YAML loader ignores it and it'd mislead future readers.
+
+- input: ping
+  response: pong — portfolio matcher alive
+  topic: portfolio/smoke
+
+- input: hello
+  response: hi — placeholder portfolio reply
+  topic: portfolio/smoke
+
+- input: who built this
+  response: this is Long Nguyễn's portfolio — placeholder reply
+  topic: portfolio/smoke
