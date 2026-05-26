@@ -71,6 +71,9 @@ importers:
       tailwind-merge:
         specifier: ^2.5.0
         version: 2.6.1
+      zustand:
+        specifier: ^5.0.0
+        version: 5.0.13(@types/react@19.2.14)(react@19.2.6)
     devDependencies:
       '@simlm/tsconfig':
         specifier: workspace:*
