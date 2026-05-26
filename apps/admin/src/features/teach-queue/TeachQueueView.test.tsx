@@ -144,9 +144,61 @@ describe("<TeachQueueView>", () => {
     utils.unmount();
   });
 
-  it("renders empty-state row when items is empty", async () => {
+  it("renders empty-state row with Phase 15 copy when items is empty", async () => {
     mocks.apiJson.mockResolvedValueOnce({ items: [], limit: 50, offset: 0 });
     renderView();
-    expect(await screen.findByText("Nothing in this status.")).toBeInTheDocument();
+    expect(await screen.findByText("Teach queue is empty")).toBeInTheDocument();
+    expect(screen.getByText(/When chat users send \/teach <reply>/i)).toBeInTheDocument();
+  });
+
+  it("j/k keyboard nav moves focus highlight; `a` approves the focused row", async () => {
+    mocks.apiJson.mockResolvedValueOnce({ items: rows, limit: 50, offset: 0 });
+    const user = userEvent.setup();
+    renderView();
+    await screen.findByText("what is the meaning of life");
+
+    // Section must be focused for the scoped keydown listener to fire.
+    // The section is the outermost <section> with the focus-ring class —
+    // userEvent.tab() would step through the first focusable child;
+    // explicit focus() is faster and matches the production "operator
+    // clicked into the queue" flow.
+    const section = screen
+      .getByText("what is the meaning of life")
+      .closest("section") as HTMLElement;
+    section.focus();
+
+    // j → activeIdx 0 → 1
+    await user.keyboard("j");
+    // The second row's <tr> now has the focus-highlight class.
+    const row2Cell = screen.getByText("what time is it");
+    const row2Tr = row2Cell.closest("tr") as HTMLElement;
+    await waitFor(() => {
+      expect(row2Tr.className).toMatch(/ring-primary\/30/);
+    });
+
+    // `a` approves the focused row → POST /teach-queue/2/approve.
+    mocks.apiJson.mockResolvedValueOnce({ pair_id: 99 });
+    await user.keyboard("a");
+    await waitFor(() => {
+      expect(mocks.apiJson).toHaveBeenCalledWith("/teach-queue/2/approve", { method: "POST" });
+    });
+  });
+
+  it("ignores j/k keystrokes when focus is in an input (suppression rule)", async () => {
+    mocks.apiJson.mockResolvedValueOnce({ items: rows, limit: 50, offset: 0 });
+    const user = userEvent.setup();
+    renderView();
+    await screen.findByText("what is the meaning of life");
+
+    // Simulate focus in a free-form input by appending one to the document.
+    // The shortcut suppressor checks document.activeElement.tagName === INPUT.
+    const probe = document.createElement("input");
+    document.body.appendChild(probe);
+    probe.focus();
+    await user.keyboard("j");
+    // `a` would have approved a row — verify no API call fired.
+    await user.keyboard("a");
+    expect(mocks.apiJson).toHaveBeenCalledTimes(1); // only the initial list call
+    document.body.removeChild(probe);
   });
 });

@@ -91,10 +91,11 @@ describe("<UnansweredView>", () => {
     });
   });
 
-  it("renders 'No rows.' when items is empty", async () => {
+  it("renders the Phase 15 empty-state copy when items is empty", async () => {
     mocks.apiJson.mockResolvedValueOnce({ items: [], limit: 50, offset: 0 });
     renderView();
-    expect(await screen.findByText("No rows.")).toBeInTheDocument();
+    expect(await screen.findByText("No unanswered yet")).toBeInTheDocument();
+    expect(screen.getByText(/Try chatting with the bot/i)).toBeInTheDocument();
   });
 
   it("clicking row 'Teach' opens the dialog with the row input pre-filled", async () => {

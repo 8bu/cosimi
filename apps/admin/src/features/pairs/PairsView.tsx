@@ -5,6 +5,7 @@ import { usePairs } from "@/api/pairs";
 import { useDebounced } from "@/lib/use-debounced";
 import { Pagination } from "@/components/Pagination";
 import { Button } from "@/components/ui/button";
+import { TableSkeleton } from "@/components/ui/skeleton";
 import { PairsFilters, type Filters } from "./PairsFilters";
 import { PairRow } from "./PairRow";
 
@@ -49,6 +50,16 @@ export function PairsView() {
     offset: page * PAGE_SIZE,
   });
   const items = data?.items ?? [];
+  // "Any filter active" — drives the empty-state copy + Clear button.
+  // includeDeleted is a toggle, not really a filter, but flipping it on
+  // narrows the view to deleted-only, so it counts. batchId comes from
+  // the URL (set by ImportView's success card).
+  const hasActiveFilters =
+    !!filters.source ||
+    debouncedTopic.length > 0 ||
+    debouncedQ.length > 0 ||
+    filters.includeDeleted ||
+    batchId !== undefined;
 
   const clearBatch = () => {
     const next = new URLSearchParams(searchParams);
@@ -104,13 +115,35 @@ export function PairsView() {
             </tr>
           </thead>
           <tbody>
+            {isLoading && items.length === 0 && <TableSkeleton rows={5} cols={6} />}
             {items.map((p) => (
               <PairRow key={p.id} pair={p} />
             ))}
             {!isLoading && items.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                  No matches.
+                <td colSpan={6} className="px-4 py-12 text-center text-sm text-muted-foreground">
+                  <div className="font-medium text-foreground">
+                    {hasActiveFilters ? "No pairs match these filters" : "No pairs yet"}
+                  </div>
+                  <p className="mt-1">
+                    {hasActiveFilters
+                      ? "Try a broader search or clear filters to see the full corpus."
+                      : "Import a batch or approve teach-queue submissions to populate the corpus."}
+                  </p>
+                  {hasActiveFilters && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-3"
+                      onClick={() => {
+                        setFilters(initialFilters);
+                        if (batchId !== undefined) clearBatch();
+                        setPage(0);
+                      }}
+                    >
+                      Clear filters
+                    </Button>
+                  )}
                 </td>
               </tr>
             )}

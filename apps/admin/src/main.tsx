@@ -3,7 +3,13 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 import App from "@/App";
+import { Toaster } from "@/components/ui/sonner";
+import { bootstrapTheme } from "@/lib/theme";
 import "@/styles/globals.css";
+
+// Apply persisted theme to <html data-theme> before render to avoid a
+// light → dark flash for persisted-dark users (mirrors apps/web).
+bootstrapTheme();
 
 // Same defaults as apps/web: retry once on transient network blips,
 // don't refetch on focus (admin tables are tabular dashboards, not
@@ -24,6 +30,10 @@ createRoot(rootEl).render(
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <App />
+        {/* Toaster at the root, outside <App />'s route remounts (matches
+            apps/web). Sonner portals into <body>, so visual placement
+            is unaffected by the parent. */}
+        <Toaster position="top-right" richColors closeButton />
       </BrowserRouter>
     </QueryClientProvider>
   </StrictMode>,

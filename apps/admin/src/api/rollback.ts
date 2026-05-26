@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { apiJson } from "@/api/client";
 
 export interface RollbackArgs {
@@ -30,9 +31,16 @@ export function useRollback() {
         method: "POST",
         body: JSON.stringify(args),
       }),
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["admin", "pairs"] });
       qc.invalidateQueries({ queryKey: ["admin", "stats"] });
+      toast.success(
+        data.affected === 0
+          ? "No matching rows (already rolled back?)"
+          : `Rolled back ${data.affected} pair${data.affected === 1 ? "" : "s"}`,
+      );
     },
+    onError: (e) =>
+      toast.error(`Rollback failed — ${e instanceof Error ? e.message : "request failed"}`),
   });
 }

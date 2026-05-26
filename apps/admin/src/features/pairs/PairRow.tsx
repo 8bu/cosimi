@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { AdminPair } from "@simlm/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useDeletePair, useRestorePair } from "@/api/pairs";
 import { EditPairDialog } from "./EditPairDialog";
 
@@ -11,6 +12,7 @@ interface Props {
 
 export function PairRow({ pair }: Props) {
   const [editOpen, setEditOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const del = useDeletePair();
   const restore = useRestorePair();
   const deleted = pair.deleted_at !== null;
@@ -52,10 +54,15 @@ export function PairRow({ pair }: Props) {
             Restore
           </Button>
         ) : (
+          // Phase 15: route through ConfirmDialog. Phase 13's one-click
+          // delete was reversible (soft-delete + restore in the same
+          // view), but operators still appreciate a gate — destructive
+          // verbs in admin chrome should consistently require
+          // confirmation per the ConfirmDialog convention from Phase 14.
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => del.mutate(pair.id)}
+            onClick={() => setConfirmDelete(true)}
             disabled={del.isPending}
             aria-label={`Delete pair ${pair.id}`}
           >
@@ -64,6 +71,23 @@ export function PairRow({ pair }: Props) {
         )}
       </td>
       <EditPairDialog open={editOpen} onOpenChange={setEditOpen} pair={pair} />
+      <ConfirmDialog
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        title="Delete this pair?"
+        destructive
+        confirmLabel="Delete"
+        onConfirm={() => {
+          del.mutate(pair.id);
+          setConfirmDelete(false);
+        }}
+      >
+        {/* DialogDescription renders <p>; keep children inline-only.
+            Truncate long inputs so the dialog stays compact regardless
+            of the source row's length. */}
+        Soft-delete <code className="font-mono">{pair.input.slice(0, 60)}</code>
+        {pair.input.length > 60 ? "…" : ""}? You can restore from the deleted-filter view.
+      </ConfirmDialog>
     </tr>
   );
 }

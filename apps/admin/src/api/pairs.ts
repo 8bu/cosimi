@@ -1,6 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import type { AdminPair, Source } from "@simlm/types";
 import { apiJson } from "@/api/client";
+
+// Helper: extract a useful error string from the unknown thrown by
+// apiJson. ApiError stringifies as `${status} ${statusText}` which is
+// good enough for a toast; anything else falls back to Error.message.
+const errMsg = (e: unknown): string => (e instanceof Error ? e.message : "request failed");
 
 export interface CreatePairBody {
   input: string;
@@ -41,7 +47,9 @@ export function useCreatePair() {
       qc.invalidateQueries({ queryKey: ["admin", "stats"] });
       // Phase 13: a freshly-taught pair also belongs to the /pairs list.
       qc.invalidateQueries({ queryKey: ["admin", "pairs"] });
+      toast.success("Pair created");
     },
+    onError: (e) => toast.error(`Create failed — ${errMsg(e)}`),
   });
 }
 
@@ -111,7 +119,11 @@ export function useEditPair() {
         method: "PATCH",
         body: JSON.stringify(args.patch),
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "pairs"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "pairs"] });
+      toast.success("Pair updated");
+    },
+    onError: (e) => toast.error(`Save failed — ${errMsg(e)}`),
   });
 }
 
@@ -122,7 +134,9 @@ export function useDeletePair() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin", "pairs"] });
       qc.invalidateQueries({ queryKey: ["admin", "stats"] });
+      toast.success("Pair deleted");
     },
+    onError: (e) => toast.error(`Delete failed — ${errMsg(e)}`),
   });
 }
 
@@ -133,6 +147,8 @@ export function useRestorePair() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin", "pairs"] });
       qc.invalidateQueries({ queryKey: ["admin", "stats"] });
+      toast.success("Pair restored");
     },
+    onError: (e) => toast.error(`Restore failed — ${errMsg(e)}`),
   });
 }

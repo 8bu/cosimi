@@ -1,6 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import type { AdminTeachQueueItem } from "@simlm/types";
 import { apiJson } from "@/api/client";
+
+const errMsg = (e: unknown): string => (e instanceof Error ? e.message : "request failed");
 
 export type QueueStatus = "pending" | "approved" | "rejected";
 
@@ -57,7 +60,9 @@ export function useApprove() {
       // The new pair lands in `pairs` — invalidate stats counters too.
       qc.invalidateQueries({ queryKey: ["admin", "stats"] });
       qc.invalidateQueries({ queryKey: ["admin", "pairs"] });
+      toast.success("Approved");
     },
+    onError: (e) => toast.error(`Approve failed — ${errMsg(e)}`),
   });
 }
 
@@ -69,7 +74,11 @@ export function useReject() {
         method: "POST",
         body: JSON.stringify({ reviewer_note: args.reviewer_note }),
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "teach-queue"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "teach-queue"] });
+      toast.success("Rejected");
+    },
+    onError: (e) => toast.error(`Reject failed — ${errMsg(e)}`),
   });
 }
 
@@ -87,10 +96,17 @@ export function useBatch() {
         method: "POST",
         body: JSON.stringify(args),
       }),
-    onSuccess: () => {
+    onSuccess: (data, vars) => {
       qc.invalidateQueries({ queryKey: ["admin", "teach-queue"] });
       qc.invalidateQueries({ queryKey: ["admin", "stats"] });
       qc.invalidateQueries({ queryKey: ["admin", "pairs"] });
+      const n = data.approved ?? data.rejected ?? vars.ids.length;
+      const verb = vars.action === "approve" ? "Approved" : "Rejected";
+      toast.success(`${verb} ${n} submission${n === 1 ? "" : "s"}`);
+    },
+    onError: (e, vars) => {
+      const verb = vars.action === "approve" ? "Approve" : "Reject";
+      toast.error(`${verb} failed — ${errMsg(e)}`);
     },
   });
 }

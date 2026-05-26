@@ -123,10 +123,20 @@ describe("<PairsView>", () => {
     });
   });
 
-  it("renders 'No matches.' when items is empty", async () => {
+  it("renders the Phase 15 'No pairs yet' empty state when items is empty (no filters)", async () => {
     mocks.apiJson.mockResolvedValueOnce({ items: [], limit: 50, offset: 0 });
     renderView();
-    expect(await screen.findByText("No matches.")).toBeInTheDocument();
+    expect(await screen.findByText("No pairs yet")).toBeInTheDocument();
+    expect(screen.getByText(/Import a batch/i)).toBeInTheDocument();
+    // No Clear-filters button when no filter is active.
+    expect(screen.queryByRole("button", { name: "Clear filters" })).not.toBeInTheDocument();
+  });
+
+  it("renders 'No pairs match these filters' + Clear filters when a filter is active", async () => {
+    mocks.apiJson.mockResolvedValue({ items: [], limit: 50, offset: 0 });
+    renderView(["/pairs?batch_id=42"]);
+    expect(await screen.findByText("No pairs match these filters")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Clear filters" })).toBeInTheDocument();
   });
 
   it("URL ?batch_id=N feeds the query and renders a read-only filter chip", async () => {

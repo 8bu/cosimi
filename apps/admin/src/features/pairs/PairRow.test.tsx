@@ -60,16 +60,41 @@ afterEach(() => {
 });
 
 describe("<PairRow>", () => {
-  it("clicking Delete on an active row calls DELETE /pairs/:id", async () => {
-    mocks.apiJson.mockResolvedValueOnce({ ok: true });
+  it("clicking Delete on an active row opens ConfirmDialog (no immediate API call)", async () => {
     const user = userEvent.setup();
     renderRow(activePair);
 
     await user.click(screen.getByRole("button", { name: "Delete pair 11" }));
 
+    // ConfirmDialog gates the destructive action — the API must NOT
+    // have been called yet, but the confirm button should be visible.
+    expect(mocks.apiJson).not.toHaveBeenCalled();
+    expect(await screen.findByText("Delete this pair?")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument();
+  });
+
+  it("confirming the delete dialog calls DELETE /pairs/:id", async () => {
+    mocks.apiJson.mockResolvedValueOnce({ ok: true });
+    const user = userEvent.setup();
+    renderRow(activePair);
+
+    await user.click(screen.getByRole("button", { name: "Delete pair 11" }));
+    // ConfirmDialog renders a "Delete" button (destructive variant).
+    await user.click(await screen.findByRole("button", { name: "Delete" }));
+
     await waitFor(() => {
       expect(mocks.apiJson).toHaveBeenCalledWith("/pairs/11", { method: "DELETE" });
     });
+  });
+
+  it("cancelling the delete dialog does not call the API", async () => {
+    const user = userEvent.setup();
+    renderRow(activePair);
+
+    await user.click(screen.getByRole("button", { name: "Delete pair 11" }));
+    await user.click(await screen.findByRole("button", { name: "Cancel" }));
+
+    expect(mocks.apiJson).not.toHaveBeenCalled();
   });
 
   it("renders Restore (not Delete) on a soft-deleted row and applies opacity-50", () => {

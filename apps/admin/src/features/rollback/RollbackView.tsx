@@ -61,7 +61,7 @@ export function RollbackView() {
           <select
             value={source}
             onChange={(e) => setSource(e.target.value)}
-            className="rounded-md border bg-card p-2 text-sm"
+            className="rounded-md border bg-card p-2 text-sm outline-none focus:ring-2 focus:ring-ring"
             aria-label="Source"
           >
             {SOURCE_OPTIONS.map((opt) => (
@@ -78,7 +78,7 @@ export function RollbackView() {
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
             placeholder="e.g. humor"
-            className="rounded-md border bg-card p-2 text-sm"
+            className="rounded-md border bg-card p-2 text-sm outline-none focus:ring-2 focus:ring-ring"
             aria-label="Topic"
           />
         </label>
@@ -92,7 +92,7 @@ export function RollbackView() {
             value={batchId}
             onChange={(e) => setBatchId(e.target.value)}
             placeholder="e.g. 42"
-            className="rounded-md border bg-card p-2 text-sm"
+            className="rounded-md border bg-card p-2 text-sm outline-none focus:ring-2 focus:ring-ring"
             aria-label="Batch ID"
           />
         </label>
@@ -108,19 +108,10 @@ export function RollbackView() {
           </Button>
         </div>
 
-        {rollback.isSuccess && (
-          <div className="rounded-lg border border-success/30 bg-success/10 p-3 text-sm">
-            Rolled back <span className="font-medium">{rollback.data.affected}</span> rows.
-          </div>
-        )}
-        {rollback.isError && (
-          <div
-            role="alert"
-            className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm"
-          >
-            {rollback.error.message}
-          </div>
-        )}
+        {/* Phase 15: success + error feedback moved to sonner toast
+            (see useRollback onSuccess/onError). The rollback flow has
+            no follow-up state to display inline, so a transient toast
+            is the right surface. */}
       </div>
 
       <ConfirmDialog

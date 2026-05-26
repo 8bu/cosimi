@@ -10,21 +10,45 @@ interface Props {
   row: AdminTeachQueueItem;
   status: QueueStatus;
   selected: boolean;
-  onToggle: () => void;
+  // Phase 15: signature widened from `() => void` to forward the
+  // originating event so the parent can read `e.shiftKey` for
+  // range-select. Change/Click events both share the .shiftKey field.
+  onToggle: (e: React.ChangeEvent<HTMLInputElement> | React.MouseEvent) => void;
+  // Phase 15: when true, paint a subtle focus ring — driven by j/k
+  // keyboard nav in the parent. Visual cue only; the actual approve/
+  // reject shortcuts are bound at the section scope.
+  focused?: boolean;
 }
 
-export function QueueRow({ row, status, selected, onToggle }: Props) {
+export function QueueRow({ row, status, selected, onToggle, focused }: Props) {
   const [rejectOpen, setRejectOpen] = useState(false);
   const approve = useApprove();
 
   return (
-    <tr className="border-b last:border-0 hover:bg-muted/40">
+    <tr
+      className={`border-b last:border-0 hover:bg-muted/40 ${
+        focused ? "bg-primary/5 ring-1 ring-inset ring-primary/30" : ""
+      }`}
+    >
       {status === "pending" && (
         <td className="px-3 py-3 align-top">
           <input
             type="checkbox"
             checked={selected}
             onChange={onToggle}
+            onClick={(e) => {
+              // Range-select piggybacks on click (which carries shiftKey)
+              // because onChange's SyntheticEvent doesn't expose it
+              // reliably across browsers. The click handler intercepts
+              // shift-clicks; the change handler still fires on plain
+              // clicks for the single-toggle path. Both invoke the same
+              // parent onToggle — the parent inspects shiftKey to
+              // discriminate.
+              if (e.shiftKey) {
+                e.preventDefault();
+                onToggle(e);
+              }
+            }}
             aria-label={`Select submission ${row.id}`}
           />
         </td>
