@@ -1,6 +1,7 @@
 import { NavLink } from "react-router";
-import { Inbox, ListChecks, MessagesSquare, Undo2, Upload } from "lucide-react";
+import { Inbox, ListChecks, MessagesSquare, Settings, Undo2, Upload } from "lucide-react";
 import { BRAND } from "@simlm/branding";
+import { PresetSwitcher } from "@/components/PresetSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +17,7 @@ const items: Item[] = [
   { to: "/teach-queue", label: "Teach Queue", icon: ListChecks },
   { to: "/import", label: "Import", icon: Upload },
   { to: "/rollback", label: "Rollback", icon: Undo2 },
+  { to: "/presets", label: "Presets", icon: Settings },
 ];
 
 export function Sidebar() {
@@ -38,13 +40,17 @@ export function Sidebar() {
           {label}
         </NavLink>
       ))}
-      {/* Spacer pushes the toggle to the bottom of the sidebar without
-          a fixed wrapper — keeps the layout natural at small heights
-          (the toggle scrolls with the nav if the viewport is too short
-          for everything to fit). */}
-      <div className="mt-auto flex items-center justify-between px-2 pt-4">
-        <span className="text-xs text-muted-foreground">Press ? for shortcuts</span>
-        <ThemeToggle />
+      {/* Spacer pushes the footer to the bottom of the sidebar. Phase
+          16: footer is now two stacked rows — PresetSwitcher (full
+          width) above the existing hints + ThemeToggle row. The
+          switcher is always visible chrome (operator's "which backend
+          am I on?" answer at-a-glance), not buried in /presets. */}
+      <div className="mt-auto flex flex-col gap-2 px-2 pt-4">
+        <PresetSwitcher />
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">Press ? for shortcuts</span>
+          <ThemeToggle />
+        </div>
       </div>
     </nav>
   );

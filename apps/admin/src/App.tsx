@@ -6,6 +6,7 @@ import PairsRoute from "@/routes/pairs";
 import TeachQueueRoute from "@/routes/teach-queue";
 import ImportRoute from "@/routes/import";
 import RollbackRoute from "@/routes/rollback";
+import PresetsRoute from "@/routes/presets";
 import NotFound from "@/routes/NotFound";
 
 function Layout() {
@@ -31,6 +32,7 @@ export default function App() {
         <Route path="/teach-queue" element={<TeachQueueRoute />} />
         <Route path="/import" element={<ImportRoute />} />
         <Route path="/rollback" element={<RollbackRoute />} />
+        <Route path="/presets" element={<PresetsRoute />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
