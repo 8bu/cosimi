@@ -2,7 +2,7 @@
 
 ## What this is
 
-A SimSimi-style pattern-matching chatbot. **No LLM at runtime** — replies come from a curated/learned pattern store, scored by a 3-tier matching engine (exact → Postgres FTS → trigram). pnpm + Turbo monorepo; public chat API, internal admin API, and two Vite/React UIs share typed packages.
+SimSimi-style pattern-matching chatbot. **No LLM at runtime** — replies from curated/learned pattern store, scored by 3-tier engine (exact → Postgres FTS → trigram). pnpm + Turbo monorepo; public chat API, internal admin API, two Vite/React UIs share typed packages.
 
 ## Tech stack
 
@@ -37,12 +37,12 @@ docs/             # phased specs SPEC_PHASE_0.md … SPEC_PHASE_16.md
 
 ## Specs
 
-`docs/SPEC_PHASE_*.md` (per-phase) + `docs/REQUIREMENTS.md` (brief). **Read only the current phase's spec unless cross-phase context is needed.**
+`docs/SPEC_PHASE_*.md` (per-phase) + `docs/REQUIREMENTS.md` (brief). **Read only current phase's spec unless cross-phase context needed.**
 
 ## Commands
 
 - `pnpm dev:all` — Docker guard → `db:up --wait` → `migrate` → `dev`.
-- `pnpm dev` — assumes Postgres is up + migrated.
+- `pnpm dev` — assumes Postgres up + migrated.
 - `pnpm db:up` / `db:down` / `db:reset` — Postgres dev container.
 - `pnpm migrate` / `seed` / `seed:chatterbot`. Root `migrate` runs `up`; for `status`/`reset` use `pnpm --filter @simlm/db migrate <sub>`.
 - `pnpm typecheck` / `lint` / `test` / `build` — turbo fan-out.
@@ -52,57 +52,57 @@ docs/             # phased specs SPEC_PHASE_0.md … SPEC_PHASE_16.md
 
 ### Workspace & supply chain
 
-- Workspace packages are `@simlm/<name>`, `private: true`. Always import via `@simlm/...`; never relative across packages. `link-workspace-packages=true` makes self-imports work.
-- `@simlm/db` internal subpath imports use `#client`, `#repositories/*`, `#scripts/*`. Outside the package, always `@simlm/db`.
-- `pnpm-workspace.yaml` has `minimumReleaseAge: 10080` (7-day embargo). Force-include via `minimumReleaseAgeExclude` only with a comment.
-- `allowBuilds` is the postinstall permission list. Each entry runs arbitrary install-time code; add deliberately with a `# why` comment. Current: `esbuild`, `@swc/core`. No wildcards.
+- Workspace packages `@simlm/<name>`, `private: true`. Always import via `@simlm/...`; never relative across packages. `link-workspace-packages=true` makes self-imports work.
+- `@simlm/db` internal subpath imports use `#client`, `#repositories/*`, `#scripts/*`. Outside package, always `@simlm/db`.
+- `pnpm-workspace.yaml` has `minimumReleaseAge: 10080` (7-day embargo). Force-include via `minimumReleaseAgeExclude` only with comment.
+- `allowBuilds` = postinstall permission list. Each entry runs arbitrary install-time code; add deliberately with `# why` comment. Current: `esbuild`, `@swc/core`. No wildcards.
 
 ### Architecture & security
 
-- `apps/api` and `apps/admin-api` are **separate processes**. admin-api binds `127.0.0.1`; the process split + network-layer gate IS the auth contract — don't add app-layer auth to admin routes. No `/admin/*` route prefix.
-- **No LLM at runtime** in `apps/api`. `@simlm/matcher` is the only reply source.
+- `apps/api` and `apps/admin-api` are **separate processes**. admin-api binds `127.0.0.1`; process split + network-layer gate IS auth contract — don't add app-layer auth to admin routes. No `/admin/*` route prefix.
+- **No LLM at runtime** in `apps/api`. `@simlm/matcher` is only reply source.
 - Env via `loadEnv()` from `@simlm/config` — called once at startup, never at import time. Never `export const env = loadEnv()` (breaks test env injection).
 
 ### Database & migrations
 
-- Migrations in `packages/db/migrations/` are numbered, additive, **never rewritten after merge**. New changes → new file. `pnpm migrate reset` is dev-only (`NODE_ENV !== 'production'`).
-- **Canonical write path for `pairs`**: `insertPair` / `insertManyPairs` from `@simlm/db`. Never raw `INSERT INTO pairs`. Both omit `normalized_unaccented` (Postgres rejects explicit values) and accept an optional `tx`; inside `.begin()` you MUST pass `tx`.
+- Migrations in `packages/db/migrations/` numbered, additive, **never rewritten after merge**. New changes → new file. `pnpm migrate reset` dev-only (`NODE_ENV !== 'production'`).
+- **Canonical write path for `pairs`**: `insertPair` / `insertManyPairs` from `@simlm/db`. Never raw `INSERT INTO pairs`. Both omit `normalized_unaccented` (Postgres rejects explicit values) and accept optional `tx`; inside `.begin()` MUST pass `tx`.
 - `pairs.normalized_unaccented` is `GENERATED ALWAYS AS (f_unaccent(normalized_input)) STORED`. Never INSERT/UPDATE directly.
 - **Diacritics split**: `@simlm/normalizer` does NFC + lowercase + whitespace, **preserves diacritics**. `f_unaccent(text)` (migration 001) strips server-side. All pair tiers compare `pairs.normalized_unaccented` against `f_unaccent(${normalizedInput})`. Never strip in JS. `session_teaches` `f_unaccent`s both sides at query time (no generated column; 10-min TTL keeps it small).
-- **BIGSERIAL ids round-trip as strings via postgres.js.** Cast at the write boundary: `RETURNING id::int AS id`.
+- **BIGSERIAL ids round-trip as strings via postgres.js.** Cast at write boundary: `RETURNING id::int AS id`.
 - Interval arithmetic in SQL: `${n} * INTERVAL '1 unit'`. Never `(n || ' unit')::interval` (postgres.js types JS numbers as int).
-- `app_config` is key/value; templated responses use `{{ key }}` via `renderTemplate(text, vars)` (case-insensitive, unknown keys left literal). Tests exclude `app_config` from TRUNCATE. Adding a placeholder = new migration with `INSERT … ON CONFLICT DO NOTHING`.
+- `app_config` is key/value; templated responses use `{{ key }}` via `renderTemplate(text, vars)` (case-insensitive, unknown keys left literal). Tests exclude `app_config` from TRUNCATE. New placeholder = new migration with `INSERT … ON CONFLICT DO NOTHING`.
 
 ### Seeds & batches
 
-- Every seed run creates exactly one `import_batches` row (`createBatch` → `insertManyPairs(..., batch_id)` → `setBatchCount`). The batch IS the unit of rollback. Re-seeding creates duplicates by design.
+- Every seed run creates exactly one `import_batches` row (`createBatch` → `insertManyPairs(..., batch_id)` → `setBatchCount`). Batch IS unit of rollback. Re-seeding creates duplicates by design.
 - Seed CLI dispatches by extension: `.json` (array), `.jsonl` (one-per-line), `.yaml`/`.yml` (flat; chatterbot-corpus when top-level `conversations:`/`categories:`, flattened with sliding window). Globs expand shell-side.
-- Root scripts (`pnpm seed:vi` etc.) run `tsx packages/db/src/scripts/seed.ts <glob>` from repo root, not `pnpm --filter` — filter would `cd` into the package and break globs.
-- `seeds/chatterbot/` is a frozen SHA-pinned snapshot (see `seeds/chatterbot/NOTICE`). Listed in `.oxfmtignore`. No postinstall network fetch.
+- Root scripts (`pnpm seed:vi` etc.) run `tsx packages/db/src/scripts/seed.ts <glob>` from repo root, not `pnpm --filter` — filter would `cd` into package and break globs.
+- `seeds/chatterbot/` frozen SHA-pinned snapshot (see `seeds/chatterbot/NOTICE`). Listed in `.oxfmtignore`. No postinstall network fetch.
 
 ### Matcher
 
-- Cascade: `session_teach → exact → FTS → trigram`, short-circuit on first non-null. Caller normalizes input (matcher doesn't call `@simlm/normalizer`). Skip `session_teach` when `sessionId` is null.
+- Cascade: `session_teach → exact → FTS → trigram`, short-circuit on first non-null. Caller normalizes input (matcher doesn't call `@simlm/normalizer`). Skip `session_teach` when `sessionId` null.
 - All match queries filter `(locale = $1 OR locale = 'und') ORDER BY (locale = $1) DESC`. OR = inclusion (locale-tagged + universal both eligible); ORDER BY = locale-tagged wins ties. Remove either → silent corpus split.
-- Trigram tier double-filters: `%` index op **AND** explicit `similarity(...) >= MATCH_TRGM_MIN`. The `%` GUC is process-global and mutable; the explicit threshold pins behavior. Never replace with `set_limit()`.
-- `lowConfidence` ⇔ `tier === 'trigram'`. FTS `ts_rank` clamped to `[0, 1]`. Top-K random pick (`MATCH_TOP_K`, default 5) happens in JS after SQL ordering — don't push into SQL.
+- Trigram tier double-filters: `%` index op **AND** explicit `similarity(...) >= MATCH_TRGM_MIN`. `%` GUC is process-global and mutable; explicit threshold pins behavior. Never replace with `set_limit()`.
+- `lowConfidence` ⇔ `tier === 'trigram'`. FTS `ts_rank` clamped to `[0, 1]`. Top-K random pick (`MATCH_TOP_K`, default 5) in JS after SQL ordering — don't push into SQL.
 
 ### apps/api: chat + SSE + teach
 
-- `withSession` reads `c.req.json()` once and stashes at `c.set('parsedBody', body)`. Handlers MUST use `c.get('parsedBody')` — Hono body stream is single-use. Session id: body → `X-Session-Id` header → minted; echoed in response header.
-- SSE: every response ends with literal `data: [DONE]\n\n` from `finally`. `ChatStreamEvent.type === 'done'` is for client `switch` exhaustiveness only — `[DONE]` is the wire terminator.
-- SSE errors: `TeachError.message` is user-facing; everything else surfaces as generic with diagnostic logged. `services/rate-limit.ts` throws a plain `Error` (circular-import dodge); teach handler rewraps as `TeachError`.
-- In-process GC: single `setInterval` (`GC_INTERVAL_MS`, default 5min) DELETEs from `sessions` + `session_teaches` in parallel. Handle is `.unref()`'d. SIGINT/SIGTERM → `stopGc()` → `server.close()`. Multi-instance would need an advisory lock; out of scope.
-- `/healthz` runs a 1s-budgeted DB ping; timeout is `.unref()`'d AND cleared in `finally`. Shape: `{ ok, db: 'up'|'down', db_latency_ms, uptime_s }`. Two identical files (api + admin-api) — touch both, or extract on the third instance.
+- `withSession` reads `c.req.json()` once and stashes at `c.set('parsedBody', body)`. Handlers MUST use `c.get('parsedBody')` — Hono body stream single-use. Session id: body → `X-Session-Id` header → minted; echoed in response header.
+- SSE: every response ends with literal `data: [DONE]\n\n` from `finally`. `ChatStreamEvent.type === 'done'` for client `switch` exhaustiveness only — `[DONE]` is wire terminator.
+- SSE errors: `TeachError.message` is user-facing; everything else surfaces as generic with diagnostic logged. `services/rate-limit.ts` throws plain `Error` (circular-import dodge); teach handler rewraps as `TeachError`.
+- In-process GC: single `setInterval` (`GC_INTERVAL_MS`, default 5min) DELETEs from `sessions` + `session_teaches` in parallel. Handle is `.unref()`'d. SIGINT/SIGTERM → `stopGc()` → `server.close()`. Multi-instance needs advisory lock; out of scope.
+- `/healthz` runs 1s-budgeted DB ping; timeout `.unref()`'d AND cleared in `finally`. Shape: `{ ok, db: 'up'|'down', db_latency_ms, uptime_s }`. Two identical files (api + admin-api) — touch both, or extract on third instance.
 
 ### apps/admin-api
 
-- Teach-queue approval uses `insertPair({...}, tx)` inside a transaction so queue UPDATE + pair INSERT are atomic.
+- Teach-queue approval uses `insertPair({...}, tx)` inside transaction so queue UPDATE + pair INSERT atomic.
 - `/import` JSONL reads `c.req.raw.body!.getReader()` directly to bypass Hono's buffered parser (OOM-safe at 10k rows). `FLUSH_AT=500` bounds in-memory batch.
-- `/import` accumulates a `Set<string>` of normalized inputs across all flushes (JSONL + buffered JSON), then runs one `DELETE FROM unanswered WHERE normalized_input = ANY(...)` after the last flush. Per-request scope, NOT pushed into `insertManyPairs` (seed CLI shouldn't trigger cleanup).
-- `POST /pairs` atomically deletes matching `unanswered` rows in the same transaction. Match key: `unanswered.normalized_input = normalize(input)`, **no source filter**. Any new write site must include this cleanup.
+- `/import` accumulates `Set<string>` of normalized inputs across all flushes (JSONL + buffered JSON), then runs one `DELETE FROM unanswered WHERE normalized_input = ANY(...)` after last flush. Per-request scope, NOT pushed into `insertManyPairs` (seed CLI shouldn't trigger cleanup).
+- `POST /pairs` atomically deletes matching `unanswered` rows in same transaction. Match key: `unanswered.normalized_input = normalize(input)`, **no source filter**. Any new write site must include cleanup.
 - `/rollback` is `UPDATE pairs SET deleted_at = NOW() WHERE deleted_at IS NULL AND <filters>` — re-runs are no-ops. Soft-delete only. Partial indexes on `deleted_at IS NULL` keep active reads zero-cost.
-- `/pairs` PATCH builds SET clauses as conditional `sql` fragments, NOT `sql(obj, ...cols)` — the object helper turns `sql\`NOW()\`` into a text literal.
+- `/pairs` PATCH builds SET clauses as conditional `sql` fragments, NOT `sql(obj, ...cols)` — object helper turns `sql\`NOW()\`` into a text literal.
 - `/pairs?batch_id=N` is navigation-target-only (no manual input). Set by Import success card via `useSearchParams()`.
 
 ### Locale

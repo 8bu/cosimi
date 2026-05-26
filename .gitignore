@@ -10,3 +10,6 @@ docs/SPEC_*.md
 docs/screenshots/
 *.tsbuildinfo
 .claude/
+.agents/
+CLAUDE.original.md
+skills-lock.json
