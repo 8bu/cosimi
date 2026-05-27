@@ -1,13 +1,11 @@
 @import "tailwindcss";
 @import "./portfolio.css";
+@import "./layout.css";
 
 /*
- * Tailwind v4 is loaded first so its `@theme` resets establish the
- * default CSS-var palette; the design's portfolio.css then overrides
- * the surface tokens (--cream, --ink, --coral, etc.) per
- * [data-theme=…] selector. The press theme is the v1 default and is
- * pinned via the `data-theme="press"` attribute set in index.html.
+ * Tailwind v4 first → portfolio.css design tokens → Phase E layout.css.
+ * The import order is load-bearing: layout.css overrides on selector tie.
  *
- * No @simlm/ui-tokens import: per spec §2, portf does NOT reuse
- * apps/web's warm-neutral palette. The design system is app-local.
+ * No @simlm/ui-tokens import: per spec §2, portf does NOT reuse apps/web's
+ * warm-neutral palette. The design system is app-local.
  */
