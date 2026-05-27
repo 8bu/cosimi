@@ -2,9 +2,7 @@
 
 A pattern-matching chatbot in the spirit of SimSimi. **No LLM at runtime.**
 Replies come from a curated/learned pattern store, scored by a four-tier
-matching engine (`session_teach → exact → FTS → trigram`). Bilingual
-(Vietnamese / English) seeds ship in-tree. pnpm + Turbo monorepo; the public
-chat API, the internal admin API, and the two SPAs share typed packages.
+matching engine (`session_teach → exact → FTS → trigram`).
 
 ## Why I built this
 
