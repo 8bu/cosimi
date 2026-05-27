@@ -1,0 +1,181 @@
+import { describe, it, expect, beforeEach } from "vitest";
+
+import type { ArtifactDescriptor } from "@/features/artifacts/types";
+
+beforeEach(async () => {
+  // Catalog is module-scoped; resetting modules guarantees a clean load
+  // when tests feed it different fixture sets.
+  const { vi } = await import("vitest");
+  vi.resetModules();
+});
+
+describe("catalog", () => {
+  it("builds a Map<slug, descriptor> from MDX modules with valid frontmatter", async () => {
+    const { _buildCatalog } = await import("@/features/artifacts/catalog");
+
+    const modules = {
+      "../../artifacts/__fixtures__/projects/sample-project.mdx": {
+        default: () => null,
+        frontmatter: {
+          slug: "sample-project",
+          kind: "projects",
+          title: "Sample Project",
+          period: "2024–2025",
+          stack: ["TypeScript", "React"],
+          summary: "Fixture",
+          matchPatterns: ["sample"],
+        },
+      },
+      "../../artifacts/__fixtures__/essays/sample-essay.mdx": {
+        default: () => null,
+        frontmatter: {
+          slug: "sample-essay",
+          kind: "essays",
+          title: "A Sample Essay",
+          period: "2026",
+          stack: [],
+          summary: "Fixture",
+          matchPatterns: ["essay"],
+        },
+      },
+    };
+
+    const catalog = _buildCatalog(modules);
+
+    expect(catalog.size).toBe(2);
+    const sp: ArtifactDescriptor | undefined = catalog.get("sample-project");
+    expect(sp?.title).toBe("Sample Project");
+    expect(sp?.kind).toBe("projects");
+    expect(catalog.get("sample-essay")?.kind).toBe("essays");
+    // Defaults applied:
+    expect(sp?.kicker).toBe("open artifact");
+    expect(sp?.locale).toBe("en");
+    expect(sp?.order).toBe(0);
+    expect(sp?.thumb).toBe(null);
+  });
+
+  it("throws when two files declare the same slug", async () => {
+    const { _buildCatalog } = await import("@/features/artifacts/catalog");
+
+    const modules = {
+      "../../artifacts/__fixtures__/projects/sample-project.mdx": {
+        default: () => null,
+        frontmatter: {
+          slug: "sample-project",
+          kind: "projects",
+          title: "A",
+          period: "2024",
+          stack: [],
+          summary: "",
+          matchPatterns: ["xx"],
+        },
+      },
+      "../../artifacts/__fixtures__/projects/duplicate-slug.mdx": {
+        default: () => null,
+        frontmatter: {
+          slug: "sample-project",
+          kind: "projects",
+          title: "B",
+          period: "2025",
+          stack: [],
+          summary: "",
+          matchPatterns: ["yy"],
+        },
+      },
+    };
+
+    expect(() => _buildCatalog(modules)).toThrow(/duplicate slug/i);
+  });
+
+  it("throws when frontmatter kind disagrees with directory kind", async () => {
+    const { _buildCatalog } = await import("@/features/artifacts/catalog");
+
+    const modules = {
+      "../../artifacts/__fixtures__/misc/mismatched-kind.mdx": {
+        default: () => null,
+        frontmatter: {
+          slug: "mismatched-kind",
+          kind: "projects", // directory says misc, frontmatter says projects
+          title: "Mismatch",
+          period: "2025",
+          stack: [],
+          summary: "",
+          matchPatterns: ["mismatched"],
+        },
+      },
+    };
+
+    expect(() => _buildCatalog(modules)).toThrow(/kind mismatch/i);
+  });
+
+  it("throws when frontmatter fails valibot validation", async () => {
+    const { _buildCatalog } = await import("@/features/artifacts/catalog");
+
+    const modules = {
+      "../../artifacts/__fixtures__/projects/bad.mdx": {
+        default: () => null,
+        frontmatter: {
+          slug: "BAD_SLUG", // uppercase + underscore: regex fails
+          kind: "projects",
+          title: "Bad",
+          period: "2025",
+          stack: [],
+          summary: "",
+          matchPatterns: ["xx"],
+        },
+      },
+    };
+
+    expect(() => _buildCatalog(modules)).toThrow();
+  });
+
+  it("excludes __fixtures__ paths from the production catalog when used via the public loader path", async () => {
+    // The public loader runs `import.meta.glob('../../artifacts/**/*.mdx')`
+    // and filters /__fixtures__/. The test verifies the filter is applied
+    // when the helper is invoked with the production-mode flag.
+    const { _buildCatalog } = await import("@/features/artifacts/catalog");
+
+    const modules = {
+      "../../artifacts/__fixtures__/projects/sample-project.mdx": {
+        default: () => null,
+        frontmatter: {
+          slug: "sample-project",
+          kind: "projects",
+          title: "Sample",
+          period: "2024",
+          stack: [],
+          summary: "",
+          matchPatterns: ["xx"],
+        },
+      },
+      "../../artifacts/projects/real.mdx": {
+        default: () => null,
+        frontmatter: {
+          slug: "real",
+          kind: "projects",
+          title: "Real",
+          period: "2024",
+          stack: [],
+          summary: "",
+          matchPatterns: ["xx"],
+        },
+      },
+    };
+
+    const catalog = _buildCatalog(modules, { excludeFixtures: true });
+
+    expect(catalog.size).toBe(1);
+    expect(catalog.get("real")).toBeDefined();
+    expect(catalog.get("sample-project")).toBeUndefined();
+  });
+
+  it("getDescriptor returns null for unknown slug", async () => {
+    const { _buildCatalog, _setCatalogForTesting, getDescriptor } =
+      await import("@/features/artifacts/catalog");
+
+    const catalog = _buildCatalog({});
+    _setCatalogForTesting(catalog);
+
+    expect(getDescriptor("nonexistent")).toBeNull();
+  });
+});
