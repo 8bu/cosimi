@@ -1,30 +1,50 @@
+import { useEffect, useRef } from "react";
 import { createFileRoute, useLocation } from "@tanstack/react-router";
+import { ChatPane } from "@/features/chat/components/ChatPane";
+import { useMessagesStore } from "@/store/messages";
 
 /**
- * Phase D stub for the chat route.
+ * /chat/$threadId — real ChatPane mount (replaces Phase D's stub).
  *
- * Displays the resolved threadId and (if present on history state) the
- * first prompt the visitor submitted on `/`. Phase E replaces this with
- * the real ChatPane (Sidebar in PortfShell, message list, composer, SSE).
+ * If `location.state.initialPrompt` is present (HomePane Composer
+ * submits with that on navigation), enqueue it as the thread's first
+ * send and clear the history state via `navigate({ state: {} })` so
+ * back/forward + reload don't re-fire.
  *
- * `initialPrompt` is typed via the `HistoryState` augmentation in
- * `apps/portf/src/types/router.d.ts`.
+ * `consumedRef` defeats React StrictMode's double-mount re-fire: state
+ * flags would be async (next render); the ref check happens
+ * synchronously in the effect body.
  */
-function ChatStub() {
-  const { threadId } = Route.useParams();
+export const Route = createFileRoute("/chat/$threadId")({
+  component: function RouteComponent() {
+    const { threadId } = Route.useParams();
+    const navigate = Route.useNavigate();
+    return <ChatPaneRoute params={{ threadId }} navigate={navigate} />;
+  },
+});
+
+interface ChatPaneRouteProps {
+  params: { threadId: string };
+  navigate: (opts: { to: "."; replace: true; state: object }) => void;
+}
+
+/**
+ * Inner component. Exported so unit tests can render it without
+ * registering a TanStack route in jsdom.
+ */
+export function ChatPaneRoute({ params, navigate }: ChatPaneRouteProps) {
+  const { threadId } = params;
   const initialPrompt = useLocation({
     select: (loc) => loc.state.initialPrompt,
   });
+  const consumedRef = useRef(false);
 
-  return (
-    <section data-portf-chat-stub style={{ padding: "2rem", fontFamily: "var(--font-mono)" }}>
-      <p>threadId: {threadId}</p>
-      {initialPrompt ? <p>first prompt: {initialPrompt}</p> : null}
-      <p style={{ opacity: 0.6, marginTop: "1rem" }}>ChatPane (Phase E)</p>
-    </section>
-  );
+  useEffect(() => {
+    if (!initialPrompt || consumedRef.current) return;
+    consumedRef.current = true;
+    void useMessagesStore.getState().send(threadId, initialPrompt);
+    void navigate({ to: ".", replace: true, state: {} });
+  }, [threadId, initialPrompt, navigate]);
+
+  return <ChatPane threadId={threadId} />;
 }
-
-export const Route = createFileRoute("/chat/$threadId")({
-  component: ChatStub,
-});

@@ -1,10 +1,13 @@
 import { Link, Outlet, createRootRoute } from "@tanstack/react-router";
 import { PortfShell } from "@/components/PortfShell";
+import { ChatShell } from "@/components/ChatShell";
 
 function RootComponent() {
   return (
     <PortfShell>
-      <Outlet />
+      <ChatShell>
+        <Outlet />
+      </ChatShell>
     </PortfShell>
   );
 }
