@@ -1,3 +1,6 @@
+import { getDescriptor } from "@/features/artifacts/catalog";
+import { ArtifactPreviewCard } from "@/features/artifacts/components/ArtifactPreviewCard";
+import type { ArtifactDescriptor } from "@/features/artifacts/types";
 import type { ChatMessage } from "@/features/chat/types";
 import { TypingIndicator } from "@/features/chat/components/TypingIndicator";
 
@@ -30,11 +33,20 @@ export function MessageBubble({ message }: MessageBubbleProps) {
     );
   }
   const errorClass = message.status === "error" ? " is-error" : "";
+  const artifact = message.artifactSlug ? getDescriptor(message.artifactSlug) : null;
   return (
     <div className="bubble-row bubble-row-assistant">
       <span className="bubble-sender bubble-sender-assistant">8BU</span>
       <div className={`bubble bubble-assistant${errorClass}`}>
         {message.text ? message.text : message.status === "streaming" ? <TypingIndicator /> : null}
+        {artifact ? (
+          <ArtifactPreviewCard
+            descriptor={artifact}
+            onOpen={(d: ArtifactDescriptor) =>
+              console.info("[portf] artifact open requested:", d.slug)
+            }
+          />
+        ) : null}
       </div>
     </div>
   );
