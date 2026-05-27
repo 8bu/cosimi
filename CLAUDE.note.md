@@ -333,3 +333,94 @@ anywhere in `CLAUDE.md` without re-reading the source.
   removed the cast. If you find a similar forward-reference pattern
   surviving more than one commit, that's a refactoring debt — bundle
   the dependent route into the same commit instead.
+
+## Phase E — V1 Chat + sidebar + threads (landed 2026-05-27)
+
+- **`apps/portf` writes the per-thread messages blob with a hand-rolled
+  debounced persist, NOT zustand's `persist` middleware.**
+  `apps/portf/src/store/messages.ts` schedules a 200ms-debounced
+  `localStorage.setItem('portf.messages', ...)` from token-accumulating
+  actions (`appendBotToken`, `applyMetadata`, `applyNoMatch`) and flushes
+  immediately on terminal transitions (`finishBot`, `clear`) and
+  `beforeunload`. If a contributor swaps in `persist({...})` to
+  "simplify," every streamed token will write to disk — measurable jank
+  on long replies. The pattern is reusable for any future portf store
+  with high-frequency state changes.
+
+- **`apps/portf` chat streams run in the messages-store action, not in a
+  route effect.** A module-level `Map<threadId, AbortController>`
+  (`apps/portf/src/lib/inflight.ts`) holds per-thread cancellations;
+  `window.beforeunload` calls `abortAllInflight()`. Switching threads
+  mid-stream is NON-destructive — the stream keeps writing into
+  `byThread[oldId]`. Returning to the thread later shows the settled
+  reply. Any new chat-like surface in `apps/portf` follows this shape:
+  stream lifecycle is data-shape-scoped (threadId), not view-scoped.
+
+- **`apps/portf` uses per-thread server sessions** stored in
+  `portf.sessions: Record<threadId, serverSessionId>`. First POST per
+  thread sends no `X-Session-Id`; the response header is adopted into
+  the store (`apps/portf/src/lib/streamChat.ts`); subsequent posts send
+  the cached header. This preserves CLAUDE.md's server-canonical-session-id
+  rule while giving each thread its own server-side session_teaches scope
+  and rate-limit budget. Don't "consolidate" to one visitor session — it
+  breaks the thread-isolation contract and surprises the server's
+  per-session GC.
+
+- **`threads.remove()` is a cross-store coordinator.** Removing a thread
+  cascades into `sessionsStore.clear(id)` (synchronous static import) and
+  `messagesStore.clear(id)` (dynamic import — keeps the messages store
+  out of the threads-store module init graph). Any new portf store keyed
+  by `threadId` MUST register a `clear(id)` action and be added to the
+  cascade.
+
+- **`apps/portf` has NO `/teach` plumbing and NO vote UI.** No
+  `TEACH_PREFIX_RE` mirror, no `vote` field on the bot-message shape,
+  no `teach_ack` UI surface (handled defensively as a no-op in the
+  store's event reducer). If a visitor types literal `/teach …`, the
+  server processes it normally and the bot bubble settles with empty
+  text — accepted edge case. If a future phase ever enables /teach on
+  portf, the parity surface is in `apps/web/src/features/chat/store.ts`
+  (teach branch) and `apps/web/src/features/chat/tokens.ts` (regex).
+
+- **`apps/portf/src/styles/layout.css` is the home for portf layout
+  classes; `portfolio.css` stays verbatim.** Phase E's chat-shell grid,
+  sidebar mobile drawer state (`.v1-sidebar.is-open`), backdrop,
+  typing indicator (`.typing-indicator`), bubble `is-error` modifier,
+  inline rename input, and thread-remove button styles all live in
+  `layout.css`. The import order in `globals.css` is `portfolio.css`
+  THEN `layout.css` — layout wins on selector tie. Adding new state
+  classes MUST go to `layout.css`, never `portfolio.css`.
+
+- **`apps/portf`'s `apiBase()` is a function, not a const.**
+  `apps/portf/src/lib/apiBase.ts` returns
+  `import.meta.env.VITE_PORTF_API_BASE ?? '/api'` on every call. Phase E
+  doesn't ship a runtime switcher, but this matches the apps/admin
+  runtime-config pattern (CLAUDE.md) so a future config UI can change
+  behavior without a re-import. Don't refactor to
+  `export const API_BASE = ...` — that snapshots at module init and
+  breaks the future switcher.
+
+- **The `consumedRef` pattern in `chat.$threadId.tsx`'s `initialPrompt`
+  effect is the third use of the cancel-via-ref shape in `apps/portf`**
+  (after Phase D's `Composer.runChipAnimation`'s `cancelRef`). React
+  StrictMode double-mounts effects in development; state flags would
+  let the second mount re-fire. Ref flag set synchronously inside the
+  effect body, checked at the top — same shape every time. Any future
+  async UI sequence with "do exactly once" semantics follows this
+  pattern.
+
+- **`apps/portf/package.json` adds `sonner ^1.7.0` in Phase E** (resolved
+  to ^1.7.4 in workspace lock). Same caret range as `apps/web`. Already
+  audited in `docs/dep-audit-2026-05-26.md`. Imported dynamically from
+  the messages store's error paths (so unit tests don't need to mock it)
+  and statically from `main.tsx` for the `<Toaster />` mount.
+
+- **The messages-store `done` event handler is guarded against
+  overwriting an `error` status.** A preceding `error` event sets
+  `status: 'error'`; if a `done` event follows in the same stream
+  (server emits both), naive handling would settle back to `'settled'`
+  and lose the error indicator. The `case "done"` arm in
+  `apps/portf/src/store/messages.ts` checks the current bot status
+  and skips `finishBot('settled')` when it's already `'error'`. Any
+  future event-reducer arm that calls `finishBot('settled')` must
+  follow the same guard.
