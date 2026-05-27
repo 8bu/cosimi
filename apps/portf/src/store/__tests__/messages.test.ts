@@ -47,14 +47,22 @@ describe("messages store", () => {
     expect(msgs[1]).toMatchObject({ kind: "bot", text: "pong", status: "settled" });
   });
 
-  it("applies no_match fallback text", async () => {
+  it("applies no_match: marks the bubble + fake-streams a fallback from the pool", async () => {
     streamMock.mockReturnValue(genFrom([{ type: "no_match" }, { type: "done" }]));
+    vi.useFakeTimers();
     const { useMessagesStore } = await import("@/store/messages");
-    const { FALLBACK_EN } = await import("@/features/chat/tokens");
-    await useMessagesStore.getState().send("t2", "obscure");
+    const { FALLBACK_EN_POOL } = await import("@/features/chat/tokens");
+    const sendPromise = useMessagesStore.getState().send("t2", "obscure");
+    await vi.runAllTimersAsync();
+    await sendPromise;
+    // Drain the fake-stream setTimeout chain. The longest pool entry is
+    // ~60 chars × ~70ms ≈ 4.2s; advance generously.
+    await vi.advanceTimersByTimeAsync(10_000);
     const msgs = useMessagesStore.getState().byThread["t2"]!;
     const bot = msgs.find((m) => m.kind === "bot");
-    expect(bot).toMatchObject({ text: FALLBACK_EN, noMatch: true });
+    expect(bot?.noMatch).toBe(true);
+    // Text must match one of the pool entries verbatim.
+    expect(FALLBACK_EN_POOL).toContain(bot?.text);
   });
 
   it("clear removes the thread slice", async () => {

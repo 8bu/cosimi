@@ -1,7 +1,13 @@
 import type { ChatStreamEvent } from "@simlm/types";
 import { create } from "zustand";
 
-import { FALLBACK_EN, PERSIST_DEBOUNCE_MS, TITLE_MAX_LEN } from "@/features/chat/tokens";
+import {
+  FAKE_STREAM_BASE_MS,
+  FAKE_STREAM_JITTER_MS,
+  FALLBACK_EN_POOL,
+  PERSIST_DEBOUNCE_MS,
+  TITLE_MAX_LEN,
+} from "@/features/chat/tokens";
 import type { BotMessage, ChatMessage, UserMessage } from "@/features/chat/types";
 import { clearAbort, getOrCreateAbort } from "@/lib/inflight";
 import { streamChatPortf } from "@/lib/streamChat";
@@ -201,9 +207,21 @@ function applyEvent(
         locale: ev.locale,
       });
       break;
-    case "no_match":
-      get().applyNoMatch(threadId, botId, FALLBACK_EN);
+    case "no_match": {
+      // Pick a random fallback so back-to-back misses don't repeat
+      // verbatim, mark the bubble as no_match with empty text, then
+      // kick off a self-running char-by-char fake stream. Done is
+      // fire-and-forget — the for-await loop in `send` continues and
+      // may settle the bot bubble before the fake stream finishes;
+      // that's fine, the timeout chain keeps appending chars and the
+      // visible state is "settled bubble with growing text" which
+      // reads as natural streaming completion.
+      const idx = Math.floor(Math.random() * FALLBACK_EN_POOL.length);
+      const fallback = FALLBACK_EN_POOL[idx]!;
+      get().applyNoMatch(threadId, botId, "");
+      void fakeStreamFallback(get, threadId, botId, fallback);
       break;
+    }
     case "token":
       get().appendBotToken(threadId, botId, ev.content);
       break;
@@ -226,5 +244,26 @@ function applyEvent(
       get().finishBot(threadId, botId, "error");
       void import("sonner").then(({ toast }) => toast.error(ev.message));
       break;
+  }
+}
+
+/**
+ * Client-side fake stream for `no_match` fallback text. Server only
+ * emits the `no_match` event (no per-token pacing for misses) so the
+ * client paces the fallback char-by-char itself to match the matched-
+ * reply streaming UX. Self-running; aborts implicitly if the bot bubble
+ * is removed (`appendBotToken` becomes a no-op when the bot id isn't
+ * found).
+ */
+async function fakeStreamFallback(
+  get: () => MessagesState,
+  threadId: string,
+  botId: string,
+  text: string,
+): Promise<void> {
+  for (const ch of text) {
+    const delay = FAKE_STREAM_BASE_MS + Math.random() * FAKE_STREAM_JITTER_MS;
+    await new Promise((r) => setTimeout(r, delay));
+    get().appendBotToken(threadId, botId, ch);
   }
 }

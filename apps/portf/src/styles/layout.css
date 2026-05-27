@@ -134,6 +134,7 @@
 /* ─── Inline rename input (sits inside .v1-thread) ─────────────────── */
 .v1-thread input[type="text"] {
   flex: 1;
+  min-width: 0;
   font-family: var(--font-body);
   font-size: 12px;
   background: var(--canvas);
@@ -141,6 +142,40 @@
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-sm);
   padding: 2px 6px;
+}
+
+/* ─── Sidebar row title ellipsis ───────────────────────────────────────
+ * `.v1-thread` is a flex row: `.v1-dot` · label `<span>` · meta `<span>`.
+ * Without `min-width: 0` + ellipsis on the label, long titles wrap to a
+ * second line and the row grows vertically. Match the design (single
+ * line, ellipsis on overflow). Targeted via `:not(.v1-dot):not(.v1-thread-meta)`
+ * so the meta + dot keep their sizing; the footer / empty-state spans
+ * also inherit the ellipsis behavior naturally. */
+.v1-thread > span:not(.v1-dot):not(.v1-thread-meta) {
+  flex: 1 1 0;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── Composer focus ring ──────────────────────────────────────────────
+ * Browsers paint a default blue focus ring on the bare `<input>` inside
+ * `.input-row`. Replace with a subtle border-color shift on the parent
+ * `.input-row` via :focus-within, and kill the input's native outline.
+ * Only scope to the chat-pane composer — HomePane's chip-animation
+ * Composer is decorative and uses its own static styling. */
+.chat-pane .input-row {
+  transition: border-color 120ms ease;
+}
+.chat-pane .input-row:focus-within {
+  border-color: var(--ink);
+}
+.chat-pane .input-row input {
+  outline: none;
+  border: none;
+  background: transparent;
+  width: 100%;
 }
 
 /* ─── Mobile-only chrome (hidden on desktop) ───────────────────────── */

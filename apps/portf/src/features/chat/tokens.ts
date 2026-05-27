@@ -10,8 +10,28 @@ export const TITLE_MAX_LEN = 48;
 export const PERSIST_DEBOUNCE_MS = 200;
 
 /**
- * Hardcoded fallback line rendered into a bot bubble when the server
- * emits `no_match`. Phase H replaces with i18n dict lookup (single
- * English string until then).
+ * No-match fallback pool. The messages-store picks a random entry per
+ * `no_match` event so back-to-back misses don't repeat verbatim. Tone is
+ * "rephrase / different angle" — portfolio surface is read-only, NO
+ * `/teach` (so no "teach me?" variants like apps/web's pool).
+ *
+ * Phase H replaces with i18n dict lookup (vi + en pools, same shape).
  */
-export const FALLBACK_EN = "hmm, I don't have a good answer for that — try rephrasing?";
+export const FALLBACK_EN_POOL = [
+  "hmm, that's outside what I'm dialed in on — try rephrasing?",
+  "not sure I follow — mind asking it another way?",
+  "blank on that one — could you be more specific?",
+  "I don't have a story for that — try a different angle?",
+  "that's outside the corpus — rephrase and I'll take another shot?",
+] as const;
+
+/**
+ * Per-char delay for the client-side fake-stream of `no_match` fallback
+ * text. Server emits `no_match` as a single event (no token stream); the
+ * client paces the fallback char-by-char so the "thinking" UX matches
+ * matched-reply token streaming. Base + jitter ≈ ~40–70ms/char ≈ 200ms
+ * per 4-char word, similar to the server-side SSE pacing for matched
+ * replies (SSE_DELAY_BASE_MS=50 / JITTER_MS=30 in `.env.portf`).
+ */
+export const FAKE_STREAM_BASE_MS = 40;
+export const FAKE_STREAM_JITTER_MS = 30;
