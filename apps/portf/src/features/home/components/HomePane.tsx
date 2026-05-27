@@ -78,7 +78,7 @@ export function HomePane() {
         }}
       >
         <SpotlightHeadline />
-        <div style={{ width: 560, maxWidth: "100%" }}>
+        <div style={{ width: 720, maxWidth: "100%" }}>
           <Composer ref={composerRef} />
           <div
             style={{
