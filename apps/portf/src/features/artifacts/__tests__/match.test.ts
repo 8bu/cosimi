@@ -188,4 +188,28 @@ describe("matchArtifact", () => {
       }),
     ).toBe(d);
   });
+
+  it("returns null on empty input string", async () => {
+    const { matchArtifact } = await import("@/features/artifacts/match");
+    expect(
+      matchArtifact({
+        input: "",
+        tier: "exact",
+        primaryLocale: "en",
+        catalog: [descriptor()],
+      }),
+    ).toBeNull();
+  });
+
+  it("returns null on whitespace-only input", async () => {
+    const { matchArtifact } = await import("@/features/artifacts/match");
+    expect(
+      matchArtifact({
+        input: "    \t  ",
+        tier: "exact",
+        primaryLocale: "en",
+        catalog: [descriptor()],
+      }),
+    ).toBeNull();
+  });
 });

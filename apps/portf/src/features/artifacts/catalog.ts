@@ -48,6 +48,7 @@ export function _buildCatalog(
     } catch (err) {
       throw new Error(
         `[portf catalog] frontmatter validation failed for ${path}: ${(err as Error).message}`,
+        { cause: err },
       );
     }
 
