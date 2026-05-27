@@ -29,7 +29,11 @@ export function Sidebar() {
       )}
       <aside className={`v1-sidebar${isOpen ? " is-open" : ""}`}>
         <div style={{ marginBottom: 4 }}>
-          <Wordmark />
+          {/* Design source passes `sub={null} size={13}` for the sidebar
+           * placement — the subtitle "— Senior Web Developer" wraps the
+           * 240px sidebar awkwardly when present. Same call signature as
+           * `V1Sidebar` in variations-1-2.jsx. */}
+          <Wordmark sub={null} size={13} />
         </div>
         <NewChatButton />
         <ThreadList />
