@@ -57,8 +57,7 @@ export function HomePane() {
             color: "var(--ink-4)",
           }}
         >
-          try · "show me your CV" · "what have you been writing?" · "give me
-          your stack"
+          try · "show me your CV" · "what have you been writing?" · "give me your stack"
         </div>
       </div>
     </main>

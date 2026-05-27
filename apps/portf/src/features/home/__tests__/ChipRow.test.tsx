@@ -22,12 +22,8 @@ describe("ChipRow", () => {
   });
 
   it("applies the .chips wrapper and .chip class", () => {
-    const { container } = render(
-      <ChipRow chips={SUGGESTION_CHIPS} onPick={() => {}} />,
-    );
+    const { container } = render(<ChipRow chips={SUGGESTION_CHIPS} onPick={() => {}} />);
     expect(container.querySelector(".chips")).not.toBeNull();
-    expect(container.querySelectorAll(".chip")).toHaveLength(
-      SUGGESTION_CHIPS.length,
-    );
+    expect(container.querySelectorAll(".chip")).toHaveLength(SUGGESTION_CHIPS.length);
   });
 });

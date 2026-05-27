@@ -20,12 +20,7 @@ export function ChipRow({ chips, onPick }: ChipRowProps) {
   return (
     <div className="chips">
       {chips.map((c) => (
-        <button
-          key={c.label}
-          type="button"
-          className="chip"
-          onClick={() => onPick(c.label)}
-        >
+        <button key={c.label} type="button" className="chip" onClick={() => onPick(c.label)}>
           <span className="chip-mark">{c.mark}</span>
           {c.label}
         </button>

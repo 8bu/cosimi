@@ -1,9 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
-import {
-  TYPING_ANIM_MS_PER_CHAR,
-  AUTO_SUBMIT_DELAY_MS,
-} from "../tokens";
+import { TYPING_ANIM_MS_PER_CHAR, AUTO_SUBMIT_DELAY_MS } from "../tokens";
 
 // vi.resetModules() in beforeEach is required here because the threads store
 // (zustand + persist) is a module-level singleton. Each test that submits
@@ -139,9 +136,7 @@ describe("Composer — chip animation", () => {
     fireEvent.keyDown(input, { key: "a" });
 
     // Advance well past the remaining typing + auto-submit window.
-    await vi.advanceTimersByTimeAsync(
-      TYPING_ANIM_MS_PER_CHAR * 20 + AUTO_SUBMIT_DELAY_MS,
-    );
+    await vi.advanceTimersByTimeAsync(TYPING_ANIM_MS_PER_CHAR * 20 + AUTO_SUBMIT_DELAY_MS);
 
     expect(navigateMock).not.toHaveBeenCalled();
     expect(input.value).toBe("Bes"); // typed-so-far preserved
@@ -164,9 +159,7 @@ describe("Composer — chip animation", () => {
     fireEvent.keyDown(input, { key: "Alt" });
     fireEvent.keyDown(input, { key: "Tab" });
 
-    await vi.advanceTimersByTimeAsync(
-      TYPING_ANIM_MS_PER_CHAR * 4 + AUTO_SUBMIT_DELAY_MS,
-    );
+    await vi.advanceTimersByTimeAsync(TYPING_ANIM_MS_PER_CHAR * 4 + AUTO_SUBMIT_DELAY_MS);
 
     expect(navigateMock).toHaveBeenCalledTimes(1);
   });
@@ -184,9 +177,7 @@ describe("Composer — chip animation", () => {
 
     fireEvent.keyDown(input, { key: "Escape" });
 
-    await vi.advanceTimersByTimeAsync(
-      TYPING_ANIM_MS_PER_CHAR * 4 + AUTO_SUBMIT_DELAY_MS,
-    );
+    await vi.advanceTimersByTimeAsync(TYPING_ANIM_MS_PER_CHAR * 4 + AUTO_SUBMIT_DELAY_MS);
 
     expect(navigateMock).not.toHaveBeenCalled();
   });

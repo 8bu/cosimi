@@ -1,11 +1,4 @@
-import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useThreadsStore } from "@/store/threads";
 import { AUTO_SUBMIT_DELAY_MS, TYPING_ANIM_MS_PER_CHAR } from "../tokens";
@@ -63,8 +56,8 @@ export const Composer = forwardRef<ComposerHandle>(function Composer(_, ref) {
 
   const runChipAnimation = useCallback(
     async (text: string) => {
-      cancelRef.current = true;        // signal any in-flight loop to bail
-      await Promise.resolve();         // let the prior loop observe the flag
+      cancelRef.current = true; // signal any in-flight loop to bail
+      await Promise.resolve(); // let the prior loop observe the flag
       cancelRef.current = false;
       setValue("");
 

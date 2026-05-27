@@ -17,10 +17,7 @@ function ChatStub() {
   });
 
   return (
-    <section
-      data-portf-chat-stub
-      style={{ padding: "2rem", fontFamily: "var(--font-mono)" }}
-    >
+    <section data-portf-chat-stub style={{ padding: "2rem", fontFamily: "var(--font-mono)" }}>
       <p>threadId: {threadId}</p>
       {initialPrompt ? <p>first prompt: {initialPrompt}</p> : null}
       <p style={{ opacity: 0.6, marginTop: "1rem" }}>ChatPane (Phase E)</p>
