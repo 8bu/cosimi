@@ -13,6 +13,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@mdx-js/react": "^3.1.1",
     "@simlm/types": "workspace:*",
     "@tanstack/react-router": "^1.170.0",
     "clsx": "^2.1.0",
@@ -20,9 +21,11 @@
     "react-dom": "^19.0.0",
     "sonner": "^1.7.4",
     "tailwind-merge": "^2.5.0",
+    "valibot": "^1.0.0",
     "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@mdx-js/rollup": "^3.1.1",
     "@simlm/tsconfig": "workspace:*",
     "@tailwindcss/vite": "^4.0.0",
     "@tanstack/router-plugin": "^1.168.0",
@@ -33,6 +36,8 @@
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react-swc": "^3.7.0",
     "jsdom": "^25.0.1",
+    "remark-frontmatter": "^5.0.0",
+    "remark-mdx-frontmatter": "^5.2.0",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.0",
     "vite": "^6.0.0",
