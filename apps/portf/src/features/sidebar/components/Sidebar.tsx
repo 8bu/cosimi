@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { useUiStore } from "@/store/ui";
 import { Wordmark } from "@/components/Wordmark";
 import { NewChatButton } from "@/features/sidebar/components/NewChatButton";
@@ -28,13 +29,28 @@ export function Sidebar() {
         />
       )}
       <aside className={`v1-sidebar${isOpen ? " is-open" : ""}`}>
-        <div style={{ marginBottom: 4 }}>
-          {/* Design source passes `sub={null} size={13}` for the sidebar
-           * placement — the subtitle "— Senior Web Developer" wraps the
-           * 240px sidebar awkwardly when present. Same call signature as
-           * `V1Sidebar` in variations-1-2.jsx. */}
+        {/* Wordmark doubles as the home link — standard chat-app pattern
+         * (Slack, Linear, Claude all do this). Closing the mobile drawer
+         * via the ui store keeps the drawer state consistent after the
+         * route change.
+         *
+         * Design source passes `sub={null} size={13}` (V1Sidebar in
+         * variations-1-2.jsx) — the subtitle "— Senior Web Developer"
+         * wraps the 240px sidebar awkwardly when present. */}
+        <Link
+          to="/"
+          onClick={() => setSidebarOpen(false)}
+          style={{
+            display: "block",
+            marginBottom: 4,
+            textDecoration: "none",
+            color: "inherit",
+            cursor: "pointer",
+          }}
+          aria-label="Back to home"
+        >
           <Wordmark sub={null} size={13} />
-        </div>
+        </Link>
         <NewChatButton />
         <ThreadList />
 

@@ -16,7 +16,7 @@
 .chat-shell {
   display: grid;
   grid-template-columns: 240px 1fr;
-  min-height: 100vh;
+  height: 100%;
 }
 
 /* ChatPane shape — header / scrollable messages / footer.
@@ -28,7 +28,7 @@
 .chat-pane {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
   overflow: hidden;
   padding: 16px 22px 24px;
 }
@@ -157,6 +157,28 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ─── Viewport sizing chain ────────────────────────────────────────────
+ * portfolio.css zeroes html/body margins but never sets a height; the
+ * `.frame` wrapper from PortfShell uses `height: 100%` which collapses
+ * to content-driven because body has no height. HomePane's
+ * `minHeight: 100vh` then forces the main to 100vh, while the `.frame`
+ * border (1px each side) sits OUTSIDE that height → total body height =
+ * 100vh + 2px → page scrolls ~2px. Anchor the chain at 100% so the
+ * frame's border fits inside the viewport. */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+/* The press-theme `.frame` keeps its decorative border but now sizes via
+ * the chain above. min-height: 100% so short pages still fill the
+ * viewport without scrolling, while long pages can still grow. */
+.frame {
+  min-height: 100%;
+  box-sizing: border-box;
 }
 
 /* ─── HomePane subtitle width override ─────────────────────────────────

@@ -28,7 +28,7 @@ export function HomePane() {
       style={{
         display: "flex",
         flexDirection: "column",
-        minHeight: "100vh",
+        minHeight: "100%",
         padding: "22px 28px",
       }}
     >

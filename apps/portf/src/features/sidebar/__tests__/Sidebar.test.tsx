@@ -4,6 +4,9 @@ import { fireEvent, render } from "@testing-library/react";
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
   useParams: () => ({}),
+  Link: ({ children, ...rest }: { children: React.ReactNode; [k: string]: unknown }) => (
+    <a {...rest}>{children}</a>
+  ),
 }));
 
 vi.mock("@/store/threads", () => {
