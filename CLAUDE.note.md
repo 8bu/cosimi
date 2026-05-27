@@ -446,3 +446,19 @@ anywhere in `CLAUDE.md` without re-reading the source.
   ported. If the artifact and the spec disagree on shape, the
   artifact wins; if the artifact is missing, STOP and ask before
   inventing.
+
+- **Subagents working in a git worktree MUST anchor cwd before any
+  file write.** Phase E Task 5 (sessions store) created
+  `apps/portf/src/store/__tests__/sessions.test.ts` in the MAIN
+  worktree at `/Users/8bu/Projects/simlm/` instead of the active
+  worktree at `/Users/8bu/Projects/simlm/.claude/worktrees/zazzy-
+  munching-dragon/`. Cause: a Write tool call resolved against an
+  ambient cwd that was not the intended worktree (subagent did not
+  explicitly `cd` first OR a follow-up tool call lost the cd).
+  Required guard for every subagent dispatch: the prompt must say
+  `Work from: <absolute-worktree-path>` AND the subagent should run
+  `cd "$(git rev-parse --show-toplevel)"` (or `pwd` to confirm) at
+  the top of its session before any Write / Edit / Bash that
+  creates files. Any task that creates a NEW file path should also
+  verify the file lands under the expected worktree by reading it
+  back from the absolute worktree path.
