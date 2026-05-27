@@ -51,3 +51,77 @@ describe("threads store", () => {
     expect(typeof parsed.state.threads[0].ts).toBe("number");
   });
 });
+
+describe("threads store v2 — Phase E expansion", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.resetModules();
+  });
+
+  it("create(id) is idempotent when id is already present", async () => {
+    const { useThreadsStore } = await import("@/store/threads");
+    const id = useThreadsStore.getState().create();
+    const sizeBefore = useThreadsStore.getState().threads.length;
+    const returned = useThreadsStore.getState().create(id);
+    expect(returned).toBe(id);
+    expect(useThreadsStore.getState().threads.length).toBe(sizeBefore);
+  });
+
+  it("create(id) inserts a new entry when id is not present", async () => {
+    const { useThreadsStore } = await import("@/store/threads");
+    const ret = useThreadsStore.getState().create("fixed-id-1");
+    expect(ret).toBe("fixed-id-1");
+    expect(useThreadsStore.getState().threads[0]?.id).toBe("fixed-id-1");
+  });
+
+  it("rename updates title in place", async () => {
+    const { useThreadsStore } = await import("@/store/threads");
+    const id = useThreadsStore.getState().create();
+    useThreadsStore.getState().rename(id, "hello world");
+    const row = useThreadsStore.getState().threads.find((t) => t.id === id);
+    expect(row?.title).toBe("hello world");
+  });
+
+  it("touch bumps ts", async () => {
+    const { useThreadsStore } = await import("@/store/threads");
+    const id = useThreadsStore.getState().create();
+    const tsBefore = useThreadsStore.getState().threads.find((t) => t.id === id)!.ts;
+    await new Promise((r) => setTimeout(r, 5));
+    useThreadsStore.getState().touch(id);
+    const tsAfter = useThreadsStore.getState().threads.find((t) => t.id === id)!.ts;
+    expect(tsAfter).toBeGreaterThan(tsBefore);
+  });
+
+  it("setTitleIfEmpty only writes when title is absent", async () => {
+    const { useThreadsStore } = await import("@/store/threads");
+    const id = useThreadsStore.getState().create();
+    useThreadsStore.getState().setTitleIfEmpty(id, "first");
+    expect(useThreadsStore.getState().threads.find((t) => t.id === id)?.title).toBe("first");
+    useThreadsStore.getState().setTitleIfEmpty(id, "second");
+    expect(useThreadsStore.getState().threads.find((t) => t.id === id)?.title).toBe("first");
+  });
+
+  it("remove drops the row from the array", async () => {
+    const { useThreadsStore } = await import("@/store/threads");
+    const a = useThreadsStore.getState().create();
+    const b = useThreadsStore.getState().create();
+    useThreadsStore.getState().remove(a);
+    const ids = useThreadsStore.getState().threads.map((t) => t.id);
+    expect(ids).toEqual([b]);
+  });
+
+  it("remove cascades into sessions store; messages store cleared if available", async () => {
+    const { useThreadsStore } = await import("@/store/threads");
+    const { useSessionsStore } = await import("@/store/sessions");
+    const id = useThreadsStore.getState().create();
+    useSessionsStore.getState().set(id, "srv-1");
+    useThreadsStore.getState().remove(id);
+    // Wait microtasks for the dynamic imports inside remove() to settle.
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(useSessionsStore.getState().get(id)).toBeUndefined();
+    // messages-store cascade tested fully after Task 9 lands (messages.ts).
+    // Here we only verify sessions cleanup + thread removal.
+  });
+});

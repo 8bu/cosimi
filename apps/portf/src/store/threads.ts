@@ -1,48 +1,111 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { useSessionsStore } from "@/store/sessions";
 
 export interface ThreadIndexEntry {
   id: string;
   ts: number;
+  title?: string;
 }
 
 interface ThreadsState {
   threads: ThreadIndexEntry[];
   /**
-   * Mint a fresh thread id, prepend to the index, persist, and return the id.
-   * Phase D's only action. Phase E adds rename/remove/touch/setTitle/revisit
-   * and grows the entry shape with `title?`, `lastSnippet?`, `pinned?`.
+   * Mint a fresh thread id (or accept a caller-supplied one) and prepend
+   * to the index. Idempotent: a no-op when `id` is already in the store
+   * (used by the bare-/chat redirect path where the ChatPane registers
+   * on first send without double-adding if HomePane already registered).
+   *
+   * IDs use native `crypto.randomUUID()` (RFC4122 v4). Portf runs in HTTPS
+   * or localhost only. The CLAUDE.md rule against `crypto.randomUUID()`
+   * is for apps/web *session* ids (server-canonical); thread ids are
+   * client-only and a different concept.
    */
-  create: () => string;
+  create: (id?: string) => string;
+  /** Overwrite a thread's title. Visitor-driven via inline rename. */
+  rename: (id: string, title: string) => void;
+  /**
+   * Remove a thread from the index AND cascade-clear sibling stores
+   * (messages, sessions). Sessions is cleared synchronously (no circular
+   * dep). Messages uses a dynamic import via a variable path to prevent
+   * Vite's transform-time analysis from failing when the file does not
+   * yet exist (Task 9 lands it later in Phase E); errors are swallowed.
+   *
+   * If the removed thread is the currently active route, the consumer
+   * (sidebar row) is responsible for navigating away (e.g., to `/`).
+   */
+  remove: (id: string) => void;
+  /** Bump `ts` to now. Resorts the thread to the top of the sidebar. */
+  touch: (id: string) => void;
+  /**
+   * Write `title` only if the thread currently has no title. Called from
+   * messagesStore.send() on the first user message of a thread —
+   * subsequent messages do not overwrite a visitor-renamed title.
+   */
+  setTitleIfEmpty: (id: string, title: string) => void;
 }
 
 /**
  * Portfolio thread index.
  *
- * Stores metadata only — `{ id, ts }`. Messages are NOT in this store; per
- * spec §10 they will land in a sibling `messages-by-thread` store in Phase E.
- * Conceptually: this store is the sidebar's data; messages are the chat
- * pane's data.
+ * Stores metadata only — `{ id, ts, title? }`. Messages live in the
+ * sibling `messages` store; sessions in `sessions`. `remove()` is the
+ * cross-store coordinator.
  *
- * IDs use native `crypto.randomUUID()` (RFC4122 v4). Portf runs in HTTPS or
- * localhost only, where the WebCrypto API is always defined; no `uuid`
- * dependency needed. (The CLAUDE.md rule against `crypto.randomUUID()` is for
- * session IDs in apps/web, which must be server-canonical; thread IDs are
- * client-only and a different concept.)
- *
- * Persisted under `portf.threads` in localStorage.
+ * Persisted under `portf.threads`. Phase E bumps to `version: 2`
+ * (added `title?: string`). The v1 → v2 migration is a type-level
+ * change only: existing rows already lack `title`, so passing through
+ * untouched is correct.
  */
 export const useThreadsStore = create<ThreadsState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       threads: [],
-      create: () => {
-        const id = crypto.randomUUID();
+      create: (id) => {
+        if (id) {
+          const existing = get().threads.find((t) => t.id === id);
+          if (existing) return existing.id;
+        }
+        const next = id ?? crypto.randomUUID();
         const ts = Date.now();
-        set((s) => ({ threads: [{ id, ts }, ...s.threads] }));
-        return id;
+        set((s) => ({ threads: [{ id: next, ts }, ...s.threads] }));
+        return next;
       },
+      rename: (id, title) =>
+        set((s) => ({
+          threads: s.threads.map((t) => (t.id === id ? { ...t, title } : t)),
+        })),
+      remove: (id) => {
+        set((s) => ({ threads: s.threads.filter((t) => t.id !== id) }));
+        // Sessions cleanup is synchronous — no circular dep between
+        // sessions.ts and threads.ts.
+        useSessionsStore.getState().clear(id);
+        // Messages cleanup is deferred via dynamic import with a variable
+        // path so Vite's import-analysis does not fail at transform time
+        // when @/store/messages does not yet exist (Task 9 adds it).
+        const messagesPath = "@/store/messages" as string;
+        void import(/* @vite-ignore */ messagesPath)
+          .then((m) => m.useMessagesStore.getState().clear(id))
+          .catch(() => {});
+      },
+      touch: (id) =>
+        set((s) => ({
+          threads: s.threads.map((t) => (t.id === id ? { ...t, ts: Date.now() } : t)),
+        })),
+      setTitleIfEmpty: (id, title) =>
+        set((s) => ({
+          threads: s.threads.map((t) => (t.id === id && !t.title ? { ...t, title } : t)),
+        })),
     }),
-    { name: "portf.threads", version: 1 },
+    {
+      name: "portf.threads",
+      version: 2,
+      migrate: (persisted, version) => {
+        // v1 had `{ threads: { id, ts }[] }`. v2 adds optional `title` —
+        // pre-existing rows just lack it, so a passthrough is correct.
+        if (version < 2) return persisted as ThreadsState;
+        return persisted as ThreadsState;
+      },
+    },
   ),
 );
