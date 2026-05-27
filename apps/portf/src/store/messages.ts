@@ -98,6 +98,11 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
     } catch (err) {
       if ((err as Error).name !== "AbortError") {
         get().finishBot(threadId, botMsg.id, "error");
+        void import("sonner").then(({ toast }) =>
+          toast.error("Couldn't reach the server.", {
+            description: (err as Error).message,
+          }),
+        );
       }
     } finally {
       const current = get().byThread[threadId]?.find((m) => m.id === botMsg.id);
@@ -219,6 +224,7 @@ function applyEvent(
     }
     case "error":
       get().finishBot(threadId, botId, "error");
+      void import("sonner").then(({ toast }) => toast.error(ev.message));
       break;
   }
 }
