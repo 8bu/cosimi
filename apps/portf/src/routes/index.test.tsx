@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { Wordmark } from "@/components/Wordmark";
-import { AppShell } from "@/components/AppShell";
+import { PortfShell } from "@/components/PortfShell";
 
-describe("HomePane smoke", () => {
-  it("renders the Wordmark inside the AppShell", () => {
+describe("PortfShell smoke", () => {
+  it("renders the Wordmark inside the PortfShell", () => {
     render(
-      <AppShell>
+      <PortfShell>
         <Wordmark size={16} sub="Senior Web Developer" />
-      </AppShell>,
+      </PortfShell>,
     );
 
     // Block-cursor wordmark renders "8BU" badge + the wm-text.
@@ -24,11 +24,11 @@ describe("HomePane smoke", () => {
     expect(screen.queryByText(/Senior Web Developer/)).toBeNull();
   });
 
-  it("AppShell renders a frame container", () => {
+  it("PortfShell renders a frame container", () => {
     const { container } = render(
-      <AppShell>
+      <PortfShell>
         <span data-testid="child" />
-      </AppShell>,
+      </PortfShell>,
     );
 
     const shell = container.querySelector("[data-portf-shell]");

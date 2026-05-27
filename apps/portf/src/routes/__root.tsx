@@ -1,11 +1,11 @@
 import { Link, Outlet, createRootRoute } from "@tanstack/react-router";
-import { AppShell } from "@/components/AppShell";
+import { PortfShell } from "@/components/PortfShell";
 
 function RootComponent() {
   return (
-    <AppShell>
+    <PortfShell>
       <Outlet />
-    </AppShell>
+    </PortfShell>
   );
 }
 
