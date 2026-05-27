@@ -52,16 +52,11 @@ export const Composer = forwardRef<ComposerHandle>(function Composer(_, ref) {
       const trimmed = text.trim();
       if (!trimmed) return;
       const id = create();
-      // Route /chat/$threadId is registered in Task 13; cast until routeTree
-      // includes it so typecheck stays green across the task sequence.
-      navigate(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        {
-          to: "/chat/$threadId",
-          params: { threadId: id },
-          state: { initialPrompt: trimmed },
-        } as any,
-      );
+      navigate({
+        to: "/chat/$threadId",
+        params: { threadId: id },
+        state: { initialPrompt: trimmed },
+      });
     },
     [create, navigate],
   );
