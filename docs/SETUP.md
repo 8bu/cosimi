@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-Node 22, Docker (for Postgres), and corepack.
+Node 22, Docker (Postgres), corepack.
 
 ## First-time setup
 
@@ -23,7 +23,7 @@ pnpm dev:all
 pnpm --filter @simlm/admin dev
 ```
 
-The first time you boot, the matcher has nothing to match against. Seed it:
+First boot: matcher empty. Seed:
 
 ```bash
 pnpm seed               # loads seeds/vi/*.yaml + seeds/chatterbot/*.yml
@@ -32,7 +32,7 @@ pnpm seed:vi
 pnpm seed:chatterbot
 ```
 
-To start clean (drops the Postgres volume):
+Clean start (drops Postgres volume):
 
 ```bash
 pnpm db:reset && pnpm migrate && pnpm seed
@@ -62,7 +62,4 @@ pnpm seed:vi
 pnpm seed:chatterbot
 ```
 
-> ⚠️ The matcher, api, and admin-api test suites all share the
-> `simlm_test` database. Run with `pnpm -r --workspace-concurrency=1 test`
-> to avoid parallel test-suite setups stomping on each other (see
-> [`../CLAUDE.md`](../CLAUDE.md) for details).
+> ⚠️ Matcher, api, admin-api test suites share `simlm_test` db. Run `pnpm -r --workspace-concurrency=1 test` to avoid parallel setups stomping each other (see [`../CLAUDE.md`](../CLAUDE.md)).

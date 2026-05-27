@@ -1,24 +1,24 @@
 # simlm: SimSimi-style chatbot
 
-A pattern-matching chatbot in the spirit of SimSimi. **No LLM at runtime.**
-Replies come from a curated/learned pattern store, scored by a four-tier
+Pattern-matching chatbot in spirit of SimSimi. **No LLM at runtime.**
+Replies from curated/learned pattern store, scored by four-tier
 matching engine (`session_teach → exact → FTS → trigram`).
 
 ## Why I built this
 
-Curiosity. Wanted to play with the SimSimi-era chatbot shape: a language
-matcher over a curated pattern store. No reasoning at runtime, no tokens
-billed per turn, hallucinations bounded by what's in the table.
+Curiosity. Wanted play with SimSimi-era chatbot shape: language
+matcher over curated pattern store. No reasoning at runtime, no tokens
+billed per turn, hallucinations bounded by what's in table.
 
-The twist vs. classic SimSimi: **LLM is the crowd now.** SimSimi sourced
-its pairs from users at scale (uncurated). Here, an LLM bulk-generates
-pairs offline and an admin reviews them; the `/teach` flow is for
-incremental gap-filling, not the seed. The LLM runs at build/import time
-only. Runtime is pure SQL.
+Twist vs classic SimSimi: **LLM is crowd now.** SimSimi sourced
+pairs from users at scale (uncurated). Here, LLM bulk-generates
+pairs offline, admin reviews them; `/teach` flow for
+incremental gap-filling, not seed. LLM runs at build/import time
+only. Runtime pure SQL.
 
-The shape fits domains that don't need reasoning: greetings, jokes, FAQs,
-small-talk, canned support replies. Postgres FTS + trigram do the fuzzy
-match. `xin chào`, `xin chao`, and `xinchao` all hit the same row, no
+Shape fits domains needing no reasoning: greetings, jokes, FAQs,
+small-talk, canned support replies. Postgres FTS + trigram do fuzzy
+match. `xin chào`, `xin chao`, `xinchao` all hit same row, no
 embeddings, no API key.
 
 ## Docs
@@ -46,19 +46,19 @@ Full setup: [`docs/SETUP.md`](./docs/SETUP.md).
 
 ## Project status
 
-**Work in progress.** Phases 0–16 are merged on `main` and the standing
-gates (`typecheck`, `lint`, `format:check`, `test`) are green, but this repo
-is also a trial run for a larger portfolio app I'm building, so expect churn.
-The matcher, schema, and admin surface are the parts most likely to shift as
-I pull patterns out into the portfolio project and feed lessons back here.
+**Work in progress.** Phases 0–16 merged on `main`, standing
+gates (`typecheck`, `lint`, `format:check`, `test`) green, but repo
+also trial run for larger portfolio app I'm building, so expect churn.
+Matcher, schema, admin surface most likely to shift as
+I pull patterns out into portfolio project and feed lessons back here.
 
 Out of scope for now (may change):
 
-- Internationalization of UI chrome. Chat content is bilingual (vi/en) but
-  the admin chrome is English-only.
+- Internationalization of UI chrome. Chat content bilingual (vi/en) but
+  admin chrome English-only.
 - Multi-user accounts / sharing. Single-user-per-browser by design.
-- Telemetry / observability dashboards. Pino → stdout → your log pipeline is
-  the v1 story.
+- Telemetry / observability dashboards. Pino → stdout → your log pipeline
+  v1 story.
 
 ## Credits
 

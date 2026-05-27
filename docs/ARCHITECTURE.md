@@ -20,33 +20,20 @@ Two backend processes, two SPAs, one database:
     (via VPN/Tailscale)           (no app-layer auth)
 ```
 
-- **`apps/api`** owns chat, `/teach` (inline command), feedback, public stats,
-  health, and runs the GC sweeper. Binds `0.0.0.0:PORT` — public.
-- **`apps/admin-api`** owns the admin surface: pairs CRUD, teach-queue review,
-  bulk LLM import, batch rollback. **Binds `127.0.0.1:ADMIN_PORT` by default.**
-  No `/admin/*` prefix server-side — the entire process is the admin surface.
+- **`apps/api`** owns chat, `/teach` (inline command), feedback, public stats, health, runs GC sweeper. Binds `0.0.0.0:PORT` — public.
+- **`apps/admin-api`** owns admin surface: pairs CRUD, teach-queue review, bulk LLM import, batch rollback. **Binds `127.0.0.1:ADMIN_PORT` by default.** No `/admin/*` prefix server-side — whole process is admin surface.
 - Both share `@simlm/{db, types, config, normalizer, logger}`.
 
 ## How matching works
 
-The matcher cascades through four tiers and short-circuits on the first
-non-null result:
+Matcher cascades four tiers, short-circuits on first non-null:
 
-1. **`session_teach`** — recent in-session `/teach` overrides (10-min TTL).
-   Lets a user correct a wrong reply immediately without waiting for an admin.
-2. **`exact`** — normalized + diacritic-stripped equality (Postgres
-   `f_unaccent()` on both sides).
-3. **`fts`** — Postgres `tsvector` rank against the `simple` text-search
-   config; gated by `MATCH_FTS_MIN`.
-4. **`trigram`** — `pg_trgm` similarity; gated by `MATCH_TRGM_MIN`
-   (`%` index operator AND an explicit similarity filter — see
-   [`../CLAUDE.md`](../CLAUDE.md) for why both are required).
+1. **`session_teach`** — recent in-session `/teach` overrides (10-min TTL). User corrects wrong reply immediately, no admin wait.
+2. **`exact`** — normalized + diacritic-stripped equality (Postgres `f_unaccent()` both sides).
+3. **`fts`** — Postgres `tsvector` rank against `simple` text-search config; gated by `MATCH_FTS_MIN`.
+4. **`trigram`** — `pg_trgm` similarity; gated by `MATCH_TRGM_MIN` (`%` index operator AND explicit similarity filter — see [`../CLAUDE.md`](../CLAUDE.md) why both required).
 
-If all four tiers miss, the bot replies with the locale's `fallback_message_*`
-from `app_config` and the input is added to `unanswered` so an operator can
-teach a response later. Within the winning tier, the matcher picks randomly
-from the top-K rows (`MATCH_TOP_K`, default 5) so back-to-back identical
-queries don't always return the same canned answer.
+If all four miss, bot replies with locale's `fallback_message_*` from `app_config` and input added to `unanswered` so operator teach later. Within winning tier, matcher picks randomly from top-K rows (`MATCH_TOP_K`, default 5) so back-to-back identical queries no always return same canned answer.
 
 ## Repo layout
 
@@ -75,5 +62,4 @@ seeds/
 docs/          # phased specs, requirements, LLM import format
 ```
 
-See [`../CLAUDE.md`](../CLAUDE.md) for conventions, invariants, and
-"don't-repeat-this-mistake" rules accreted across the phased build.
+See [`../CLAUDE.md`](../CLAUDE.md) for conventions, invariants, "don't-repeat-this-mistake" rules accreted across phased build.

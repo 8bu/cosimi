@@ -11,5 +11,5 @@ docs/screenshots/
 *.tsbuildinfo
 .claude/
 .agents/
-CLAUDE.original.md
+*.original.md
 skills-lock.json

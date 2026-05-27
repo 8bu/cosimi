@@ -1,8 +1,6 @@
 # API Reference
 
-Two processes: public `apps/api` on port 3000, internal `apps/admin-api` on
-port 3001 (`127.0.0.1`). See [Deployment security](#deployment-security)
-for why the split is the auth contract.
+Two processes: public `apps/api` port 3000, internal `apps/admin-api` port 3001 (`127.0.0.1`). See [Deployment security](#deployment-security) — split = auth contract.
 
 ## Public API (port 3000)
 
@@ -39,9 +37,7 @@ curl http://localhost:3000/healthz
 
 ## Admin API (port 3001, 127.0.0.1)
 
-> Admin endpoints live on a **separate process** at `127.0.0.1:3001`. There
-> is no `/admin/*` prefix — the entire process is the admin surface (see
-> [Deployment security](#deployment-security)).
+> Admin endpoints on **separate process** at `127.0.0.1:3001`. No `/admin/*` prefix — whole process = admin surface (see [Deployment security](#deployment-security)).
 
 ```bash
 # Top unanswered prompts
@@ -82,27 +78,16 @@ curl -X POST http://127.0.0.1:3001/rollback \
 curl http://127.0.0.1:3001/healthz
 ```
 
-For the LLM import file format, see
-[`./LLM_IMPORT_FORMAT.md`](./LLM_IMPORT_FORMAT.md).
+LLM import file format: see [`./LLM_IMPORT_FORMAT.md`](./LLM_IMPORT_FORMAT.md).
 
 ## Deployment security
 
-> 🛑 **The admin API is a separate process with NO authentication.**
+> 🛑 **Admin API = separate process, NO auth.**
 
-`apps/admin-api` runs on its own port and binds to `127.0.0.1` by default,
-controlled by `ADMIN_HOST` / `ADMIN_PORT`. Threat model:
+`apps/admin-api` runs own port, binds `127.0.0.1` default, controlled by `ADMIN_HOST` / `ADMIN_PORT`. Threat model:
 
-- ✅ Public `apps/api` on port `3000` (`0.0.0.0`) — exposes only
-  chat / feedback / stats / health.
-- ✅ Admin `apps/admin-api` on port `3001` (`127.0.0.1`) — admin surface,
-  unreachable from outside the host.
-- ⚠️ Setting `ADMIN_HOST=0.0.0.0` exposes the admin surface to anyone on the
-  network. The process logs a `warn` line on startup when this happens.
-  **Don't do this without a network-layer gate** (Cloudflare Zero Trust, VPN,
-  Tailscale, mTLS, etc.) in front. There is no per-route auth — adding it
-  would imply the admin routes are safe to expose externally, which is false.
+- ✅ Public `apps/api` port `3000` (`0.0.0.0`) — exposes only chat / feedback / stats / health.
+- ✅ Admin `apps/admin-api` port `3001` (`127.0.0.1`) — admin surface, unreachable from outside host.
+- ⚠️ Setting `ADMIN_HOST=0.0.0.0` exposes admin surface to anyone on network. Process logs `warn` line on startup when this happens. **Don't do this without a network-layer gate** (Cloudflare Zero Trust, VPN, Tailscale, mTLS, etc.) in front. No per-route auth — adding it would imply admin routes safe to expose externally, which false.
 
-Misconfiguring the *public* API's network (e.g. exposing port 3000 publicly)
-does **not** expose admin — different process, different socket, different
-port. Security is a property of *where the admin process binds*, not of
-route-mounting in code.
+Misconfiguring *public* API network (e.g. exposing port 3000 publicly) does **not** expose admin — different process, socket, port. Security = property of *where admin process binds*, not route-mounting in code.

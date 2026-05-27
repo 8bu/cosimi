@@ -1,16 +1,16 @@
 # LLM Bulk Import — Format & Prompt Guide
 
-This document describes the file format the **simlm** server accepts for bulk-importing input/response pairs generated externally by an LLM. The format is also valid for hand-curated batches — the LLM angle just makes it easy to scale.
+Doc describes file format **simlm** server accepts for bulk-import of input/response pairs from external LLM. Format also valid for hand-curated batches — LLM angle scale easy.
 
-Imported rows are tagged `source = 'llm'` and grouped under an `import_batches` row so the whole import can be rolled back in one call.
+Imported rows tagged `source = 'llm'`, grouped under `import_batches` row so whole import rollback in one call.
 
-The import endpoint lives on the **admin API**, which is a separate process bound to `127.0.0.1:3001` by default (no `/admin/*` prefix — the whole process is the admin surface). All URLs in this doc target `http://127.0.0.1:3001`. If you've reconfigured `ADMIN_HOST` / `ADMIN_PORT`, substitute accordingly.
+Import endpoint on **admin API** — separate process bound `127.0.0.1:3001` default (no `/admin/*` prefix — whole process is admin surface). URLs target `http://127.0.0.1:3001`. If reconfigured `ADMIN_HOST` / `ADMIN_PORT`, substitute.
 
 ---
 
 ## Format
 
-**File type:** JSONL (newline-delimited JSON). Each line is one pair. Empty lines ignored.
+**File type:** JSONL (newline-delimited JSON). Each line one pair. Empty lines ignored.
 
 **Line shape:**
 
@@ -24,14 +24,14 @@ The import endpoint lives on the **admin API**, which is a separate process boun
 | ---------- | -------- | -------- | ----------------------------------------------- |
 | `input`    | yes      | string   | non-empty, ≤ 2000 chars                         |
 | `response` | yes      | string   | non-empty, ≤ 2000 chars                         |
-| `topic`    | no       | string   | optional; if omitted, falls back to the URL `?topic=` query param at import time |
+| `topic`    | no       | string   | optional; if omitted, falls back to URL `?topic=` query param at import time |
 
 **Server-side processing:**
 
-1. The server normalizes `input` (NFC + lowercase + whitespace collapse) into `normalized_input`.
-2. Postgres derives `normalized_unaccented` (the matching key) via a stored generated column.
-3. The row is inserted with `source = 'llm'` and `batch_id` set to the new `import_batches.id`.
-4. Duplicates are **allowed** — the server does not dedupe. Multiple `response` values for the same `input` is the intended pattern for response variety.
+1. Server normalizes `input` (NFC + lowercase + whitespace collapse) into `normalized_input`.
+2. Postgres derives `normalized_unaccented` (matching key) via stored generated column.
+3. Row inserted with `source = 'llm'` and `batch_id` set to new `import_batches.id`.
+4. Duplicates **allowed** — server no dedupe. Multiple `response` values for same `input` is intended pattern for response variety.
 
 ---
 
@@ -49,7 +49,7 @@ The import endpoint lives on the **admin API**, which is a separate process boun
 
 ## Prompt template for an external LLM
 
-Copy this into ChatGPT / Claude / Gemini / etc. Fill the bracketed placeholders.
+Copy into ChatGPT / Claude / Gemini / etc. Fill bracketed placeholders.
 
 > **System:** You are a corpus generator for a SimSimi-style chatbot.
 > Your job is to produce `[N]` input/response pairs in JSONL format,
@@ -80,7 +80,7 @@ Copy this into ChatGPT / Claude / Gemini / etc. Fill the bracketed placeholders.
 | English        | `humor`      | 100   | one-liner jokes, puns                |
 | English        | `compliments`| 50    | friendly affirmations                |
 
-Smaller batches (50–200) are easier to spot-check and roll back if quality drops.
+Small batches (50–200) easier spot-check and rollback if quality drops.
 
 ---
 
@@ -98,7 +98,7 @@ Response:
 { "batch_id": 42, "count": 5 }
 ```
 
-Note the `batch_id` — you'll need it to roll back.
+Note `batch_id` — need for rollback.
 
 ### Alternative: JSON array body
 
@@ -108,13 +108,13 @@ curl -X POST "http://127.0.0.1:3001/import?source=llm&topic=greetings" \
   -d '[{"input":"hello","response":"hi"},{"input":"bye","response":"see ya"}]'
 ```
 
-For files over a few thousand rows, prefer JSONL — the server streams it without buffering the whole payload.
+For files over few thousand rows, prefer JSONL — server streams without buffering whole payload.
 
 ---
 
 ## Rollback
 
-After spot-checking the imported pairs (try chatting with the bot, browse `/pairs?batch_id=42`), if anything looks off, roll the whole batch back:
+After spot-checking imported pairs (chat with bot, browse `/pairs?batch_id=42`), if anything off, roll whole batch back:
 
 ```bash
 curl -X POST http://127.0.0.1:3001/rollback \
@@ -128,9 +128,9 @@ Response:
 { "affected": 5 }
 ```
 
-This soft-deletes (sets `deleted_at`) every pair in the batch. The rows stay in the DB for audit; restore individually via `POST /pairs/:id/restore` if you change your mind.
+Soft-deletes (sets `deleted_at`) every pair in batch. Rows stay in DB for audit; restore individually via `POST /pairs/:id/restore` if change mind.
 
-You can also roll back by topic or source:
+Can also rollback by topic or source:
 
 ```bash
 # Everything tagged as topic=humor from any import
@@ -140,15 +140,15 @@ curl -X POST http://127.0.0.1:3001/rollback -d '{"topic":"humor"}'
 curl -X POST http://127.0.0.1:3001/rollback -d '{"source":"llm"}'
 ```
 
-At least one of `batch_id`, `topic`, or `source` is required.
+At least one of `batch_id`, `topic`, or `source` required.
 
 ---
 
 ## Tips
 
-- **Small batches.** 100–200 rows is a good unit. Easy to review, easy to roll back.
-- **Topic discipline.** Always set `?topic=`. Without a topic, rollback granularity drops to source-wide.
-- **Language consistency.** Mixing languages in a single batch makes review harder. One language per batch.
-- **Spot-check.** Before importing 1000 rows, generate 20, import, chat with the bot. If it sounds off, refine the prompt and retry.
-- **Duplicates are OK.** The matcher randomly picks within top-K, so having three different `response`s for `"hello"` gives natural variety.
-- **No need to hand-tag the source.** The server tags every row in this import as `source='llm'` based on the query param — your file just contains `input`/`response`/`topic`.
+- **Small batches.** 100–200 rows good unit. Easy review, easy rollback.
+- **Topic discipline.** Always set `?topic=`. Without topic, rollback granularity drops to source-wide.
+- **Language consistency.** Mixing languages in single batch makes review harder. One language per batch.
+- **Spot-check.** Before importing 1000 rows, generate 20, import, chat with bot. If sounds off, refine prompt and retry.
+- **Duplicates OK.** Matcher randomly picks within top-K, so three different `response`s for `"hello"` gives natural variety.
+- **No need hand-tag source.** Server tags every row in this import as `source='llm'` based on query param — file just contains `input`/`response`/`topic`.

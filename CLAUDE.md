@@ -52,7 +52,7 @@ docs/             # phased specs SPEC_PHASE_0.md … SPEC_PHASE_16.md
 
 ### Workspace & supply chain
 
-- Workspace packages `@simlm/<name>`, `private: true`. Always import via `@simlm/...`; never relative across packages. `link-workspace-packages=true` makes self-imports work.
+- Workspace packages `@simlm/<name>`, `private: true`. Import via `@simlm/...`; never relative across packages. `link-workspace-packages=true` makes self-imports work.
 - `@simlm/db` internal subpath imports use `#client`, `#repositories/*`, `#scripts/*`. Outside package, always `@simlm/db`.
 - `pnpm-workspace.yaml` has `minimumReleaseAge: 10080` (7-day embargo). Force-include via `minimumReleaseAgeExclude` only with comment.
 - `allowBuilds` = postinstall permission list. Each entry runs arbitrary install-time code; add deliberately with `# why` comment. Current: `esbuild`, `@swc/core`. No wildcards.
@@ -60,7 +60,7 @@ docs/             # phased specs SPEC_PHASE_0.md … SPEC_PHASE_16.md
 ### Architecture & security
 
 - `apps/api` and `apps/admin-api` are **separate processes**. admin-api binds `127.0.0.1`; process split + network-layer gate IS auth contract — don't add app-layer auth to admin routes. No `/admin/*` route prefix.
-- **No LLM at runtime** in `apps/api`. `@simlm/matcher` is only reply source.
+- **No LLM at runtime** in `apps/api`. `@simlm/matcher` only reply source.
 - Env via `loadEnv()` from `@simlm/config` — called once at startup, never at import time. Never `export const env = loadEnv()` (breaks test env injection).
 
 ### Database & migrations
@@ -68,7 +68,7 @@ docs/             # phased specs SPEC_PHASE_0.md … SPEC_PHASE_16.md
 - Migrations in `packages/db/migrations/` numbered, additive, **never rewritten after merge**. New changes → new file. `pnpm migrate reset` dev-only (`NODE_ENV !== 'production'`).
 - **Canonical write path for `pairs`**: `insertPair` / `insertManyPairs` from `@simlm/db`. Never raw `INSERT INTO pairs`. Both omit `normalized_unaccented` (Postgres rejects explicit values) and accept optional `tx`; inside `.begin()` MUST pass `tx`.
 - `pairs.normalized_unaccented` is `GENERATED ALWAYS AS (f_unaccent(normalized_input)) STORED`. Never INSERT/UPDATE directly.
-- **Diacritics split**: `@simlm/normalizer` does NFC + lowercase + whitespace, **preserves diacritics**. `f_unaccent(text)` (migration 001) strips server-side. All pair tiers compare `pairs.normalized_unaccented` against `f_unaccent(${normalizedInput})`. Never strip in JS. `session_teaches` `f_unaccent`s both sides at query time (no generated column; 10-min TTL keeps it small).
+- **Diacritics split**: `@simlm/normalizer` does NFC + lowercase + whitespace, **preserves diacritics**. `f_unaccent(text)` (migration 001) strips server-side. All pair tiers compare `pairs.normalized_unaccented` against `f_unaccent(${normalizedInput})`. Never strip in JS. `session_teaches` `f_unaccent`s both sides at query time (no generated column; 10-min TTL keeps small).
 - **BIGSERIAL ids round-trip as strings via postgres.js.** Cast at write boundary: `RETURNING id::int AS id`.
 - Interval arithmetic in SQL: `${n} * INTERVAL '1 unit'`. Never `(n || ' unit')::interval` (postgres.js types JS numbers as int).
 - `app_config` is key/value; templated responses use `{{ key }}` via `renderTemplate(text, vars)` (case-insensitive, unknown keys left literal). Tests exclude `app_config` from TRUNCATE. New placeholder = new migration with `INSERT … ON CONFLICT DO NOTHING`.
@@ -91,7 +91,7 @@ docs/             # phased specs SPEC_PHASE_0.md … SPEC_PHASE_16.md
 
 - `withSession` reads `c.req.json()` once and stashes at `c.set('parsedBody', body)`. Handlers MUST use `c.get('parsedBody')` — Hono body stream single-use. Session id: body → `X-Session-Id` header → minted; echoed in response header.
 - SSE: every response ends with literal `data: [DONE]\n\n` from `finally`. `ChatStreamEvent.type === 'done'` for client `switch` exhaustiveness only — `[DONE]` is wire terminator.
-- SSE errors: `TeachError.message` is user-facing; everything else surfaces as generic with diagnostic logged. `services/rate-limit.ts` throws plain `Error` (circular-import dodge); teach handler rewraps as `TeachError`.
+- SSE errors: `TeachError.message` user-facing; everything else surfaces as generic with diagnostic logged. `services/rate-limit.ts` throws plain `Error` (circular-import dodge); teach handler rewraps as `TeachError`.
 - In-process GC: single `setInterval` (`GC_INTERVAL_MS`, default 5min) DELETEs from `sessions` + `session_teaches` in parallel. Handle is `.unref()`'d. SIGINT/SIGTERM → `stopGc()` → `server.close()`. Multi-instance needs advisory lock; out of scope.
 - `/healthz` runs 1s-budgeted DB ping; timeout `.unref()`'d AND cleared in `finally`. Shape: `{ ok, db: 'up'|'down', db_latency_ms, uptime_s }`. Two identical files (api + admin-api) — touch both, or extract on third instance.
 
