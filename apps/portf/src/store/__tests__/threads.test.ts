@@ -110,18 +110,20 @@ describe("threads store v2 — Phase E expansion", () => {
     expect(ids).toEqual([b]);
   });
 
-  it("remove cascades into sessions store; messages store cleared if available", async () => {
+  it("remove cascades into messages + sessions stores", async () => {
     const { useThreadsStore } = await import("@/store/threads");
     const { useSessionsStore } = await import("@/store/sessions");
+    const { useMessagesStore } = await import("@/store/messages");
     const id = useThreadsStore.getState().create();
     useSessionsStore.getState().set(id, "srv-1");
+    useMessagesStore.setState({ byThread: { [id]: [] } });
     useThreadsStore.getState().remove(id);
-    // Wait microtasks for the dynamic imports inside remove() to settle.
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    // Wait for the dynamic import inside remove() to settle. The import()
+    // promise resolves after Vite's module-resolution microtasks plus the
+    // .then() continuation — a small setTimeout(0) is more reliable than
+    // a fixed number of Promise.resolve() ticks.
+    await new Promise((r) => setTimeout(r, 0));
     expect(useSessionsStore.getState().get(id)).toBeUndefined();
-    // messages-store cascade tested fully after Task 9 lands (messages.ts).
-    // Here we only verify sessions cleanup + thread removal.
+    expect(useMessagesStore.getState().byThread[id]).toBeUndefined();
   });
 });

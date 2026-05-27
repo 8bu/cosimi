@@ -27,9 +27,8 @@ interface ThreadsState {
   /**
    * Remove a thread from the index AND cascade-clear sibling stores
    * (messages, sessions). Sessions is cleared synchronously (no circular
-   * dep). Messages uses a dynamic import via a variable path to prevent
-   * Vite's transform-time analysis from failing when the file does not
-   * yet exist (Task 9 lands it later in Phase E); errors are swallowed.
+   * dep). Messages uses a dynamic import to keep messages.ts out of the
+   * threads-store module init graph; errors are swallowed.
    *
    * If the removed thread is the currently active route, the consumer
    * (sidebar row) is responsible for navigating away (e.g., to `/`).
@@ -80,11 +79,11 @@ export const useThreadsStore = create<ThreadsState>()(
         // Sessions cleanup is synchronous — no circular dep between
         // sessions.ts and threads.ts.
         useSessionsStore.getState().clear(id);
-        // Messages cleanup is deferred via dynamic import with a variable
-        // path so Vite's import-analysis does not fail at transform time
-        // when @/store/messages does not yet exist (Task 9 adds it).
-        const messagesPath = "@/store/messages" as string;
-        void import(/* @vite-ignore */ messagesPath)
+        // Messages cleanup via dynamic import — keeps the messages store
+        // out of the threads-store module init graph (avoids circular
+        // dep risk and keeps threads.ts importable from tests that don't
+        // need messages).
+        void import("@/store/messages")
           .then((m) => m.useMessagesStore.getState().clear(id))
           .catch(() => {});
       },
