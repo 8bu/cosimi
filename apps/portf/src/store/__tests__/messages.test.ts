@@ -120,3 +120,148 @@ describe("messages store", () => {
     expect(JSON.parse(raw!).tP).toBeDefined();
   });
 });
+
+describe("finishBot artifact hook", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.resetModules();
+    streamMock.mockReset();
+  });
+
+  it("stamps artifactSlug when matchArtifact returns a descriptor (exact tier)", async () => {
+    vi.doMock("@/features/artifacts/match", () => ({
+      matchArtifact: vi.fn(() => ({ slug: "wegopro" })),
+    }));
+
+    const { useMessagesStore } = await import("@/store/messages");
+    const threadId = "t1";
+
+    useMessagesStore.setState({
+      byThread: {
+        [threadId]: [
+          {
+            kind: "user",
+            id: "u1",
+            text: "tell me about wegopro",
+            createdAt: 1,
+          },
+          {
+            kind: "bot",
+            id: "b1",
+            text: "Probably WegoPro - 4 years on B2B travel.",
+            status: "streaming",
+            meta: { tier: "exact", confidence: 0.9, lowConfidence: false, locale: "en" },
+            noMatch: false,
+            artifactSlug: null,
+            createdAt: 2,
+          },
+        ],
+      },
+    });
+
+    useMessagesStore.getState().finishBot(threadId, "b1", "settled");
+
+    const updated = useMessagesStore.getState().byThread[threadId]?.find((m) => m.id === "b1");
+    expect(updated?.kind).toBe("bot");
+    if (updated?.kind === "bot") {
+      expect(updated.artifactSlug).toBe("wegopro");
+    }
+  });
+
+  it("leaves artifactSlug null when matchArtifact returns null", async () => {
+    vi.doMock("@/features/artifacts/match", () => ({
+      matchArtifact: vi.fn(() => null),
+    }));
+
+    const { useMessagesStore } = await import("@/store/messages");
+    const threadId = "t2";
+
+    useMessagesStore.setState({
+      byThread: {
+        [threadId]: [
+          { kind: "user", id: "u1", text: "unrelated", createdAt: 1 },
+          {
+            kind: "bot",
+            id: "b1",
+            text: "...",
+            status: "streaming",
+            meta: { tier: "trigram", confidence: 0.3, lowConfidence: true, locale: "en" },
+            noMatch: false,
+            artifactSlug: null,
+            createdAt: 2,
+          },
+        ],
+      },
+    });
+
+    useMessagesStore.getState().finishBot(threadId, "b1", "settled");
+
+    const updated = useMessagesStore.getState().byThread[threadId]?.find((m) => m.id === "b1");
+    if (updated?.kind === "bot") {
+      expect(updated.artifactSlug).toBeNull();
+    }
+  });
+
+  it("does not run matchArtifact when status is 'error'", async () => {
+    const mockMatch = vi.fn(() => ({ slug: "x" }));
+    vi.doMock("@/features/artifacts/match", () => ({ matchArtifact: mockMatch }));
+
+    const { useMessagesStore } = await import("@/store/messages");
+    const threadId = "t3";
+
+    useMessagesStore.setState({
+      byThread: {
+        [threadId]: [
+          { kind: "user", id: "u1", text: "wegopro", createdAt: 1 },
+          {
+            kind: "bot",
+            id: "b1",
+            text: "",
+            status: "streaming",
+            meta: { tier: "exact", confidence: 1, lowConfidence: false, locale: "en" },
+            noMatch: false,
+            artifactSlug: null,
+            createdAt: 2,
+          },
+        ],
+      },
+    });
+
+    useMessagesStore.getState().finishBot(threadId, "b1", "error");
+
+    expect(mockMatch).not.toHaveBeenCalled();
+    const updated = useMessagesStore.getState().byThread[threadId]?.find((m) => m.id === "b1");
+    if (updated?.kind === "bot") {
+      expect(updated.artifactSlug).toBeNull();
+    }
+  });
+
+  it("hydrate normalizes missing artifactSlug on bot messages to null", async () => {
+    localStorage.setItem(
+      "portf.messages",
+      JSON.stringify({
+        t1: [
+          { kind: "user", id: "u1", text: "x", createdAt: 1 },
+          {
+            kind: "bot",
+            id: "b1",
+            text: "y",
+            status: "settled",
+            meta: null,
+            noMatch: false,
+            createdAt: 2,
+            // artifactSlug intentionally omitted (legacy v1 blob)
+          },
+        ],
+      }),
+    );
+
+    const { useMessagesStore } = await import("@/store/messages");
+    useMessagesStore.getState().hydrate();
+
+    const bot = useMessagesStore.getState().byThread.t1?.find((m) => m.id === "b1");
+    if (bot?.kind === "bot") {
+      expect(bot.artifactSlug).toBeNull();
+    }
+  });
+});

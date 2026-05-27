@@ -1,6 +1,7 @@
 import type { ChatStreamEvent } from "@simlm/types";
 import { create } from "zustand";
 
+import { matchArtifact } from "@/features/artifacts/match";
 import {
   FAKE_STREAM_BASE_MS,
   FAKE_STREAM_JITTER_MS,
@@ -11,6 +12,7 @@ import {
 import type { BotMessage, ChatMessage, UserMessage } from "@/features/chat/types";
 import { clearAbort, getOrCreateAbort } from "@/lib/inflight";
 import { streamChatPortf } from "@/lib/streamChat";
+import { usePreferencesStore } from "@/store/preferences";
 import { useThreadsStore } from "@/store/threads";
 
 interface MessagesState {
@@ -87,6 +89,7 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
       status: "streaming",
       meta: null,
       noMatch: false,
+      artifactSlug: null,
       createdAt: Date.now(),
     };
 
@@ -133,14 +136,41 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
   },
 
   finishBot(threadId, id, status) {
-    set((s) => ({
-      byThread: {
-        ...s.byThread,
-        [threadId]: (s.byThread[threadId] ?? []).map((m) =>
-          m.kind === "bot" && m.id === id ? { ...m, status } : m,
-        ),
-      },
-    }));
+    set((s) => {
+      const thread = s.byThread[threadId] ?? [];
+      const botIdx = thread.findIndex((m) => m.id === id && m.kind === "bot");
+      if (botIdx < 0) return s;
+
+      let nextArtifactSlug: string | null = null;
+      if (status === "settled") {
+        // Scan backwards for the user message immediately preceding the bot.
+        for (let i = botIdx - 1; i >= 0; i--) {
+          const candidate = thread[i];
+          if (candidate?.kind === "user") {
+            const bot = thread[botIdx];
+            if (bot?.kind === "bot") {
+              const primaryLocale = usePreferencesStore.getState().primaryLocale;
+              const descriptor = matchArtifact({
+                input: candidate.text,
+                tier: bot.meta?.tier ?? null,
+                primaryLocale,
+              });
+              nextArtifactSlug = descriptor?.slug ?? null;
+            }
+            break;
+          }
+        }
+      }
+
+      return {
+        byThread: {
+          ...s.byThread,
+          [threadId]: thread.map((m, i) =>
+            i === botIdx && m.kind === "bot" ? { ...m, status, artifactSlug: nextArtifactSlug } : m,
+          ),
+        },
+      };
+    });
     flushPersistNow();
   },
 
@@ -182,6 +212,18 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
       const parsed = JSON.parse(raw) as Record<string, ChatMessage[]>;
+
+      // Normalize legacy v1 bot messages that lack artifactSlug. The persisted
+      // disk shape is wrapper-less; backward compat is handled here so the
+      // in-memory shape is uniformly string | null (never undefined).
+      for (const thread of Object.values(parsed)) {
+        for (const msg of thread) {
+          if (msg.kind === "bot" && msg.artifactSlug === undefined) {
+            msg.artifactSlug = null;
+          }
+        }
+      }
+
       set({ byThread: parsed });
     } catch {
       // Parse error - silently reset (in-memory empty state already correct).

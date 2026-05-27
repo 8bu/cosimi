@@ -32,6 +32,11 @@ export interface BotMessage {
     locale: string | null;
   } | null;
   noMatch: boolean;
+  /**
+   * Slug of an MDX artifact resolved by matchArtifact() at settle time.
+   * Null = no card. Phase F (2026-05-28).
+   */
+  artifactSlug: string | null;
   createdAt: number;
 }
 

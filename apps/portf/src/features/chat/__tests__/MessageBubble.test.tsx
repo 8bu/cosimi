@@ -17,6 +17,7 @@ const botStreaming: ChatMessage = {
   status: "streaming",
   meta: null,
   noMatch: false,
+  artifactSlug: null,
   createdAt: 0,
 };
 
@@ -27,6 +28,7 @@ const botSettled: ChatMessage = {
   status: "settled",
   meta: null,
   noMatch: false,
+  artifactSlug: null,
   createdAt: 0,
 };
 
@@ -37,6 +39,7 @@ const botError: ChatMessage = {
   status: "error",
   meta: null,
   noMatch: false,
+  artifactSlug: null,
   createdAt: 0,
 };
 

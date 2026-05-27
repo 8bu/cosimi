@@ -16,6 +16,7 @@ const b = (id: string, text: string): ChatMessage => ({
   status: "settled",
   meta: null,
   noMatch: false,
+  artifactSlug: null,
   createdAt: 0,
 });
 
