@@ -1,46 +1,37 @@
-# simlm — SimSimi-style chatbot
+# simlm: SimSimi-style chatbot
 
-A pattern-matching chatbot in the spirit of SimSimi. **No LLM at runtime** —
-replies come from a curated/learned pattern store, scored by a four-tier
+A pattern-matching chatbot in the spirit of SimSimi. **No LLM at runtime.**
+Replies come from a curated/learned pattern store, scored by a four-tier
 matching engine (`session_teach → exact → FTS → trigram`). Bilingual
 (Vietnamese / English) seeds ship in-tree. pnpm + Turbo monorepo; the public
 chat API, the internal admin API, and the two SPAs share typed packages.
 
 ## Why I built this
 
-Most chatbots reach for an LLM by default now. For a lot of use cases that's
-fine. But a chunk of the conversational surface area I actually care about —
-greetings, jokes, canned support answers, a "what's your name" FAQ, a
-Vietnamese small-talk corpus — doesn't need reasoning. It needs a reliable
-lookup over a small, curated knowledge base.
+Curiosity. Wanted to play with the SimSimi-era chatbot shape: a language
+matcher over a curated pattern store. No reasoning at runtime, no tokens
+billed per turn, hallucinations bounded by what's in the table.
 
-**LM (Language Matcher) is cheaper and more reliable than a big LLM with RAG
-or GraphRAG for that shape of problem.** No tokens billed per turn. No
-hallucinations. No "the model paraphrased the answer and lost the joke." No
-vector store to keep in sync, no embedding model to version, no prompt to
-tune. The data *is* the behavior: edit a row, the bot changes. Teach the bot
-inline via `/teach`, an admin approves it from a queue, and the next user
-gets the new reply.
+The twist vs. classic SimSimi: **LLM is the crowd now.** SimSimi sourced
+its pairs from users at scale (uncurated). Here, an LLM bulk-generates
+pairs offline and an admin reviews them; the `/teach` flow is for
+incremental gap-filling, not the seed. The LLM runs at build/import time
+only. Runtime is pure SQL.
 
-The four-tier cascade (exact → Postgres FTS → trigram → session override)
-covers the long tail without ML. Postgres handles fuzzy matching well enough
-that a 10k-pair corpus answers `xin chào` and `xin chao` and `xinchao` the
-same way, in single-digit milliseconds, without an API key.
-
-I also wanted to prove out a few things along the way: Hono on Node, Tailwind
-v4 CSS-first, a strict typed-DTO contract across two processes, and a phased
-build that's actually reviewable. The whole repo is laid out so each phase's
-spec lives next to the code it produced.
+The shape fits domains that don't need reasoning: greetings, jokes, FAQs,
+small-talk, canned support replies. Postgres FTS + trigram do the fuzzy
+match. `xin chào`, `xin chao`, and `xinchao` all hit the same row, no
+embeddings, no API key.
 
 ## Docs
 
-- **[Architecture](./docs/ARCHITECTURE.md)** — process split, matcher cascade, repo layout
-- **[Setup](./docs/SETUP.md)** — first-time install, seed, dev commands
-- **[Configuration](./docs/CONFIGURATION.md)** — env vars, logging, PII
-- **[API](./docs/API.md)** — `curl` recipes + deployment security model
-- **[LLM Import Format](./docs/LLM_IMPORT_FORMAT.md)** — bulk-import file shape
-- **[CLAUDE.md](./CLAUDE.md)** — conventions, invariants, "don't repeat this mistake" rules
-- **`docs/SPEC_PHASE_*.md`** — per-phase specs, in build order
+- **[Architecture](./docs/ARCHITECTURE.md)**: process split, matcher cascade, repo layout
+- **[Setup](./docs/SETUP.md)**: first-time install, seed, dev commands
+- **[Configuration](./docs/CONFIGURATION.md)**: env vars, logging, PII
+- **[API](./docs/API.md)**: `curl` recipes + deployment security model
+- **[LLM Import Format](./docs/LLM_IMPORT_FORMAT.md)**: bulk-import file shape
+- **[CLAUDE.md](./CLAUDE.md)**: conventions, invariants, "don't repeat this mistake" rules
+- **`docs/SPEC_PHASE_*.md`**: per-phase specs, in build order
 
 ## Quickstart
 
@@ -57,11 +48,13 @@ Full setup: [`docs/SETUP.md`](./docs/SETUP.md).
 
 ## Project status
 
-**Complete.** All 16 phases (0–15) are merged on `main`. **211 tests across
-8 suites** (api + admin-api + matcher + web + admin + normalizer + template +
-i18n). Standing gates green.
+**Work in progress.** Phases 0–16 are merged on `main` and the standing
+gates (`typecheck`, `lint`, `format:check`, `test`) are green, but this repo
+is also a trial run for a larger portfolio app I'm building, so expect churn.
+The matcher, schema, and admin surface are the parts most likely to shift as
+I pull patterns out into the portfolio project and feed lessons back here.
 
-Deferred to potential future work — explicitly out of scope for the MVP:
+Out of scope for now (may change):
 
 - Internationalization of UI chrome. Chat content is bilingual (vi/en) but
   the admin chrome is English-only.
