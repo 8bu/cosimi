@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
+import {
+  TYPING_ANIM_MS_PER_CHAR,
+  AUTO_SUBMIT_DELAY_MS,
+} from "../tokens";
 
 // vi.resetModules() in beforeEach is required here because the threads store
 // (zustand + persist) is a module-level singleton. Each test that submits
@@ -82,5 +86,129 @@ describe("Composer — submit", () => {
     fireEvent.submit(input.closest("form")!);
 
     expect(useThreadsStore.getState().threads).toHaveLength(1);
+  });
+});
+
+describe("Composer — chip animation", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    navigateMock.mockReset();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    localStorage.clear();
+  });
+
+  it("types chip text character-by-character then auto-submits", async () => {
+    const { Composer } = await import("../components/Composer");
+    const { createRef } = await import("react");
+
+    const ref = createRef<import("../components/Composer").ComposerHandle>();
+    render(<Composer ref={ref} />);
+    const input = screen.getByRole("textbox") as HTMLInputElement;
+
+    ref.current!.runChipAnimation("Best");
+
+    // 4 chars * 40ms per char = 160ms typing, then 250ms before submit.
+    await vi.advanceTimersByTimeAsync(TYPING_ANIM_MS_PER_CHAR * 4);
+    expect(input.value).toBe("Best");
+    expect(navigateMock).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(AUTO_SUBMIT_DELAY_MS);
+    expect(navigateMock).toHaveBeenCalledTimes(1);
+    expect(navigateMock.mock.calls[0]![0].state.initialPrompt).toBe("Best");
+  });
+
+  it("keydown of a non-modifier key cancels the animation (no submit, typed-so-far preserved)", async () => {
+    const { Composer } = await import("../components/Composer");
+    const { createRef } = await import("react");
+
+    const ref = createRef<import("../components/Composer").ComposerHandle>();
+    render(<Composer ref={ref} />);
+    const input = screen.getByRole("textbox") as HTMLInputElement;
+
+    ref.current!.runChipAnimation("Best project");
+
+    // Advance enough to type "Bes" (3 chars).
+    await vi.advanceTimersByTimeAsync(TYPING_ANIM_MS_PER_CHAR * 3);
+    expect(input.value).toBe("Bes");
+
+    // Cancel via a real keydown.
+    fireEvent.keyDown(input, { key: "a" });
+
+    // Advance well past the remaining typing + auto-submit window.
+    await vi.advanceTimersByTimeAsync(
+      TYPING_ANIM_MS_PER_CHAR * 20 + AUTO_SUBMIT_DELAY_MS,
+    );
+
+    expect(navigateMock).not.toHaveBeenCalled();
+    expect(input.value).toBe("Bes"); // typed-so-far preserved
+  });
+
+  it("keydown of a pure modifier key does NOT cancel", async () => {
+    const { Composer } = await import("../components/Composer");
+    const { createRef } = await import("react");
+
+    const ref = createRef<import("../components/Composer").ComposerHandle>();
+    render(<Composer ref={ref} />);
+    const input = screen.getByRole("textbox") as HTMLInputElement;
+
+    ref.current!.runChipAnimation("Best");
+    await vi.advanceTimersByTimeAsync(TYPING_ANIM_MS_PER_CHAR);
+
+    fireEvent.keyDown(input, { key: "Shift" });
+    fireEvent.keyDown(input, { key: "Control" });
+    fireEvent.keyDown(input, { key: "Meta" });
+    fireEvent.keyDown(input, { key: "Alt" });
+    fireEvent.keyDown(input, { key: "Tab" });
+
+    await vi.advanceTimersByTimeAsync(
+      TYPING_ANIM_MS_PER_CHAR * 4 + AUTO_SUBMIT_DELAY_MS,
+    );
+
+    expect(navigateMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("Escape cancels the animation", async () => {
+    const { Composer } = await import("../components/Composer");
+    const { createRef } = await import("react");
+
+    const ref = createRef<import("../components/Composer").ComposerHandle>();
+    render(<Composer ref={ref} />);
+    const input = screen.getByRole("textbox") as HTMLInputElement;
+
+    ref.current!.runChipAnimation("Best");
+    await vi.advanceTimersByTimeAsync(TYPING_ANIM_MS_PER_CHAR * 2);
+
+    fireEvent.keyDown(input, { key: "Escape" });
+
+    await vi.advanceTimersByTimeAsync(
+      TYPING_ANIM_MS_PER_CHAR * 4 + AUTO_SUBMIT_DELAY_MS,
+    );
+
+    expect(navigateMock).not.toHaveBeenCalled();
+  });
+
+  it("a second runChipAnimation cancels the first and starts fresh", async () => {
+    const { Composer } = await import("../components/Composer");
+    const { createRef } = await import("react");
+
+    const ref = createRef<import("../components/Composer").ComposerHandle>();
+    render(<Composer ref={ref} />);
+    const input = screen.getByRole("textbox") as HTMLInputElement;
+
+    ref.current!.runChipAnimation("Best project");
+    await vi.advanceTimersByTimeAsync(TYPING_ANIM_MS_PER_CHAR * 3);
+    expect(input.value).toBe("Bes");
+
+    ref.current!.runChipAnimation("Stack");
+    await vi.advanceTimersByTimeAsync(
+      TYPING_ANIM_MS_PER_CHAR * "Stack".length + AUTO_SUBMIT_DELAY_MS,
+    );
+
+    expect(navigateMock).toHaveBeenCalledTimes(1);
+    expect(navigateMock.mock.calls[0]![0].state.initialPrompt).toBe("Stack");
   });
 });
