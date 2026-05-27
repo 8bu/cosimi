@@ -293,3 +293,95 @@ body,
     border-bottom: 1px dashed var(--line);
   }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Artifact preview card (Phase F)
+   Ported from the V1FirstChat shape in
+   docs/superpowers/artifacts/simlm2/project/flow-and-pages.jsx:144-164
+   ──────────────────────────────────────────────────────────── */
+
+.artifact-preview-card {
+  margin-top: 12px;
+  border: 2px solid var(--ink);
+  display: flex;
+  gap: 12px;
+  padding: 10px;
+  cursor: pointer;
+  align-items: stretch;
+  background: transparent;
+  font: inherit;
+  width: 100%;
+  text-align: left;
+}
+
+.artifact-preview-card:focus-visible {
+  outline: 2px solid var(--coral);
+  outline-offset: 2px;
+}
+
+.artifact-preview-card:hover {
+  background: var(--cream-2, transparent);
+}
+
+.artifact-preview-card-thumb {
+  width: 96px;
+  height: 64px;
+  flex-shrink: 0;
+  object-fit: cover;
+  background: var(--coral-tint);
+  border: 1px solid var(--line);
+}
+
+.artifact-preview-card-thumb-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--ink-4);
+  text-transform: uppercase;
+}
+
+.artifact-preview-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.artifact-preview-card-kicker {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--coral);
+}
+
+.artifact-preview-card-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+}
+
+.artifact-preview-card-stack {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+}
+
+.artifact-preview-card-arrow {
+  align-self: center;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--coral);
+}
+
+.artifact-preview-card-hint {
+  margin-top: 6px;
+  color: var(--ink-4);
+}
