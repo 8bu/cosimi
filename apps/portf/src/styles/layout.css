@@ -159,6 +159,17 @@
   text-overflow: ellipsis;
 }
 
+/* ─── HomePane subtitle width override ─────────────────────────────────
+ * portfolio.css ships `.v2-sub` with `max-width: 400px` which forces the
+ * spotlight subtitle ("Senior Web Developer · product-minded · 10+ years
+ * shipping production web apps. Everything on this site is a chat — ask
+ * anything, or pick a prompt below.") into 3 lines. Widen to 620px so it
+ * sits on 2 lines instead. portfolio.css is verbatim-locked; override
+ * here. */
+.v2-sub {
+  max-width: 620px;
+}
+
 /* ─── Composer focus ring ──────────────────────────────────────────────
  * Browsers paint a default blue focus ring on the bare `<input>` inside
  * `.input-row`. Replace with a subtle border-color shift on the parent
