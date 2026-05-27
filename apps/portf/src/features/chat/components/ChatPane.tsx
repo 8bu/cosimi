@@ -1,5 +1,7 @@
 import { useMessagesStore } from "@/store/messages";
+import { ChatChips } from "@/features/chat/components/ChatChips";
 import { ChatComposer } from "@/features/chat/components/ChatComposer";
+import { ChatHeader } from "@/features/chat/components/ChatHeader";
 import { EmptyChatPane } from "@/features/chat/components/EmptyChatPane";
 import { MessageList } from "@/features/chat/components/MessageList";
 import { MobileBurger } from "@/features/sidebar/components/MobileBurger";
@@ -15,24 +17,34 @@ interface ChatPaneProps {
 const EMPTY: readonly ChatMessage[] = Object.freeze([]);
 
 /**
- * Composition root for `/chat/$threadId`. Reads the thread's messages
- * slice from the messages store, renders empty placeholder or list,
- * mounts the composer, and stamps a mobile-topbar burger (CSS @media
- * shows it only at narrow viewports).
+ * Composition root for `/chat/$threadId`. Shape ported from the design
+ * source's `V1Conversation` (`docs/superpowers/artifacts/simlm2/project/
+ * variations-1-2.jsx` line 49–85): header (title + status), middle
+ * messages slot, footer = chips + composer.
+ *
+ * Mobile burger sits above the header in a `.mobile-topbar` row (CSS
+ * @media in `layout.css` shows it only at narrow viewports).
  */
 export function ChatPane({ threadId }: ChatPaneProps) {
   const messages = useMessagesStore((s) => s.byThread[threadId] ?? EMPTY);
+
   return (
     <main className="chat-pane">
       <div className="mobile-topbar">
         <MobileBurger />
       </div>
-      {messages.length === 0 ? (
-        <EmptyChatPane />
-      ) : (
-        <MessageList messages={messages as ChatMessage[]} />
-      )}
-      <ChatComposer threadId={threadId} />
+      <ChatHeader threadId={threadId} messages={messages} />
+      <div className="chat-pane__messages">
+        {messages.length === 0 ? (
+          <EmptyChatPane />
+        ) : (
+          <MessageList messages={messages as ChatMessage[]} />
+        )}
+      </div>
+      <div className="chat-pane__footer">
+        <ChatChips threadId={threadId} />
+        <ChatComposer threadId={threadId} />
+      </div>
     </main>
   );
 }

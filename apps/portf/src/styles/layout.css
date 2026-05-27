@@ -19,17 +19,47 @@
   min-height: 100vh;
 }
 
+/* ChatPane shape — header / scrollable messages / footer.
+ * Ported from the design source's `V1Conversation`
+ * (docs/superpowers/artifacts/simlm2/project/variations-1-2.jsx). Each
+ * direct child is capped to a 760px column and centered so the
+ * conversation reads like a real chat product (Claude / ChatGPT
+ * standard), not a full-bleed terminal log. */
 .chat-pane {
   display: flex;
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+  padding: 16px 22px 24px;
+}
+.chat-pane > * {
+  width: 100%;
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Messages wrapper: scrollable middle. min-height:0 lets flex children
+ * actually shrink — without it the inner scroll never engages. */
+.chat-pane__messages {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-pane__footer {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .message-list {
   flex: 1;
   overflow-y: auto;
-  padding: 24px;
+  padding: 8px 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -42,34 +72,6 @@
   color: var(--ink-4);
   font-family: var(--font-mono);
   font-size: 12px;
-}
-
-/* ─── Chat-pane content column ─────────────────────────────────────────
- * Cap message-list + composer to a readable column width, centered.
- * Without this the bubbles span the full chat-pane width (e.g., 1500px
- * on a wide desktop) and become hard to scan. 760px is the same
- * conversational width Claude / ChatGPT / Linear ship.
- */
-.chat-pane .message-list,
-.chat-pane .input-row {
-  width: 100%;
-  max-width: 760px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-/* The composer sits outside .message-list so it needs its own outer
- * gutter — without it the input row touches the bottom + side edges
- * of the chat-pane viewport. */
-.chat-pane > .input-row {
-  margin-bottom: 24px;
-  /* Pad left+right so the visible composer width still respects the
-   * 760px column even when the viewport narrows past that mark. */
-  box-sizing: border-box;
-}
-.chat-pane {
-  padding-left: 24px;
-  padding-right: 24px;
 }
 
 /* ─── Typing indicator: 3 dots, staggered blink ────────────────────── */

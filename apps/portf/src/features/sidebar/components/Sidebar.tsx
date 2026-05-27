@@ -4,13 +4,15 @@ import { NewChatButton } from "@/features/sidebar/components/NewChatButton";
 import { ThreadList } from "@/features/sidebar/components/ThreadList";
 
 /**
- * Sidebar composition root. Renders the `<aside class=v1-sidebar>` aside
- * plus a separate `.sidebar-backdrop` overlay used by the mobile drawer
- * (visibility controlled by CSS @media in `layout.css`).
+ * Sidebar composition root. Shape ported from the design source's
+ * `V1Sidebar` (`docs/superpowers/artifacts/simlm2/project/
+ * variations-1-2.jsx`): Wordmark header, `+ NEW CHAT` button,
+ * `<ThreadList>` (Today / Earlier bucketed), avatar + email footer
+ * pinned to the bottom via `margin-top: auto`.
  *
- * The backdrop is always in the DOM when the drawer is open (regardless
- * of viewport) — CSS handles the show/hide. This keeps drawer state +
- * DOM consistent across resizes.
+ * The mobile drawer is a sibling `.sidebar-backdrop` rendered when the
+ * UI store says open; CSS @media in `layout.css` toggles visibility per
+ * viewport. State + DOM stay consistent across resizes.
  */
 export function Sidebar() {
   const isOpen = useUiStore((s) => s.isSidebarOpen);
@@ -26,10 +28,35 @@ export function Sidebar() {
         />
       )}
       <aside className={`v1-sidebar${isOpen ? " is-open" : ""}`}>
-        <Wordmark />
+        <div style={{ marginBottom: 4 }}>
+          <Wordmark />
+        </div>
         <NewChatButton />
-        <span className="v1-section-label">Threads</span>
         <ThreadList />
+
+        <div
+          style={{
+            marginTop: "auto",
+            paddingTop: 12,
+            borderTop: "1px dashed var(--line)",
+          }}
+        >
+          <div className="v1-thread" style={{ background: "transparent", cursor: "default" }}>
+            <img
+              src="/long-avatar.png"
+              alt="Long"
+              style={{
+                width: 22,
+                height: 22,
+                borderRadius: "50%",
+                objectFit: "cover",
+                flexShrink: 0,
+                border: "1px solid var(--line)",
+              }}
+            />
+            <span>hvanlong@pm.me</span>
+          </div>
+        </div>
       </aside>
     </>
   );

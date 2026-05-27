@@ -37,7 +37,13 @@ describe("Sidebar", () => {
   it("renders threads newest-first", async () => {
     const { Sidebar } = await import("@/features/sidebar/components/Sidebar");
     const { container } = render(<Sidebar />);
-    const rows = Array.from(container.querySelectorAll(".v1-thread"));
+    // Only real thread rows have a `.v1-dot` child — the footer email row
+    // and the Earlier-empty placeholder both reuse `.v1-thread` for badge
+    // layout but don't include the dot. Filter on it to scope to actual
+    // ThreadRow entries.
+    const rows = Array.from(container.querySelectorAll(".v1-thread")).filter(
+      (r) => r.querySelector(":scope > .v1-dot") !== null,
+    );
     const titles = rows
       .map(
         (r) =>

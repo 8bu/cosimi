@@ -424,3 +424,25 @@ anywhere in `CLAUDE.md` without re-reading the source.
   and skips `finishBot('settled')` when it's already `'error'`. Any
   future event-reducer arm that calls `finishBot('settled')` must
   follow the same guard.
+
+- **DO NOT pre-implement portf components from spec text — port the
+  prebuilt JSX from `docs/superpowers/artifacts/simlm2/project/`.** The
+  design artifact IS the source of truth: `primitives.jsx`
+  (`UserBubble` / `AssistantBubble` / `InputRow` / `Chips` / `Wordmark`
+  / `Anno`), `variations-1-2.jsx` (`V1Sidebar` / `V1Conversation` chat
+  layout — Today/Earlier grouping, footer avatar, header title +
+  status, chips-above-composer), `variations-3-4.jsx` (artifact pane
+  shapes for Phase G), `styles.css` (verbatim-ported to
+  `apps/portf/src/styles/portfolio.css`). Each component there is a
+  complete JSX shape with the exact class-name structure that
+  portfolio.css styles. The Phase E rev (2026-05-27 evening) had to
+  redo MessageBubble, ChatComposer, Sidebar, ChatPane because the
+  initial implementation invented its own shapes from spec text
+  instead of porting these. The contract for any future portf phase:
+  open the relevant artifact file, copy the JSX, then plug the data
+  layer (props, store hooks, navigate, etc.) into the same nodes —
+  DO NOT redesign the markup, DO NOT rename the classes, DO NOT
+  rewrite from imagination. Only logic is freshly written; markup is
+  ported. If the artifact and the spec disagree on shape, the
+  artifact wins; if the artifact is missing, STOP and ask before
+  inventing.

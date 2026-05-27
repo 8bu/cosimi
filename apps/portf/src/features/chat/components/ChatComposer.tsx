@@ -6,13 +6,15 @@ interface ChatComposerProps {
 }
 
 /**
- * Single-line composer for an active chat thread. Mirrors HomePane's
- * Composer wrapper (`.input-row`) but submits via `messagesStore.send`
- * instead of navigating. No /teach prefix detection (out of scope per
- * spec §2).
+ * Single-line composer for an active chat thread. Shape ported from the
+ * design source's `InputRow` (`docs/superpowers/artifacts/simlm2/project/
+ * primitives.jsx`): `.input-row` wrapper holding a transparent `<input
+ * class="input-row-mono">` (mono font, ink-4 placeholder), a `.kbd ⏎`
+ * affordance, and a circular `.send-btn` in coral.
  *
- * Auto-focuses on `threadId` change so switching threads always lands
- * the cursor in the input. Send button disabled until input has content.
+ * Submits via `messagesStore.send`. No /teach prefix detection (out of
+ * scope per spec §2). Auto-focuses on `threadId` change so switching
+ * threads always lands the cursor in the input.
  */
 export function ChatComposer({ threadId }: ChatComposerProps) {
   const [value, setValue] = useState("");
@@ -37,12 +39,17 @@ export function ChatComposer({ threadId }: ChatComposerProps) {
     >
       <input
         ref={inputRef}
+        className="input-row-mono"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="ask anything…"
+        placeholder="Ask a follow-up…"
+        aria-label="Ask a follow-up"
       />
-      <button type="submit" disabled={!trimmed}>
-        send
+      <span className="kbd" aria-hidden="true">
+        ⏎
+      </span>
+      <button type="submit" className="send-btn" disabled={!trimmed} aria-label="Send">
+        ↑
       </button>
     </form>
   );
