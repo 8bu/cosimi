@@ -1,12 +1,12 @@
 import type { MatchTier } from "@simlm/types";
 
 /**
- * UI message shapes — bridge between API event types and the messages
+ * UI message shapes - bridge between API event types and the messages
  * store's discriminated union. ChatStreamEvent (`@simlm/types`) is the
  * WIRE shape; ChatMessage is the SETTLED-STATE shape rendered by
  * `<MessageBubble>`.
  *
- * No `vote` field, no `teach` variant — Phase E is portfolio Q&A only;
+ * No `vote` field, no `teach` variant - Phase E is portfolio Q&A only;
  * no thumbs up/down, no /teach surface (per spec §2 non-goals).
  *
  * `meta` fields can be null on the wire when EXPOSE_MATCH_INSIGHTS=false

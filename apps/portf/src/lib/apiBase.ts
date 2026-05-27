@@ -1,5 +1,5 @@
 /**
- * Portf API base. Function (not const) — matches the future runtime-config
+ * Portf API base. Function (not const) - matches the future runtime-config
  * switcher contract used by apps/admin (CLAUDE.md). Phase E does not ship
  * a switcher, but the function shape leaves the door open without
  * snapshotting at module init.

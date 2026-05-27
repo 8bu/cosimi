@@ -18,7 +18,7 @@ vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => navigateMock,
 }));
 
-describe("Composer — submit", () => {
+describe("Composer - submit", () => {
   beforeEach(() => {
     vi.resetModules();
     localStorage.clear();
@@ -86,7 +86,7 @@ describe("Composer — submit", () => {
   });
 });
 
-describe("Composer — chip animation", () => {
+describe("Composer - chip animation", () => {
   beforeEach(() => {
     localStorage.clear();
     navigateMock.mockReset();

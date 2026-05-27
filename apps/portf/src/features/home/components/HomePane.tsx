@@ -15,7 +15,7 @@ import { SUGGESTION_CHIPS } from "../data";
  * (Composer + Chips + hint line) inside a `flex: 1` middle.
  *
  * Wordmark uses default props (size=14, sub="Senior Web Developer")
- * to match the design's V2 placement — distinct from the sidebar's
+ * to match the design's V2 placement - distinct from the sidebar's
  * compact `sub={null} size={13}` call. Layout is inline-styled rather
  * than adding classes to portfolio.css (which is locked for verbatim
  * preservation).
@@ -32,7 +32,7 @@ export function HomePane() {
         padding: "22px 28px",
       }}
     >
-      {/* Top bar — Wordmark left, "open for roles" status pill right. */}
+      {/* Top bar - Wordmark left, "open for roles" status pill right. */}
       <div
         style={{
           display: "flex",
@@ -47,7 +47,7 @@ export function HomePane() {
             alignItems: "center",
             gap: 6,
             fontFamily: "var(--font-mono)",
-            fontSize: 10,
+            fontSize: 12,
             letterSpacing: "0.16em",
             textTransform: "uppercase",
             color: "var(--ink-3)",
@@ -66,7 +66,7 @@ export function HomePane() {
         </div>
       </div>
 
-      {/* Middle — centered headline + composer column. */}
+      {/* Middle - centered headline + composer column. */}
       <div
         style={{
           flex: 1,
@@ -97,7 +97,7 @@ export function HomePane() {
               marginTop: 20,
               textAlign: "center",
               fontFamily: "var(--font-mono)",
-              fontSize: 9,
+              fontSize: 11,
               letterSpacing: "0.16em",
               textTransform: "uppercase",
               color: "var(--ink-4)",

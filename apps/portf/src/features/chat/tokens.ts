@@ -12,17 +12,17 @@ export const PERSIST_DEBOUNCE_MS = 200;
 /**
  * No-match fallback pool. The messages-store picks a random entry per
  * `no_match` event so back-to-back misses don't repeat verbatim. Tone is
- * "rephrase / different angle" — portfolio surface is read-only, NO
+ * "rephrase / different angle" - portfolio surface is read-only, NO
  * `/teach` (so no "teach me?" variants like apps/web's pool).
  *
  * Phase H replaces with i18n dict lookup (vi + en pools, same shape).
  */
 export const FALLBACK_EN_POOL = [
-  "hmm, that's outside what I'm dialed in on — try rephrasing?",
-  "not sure I follow — mind asking it another way?",
-  "blank on that one — could you be more specific?",
-  "I don't have a story for that — try a different angle?",
-  "that's outside the corpus — rephrase and I'll take another shot?",
+  "hmm, that's outside what I'm dialed in on - try rephrasing?",
+  "not sure I follow - mind asking it another way?",
+  "blank on that one - could you be more specific?",
+  "I don't have a story for that - try a different angle?",
+  "that's outside the corpus - rephrase and I'll take another shot?",
 ] as const;
 
 /**

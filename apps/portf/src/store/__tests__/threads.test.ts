@@ -52,7 +52,7 @@ describe("threads store", () => {
   });
 });
 
-describe("threads store v2 — Phase E expansion", () => {
+describe("threads store v2 - Phase E expansion", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.resetModules();
@@ -120,7 +120,7 @@ describe("threads store v2 — Phase E expansion", () => {
     useThreadsStore.getState().remove(id);
     // Wait for the dynamic import inside remove() to settle. The import()
     // promise resolves after Vite's module-resolution microtasks plus the
-    // .then() continuation — a small setTimeout(0) is more reliable than
+    // .then() continuation - a small setTimeout(0) is more reliable than
     // a fixed number of Promise.resolve() ticks.
     await new Promise((r) => setTimeout(r, 0));
     expect(useSessionsStore.getState().get(id)).toBeUndefined();

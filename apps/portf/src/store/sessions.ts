@@ -21,7 +21,7 @@ interface SessionsState {
  * mint them client-side. Thread ids are client-minted (different concept).
  *
  * Persisted under `portf.sessions` via zustand `persist`. Token-write cost
- * is one entry per first-POST per thread — negligible, no debounce.
+ * is one entry per first-POST per thread - negligible, no debounce.
  */
 export const useSessionsStore = create<SessionsState>()(
   persist(

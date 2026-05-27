@@ -13,7 +13,7 @@ import "@/styles/globals.css";
 useMessagesStore.getState().hydrate();
 
 // Flush in-flight aborts (and any pending persist) on tab close. Use
-// `beforeunload` (not `unload`) — Safari and modern Chrome treat `unload`
+// `beforeunload` (not `unload`) - Safari and modern Chrome treat `unload`
 // as best-effort only.
 window.addEventListener("beforeunload", abortAllInflight);
 

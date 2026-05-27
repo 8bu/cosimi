@@ -11,7 +11,7 @@ interface ChatPaneProps {
   threadId: string;
 }
 
-// Module-level empty array — referenced by the zustand selector so an
+// Module-level empty array - referenced by the zustand selector so an
 // empty thread doesn't allocate a new array per render and trigger
 // shallow-eq false alarms.
 const EMPTY: readonly ChatMessage[] = Object.freeze([]);

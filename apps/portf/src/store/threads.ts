@@ -38,7 +38,7 @@ interface ThreadsState {
   touch: (id: string) => void;
   /**
    * Write `title` only if the thread currently has no title. Called from
-   * messagesStore.send() on the first user message of a thread —
+   * messagesStore.send() on the first user message of a thread -
    * subsequent messages do not overwrite a visitor-renamed title.
    */
   setTitleIfEmpty: (id: string, title: string) => void;
@@ -47,7 +47,7 @@ interface ThreadsState {
 /**
  * Portfolio thread index.
  *
- * Stores metadata only — `{ id, ts, title? }`. Messages live in the
+ * Stores metadata only - `{ id, ts, title? }`. Messages live in the
  * sibling `messages` store; sessions in `sessions`. `remove()` is the
  * cross-store coordinator.
  *
@@ -76,10 +76,10 @@ export const useThreadsStore = create<ThreadsState>()(
         })),
       remove: (id) => {
         set((s) => ({ threads: s.threads.filter((t) => t.id !== id) }));
-        // Sessions cleanup is synchronous — no circular dep between
+        // Sessions cleanup is synchronous - no circular dep between
         // sessions.ts and threads.ts.
         useSessionsStore.getState().clear(id);
-        // Messages cleanup via dynamic import — keeps the messages store
+        // Messages cleanup via dynamic import - keeps the messages store
         // out of the threads-store module init graph (avoids circular
         // dep risk and keeps threads.ts importable from tests that don't
         // need messages).
@@ -100,7 +100,7 @@ export const useThreadsStore = create<ThreadsState>()(
       name: "portf.threads",
       version: 2,
       migrate: (persisted, version) => {
-        // v1 had `{ threads: { id, ts }[] }`. v2 adds optional `title` —
+        // v1 had `{ threads: { id, ts }[] }`. v2 adds optional `title` -
         // pre-existing rows just lack it, so a passthrough is correct.
         if (version < 2) return persisted as ThreadsState;
         return persisted as ThreadsState;

@@ -1,7 +1,7 @@
 /**
  * V2 spotlight tuning constants.
  *
- * Not env-driven — these tune off real visitor input, not deploy config.
+ * Not env-driven - these tune off real visitor input, not deploy config.
  * Adjust here when the typing animation feels too fast/slow.
  */
 

@@ -4,7 +4,7 @@ type WordmarkProps = {
 };
 
 /**
- * 8BU wordmark — single variant.
+ * 8BU wordmark - single variant.
  *
  * Spec §7 fixes the logo to `blockcursor` (Silkscreen "8BU" badge + blinking
  * caret) for v1. The original design's other four logo variants are
@@ -29,7 +29,7 @@ export function Wordmark({ size = 14, sub = "Senior Web Developer" }: WordmarkPr
       <span className="wm-text" style={{ fontSize: size }}>
         Long NGUYỄN
       </span>
-      {sub ? <span className="wm-sub">— {sub}</span> : null}
+      {sub ? <span className="wm-sub">- {sub}</span> : null}
     </span>
   );
 }

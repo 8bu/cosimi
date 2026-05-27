@@ -11,7 +11,7 @@ import type { ChatStreamEvent } from "@simlm/types";
  *   data: [DONE]\n\n
  *
  * The `[DONE]` terminator is the OpenAI/Anthropic convention and is
- * written from a `finally` block on the server — it fires even when the
+ * written from a `finally` block on the server - it fires even when the
  * generator throws. The structured `{ type: 'done' }` event is for
  * callers that want a typed terminator inside a `switch (event.type)`
  * block; the wire-level terminator is always `[DONE]`. We treat `[DONE]`
@@ -19,7 +19,7 @@ import type { ChatStreamEvent } from "@simlm/types";
  * to JSON-parse it.
  *
  * Hand-rolled rather than depending on EventSource (GET-only) or a
- * library — the protocol is ~30 LOC and our discriminated-union wire
+ * library - the protocol is ~30 LOC and our discriminated-union wire
  * shape is custom anyway. AbortSignal cleanup is the caller's job (pass
  * `signal` to fetch); the `finally` block here releases the reader lock
  * so an aborted stream doesn't leave the response body in a locked state.
@@ -48,7 +48,7 @@ export async function* parseSseStream(
       }
       if (done) break;
     }
-    // Tail flush — a well-behaved server always ends with [DONE]\n\n so
+    // Tail flush - a well-behaved server always ends with [DONE]\n\n so
     // we hit `return` above and never get here. But if the connection
     // closed mid-frame (network error, server crash) the trailing bytes
     // could be a complete event missing its \n\n terminator. Best-effort
@@ -68,7 +68,7 @@ function parseSseChunk(raw: string): ChatStreamEvent | "done" | null {
   let data = "";
   for (const line of raw.split("\n")) {
     if (line.startsWith("data:")) data += line.slice(5).trim();
-    // `event:` and `:`-comment lines are ignored — the server uses
+    // `event:` and `:`-comment lines are ignored - the server uses
     // pure-data framing.
   }
   if (!data) return null;
@@ -76,7 +76,7 @@ function parseSseChunk(raw: string): ChatStreamEvent | "done" | null {
   try {
     return JSON.parse(data) as ChatStreamEvent;
   } catch {
-    // Malformed JSON — drop the frame rather than poison the stream.
+    // Malformed JSON - drop the frame rather than poison the stream.
     return null;
   }
 }

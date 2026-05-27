@@ -11,7 +11,7 @@ interface MessageListProps {
  * identity change.
  *
  * The smooth-scroll `behavior: 'smooth'` is clamped to instant globally by
- * the reduced-motion `@media` rule in `portfolio.css` — no per-component
+ * the reduced-motion `@media` rule in `portfolio.css` - no per-component
  * override needed.
  */
 export function MessageList({ messages }: MessageListProps) {

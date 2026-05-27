@@ -29,13 +29,13 @@ export function Sidebar() {
         />
       )}
       <aside className={`v1-sidebar${isOpen ? " is-open" : ""}`}>
-        {/* Wordmark doubles as the home link — standard chat-app pattern
+        {/* Wordmark doubles as the home link - standard chat-app pattern
          * (Slack, Linear, Claude all do this). Closing the mobile drawer
          * via the ui store keeps the drawer state consistent after the
          * route change.
          *
          * Design source passes `sub={null} size={13}` (V1Sidebar in
-         * variations-1-2.jsx) — the subtitle "— Senior Web Developer"
+         * variations-1-2.jsx) - the subtitle "- Senior Web Developer"
          * wraps the 240px sidebar awkwardly when present. */}
         <Link
           to="/"

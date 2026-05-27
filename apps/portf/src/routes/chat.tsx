@@ -7,12 +7,12 @@ import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
  * /chat/<freshUuid>. The redirect uses `replace: true` so the bare URL
  * does not leave a history entry the visitor would back into.
  *
- * The minted UUID is intentionally NOT added to the threads store — bare
+ * The minted UUID is intentionally NOT added to the threads store - bare
  * /chat is a deep-link convenience and we don't know if the visitor will
  * actually send a message. Phase E will revisit (either auto-create on
  * first message or have this route call threads.create() upfront).
  *
- * `beforeLoad` throwing `redirect()` is the TanStack-canonical pattern —
+ * `beforeLoad` throwing `redirect()` is the TanStack-canonical pattern -
  * `redirect` is a thrown sentinel, NOT a returned value. Returning it
  * would type-check but silently not redirect at runtime.
  */

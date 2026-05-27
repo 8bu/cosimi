@@ -7,7 +7,7 @@ interface UiState {
 }
 
 /**
- * Ephemeral UI state for `apps/portf`. NO `persist` middleware — the mobile
+ * Ephemeral UI state for `apps/portf`. NO `persist` middleware - the mobile
  * sidebar drawer always starts closed on a fresh load. If a future state
  * needs to survive reload, move it to a different store; do NOT add
  * `persist` here.

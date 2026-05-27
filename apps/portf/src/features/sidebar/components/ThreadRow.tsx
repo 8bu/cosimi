@@ -17,7 +17,7 @@ interface ThreadRowProps {
  *   - Click × button         → window.confirm → threads.remove (which
  *                              cascades into messages + sessions). If
  *                              the removed row was active, the cascade
- *                              navigates away — handled by the parent.
+ *                              navigates away - handled by the parent.
  *
  * The × button stops propagation BEFORE confirm so clicking it never
  * triggers the row's navigation click.

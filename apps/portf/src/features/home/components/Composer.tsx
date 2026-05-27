@@ -18,7 +18,7 @@ function sleep(ms: number) {
  *
  * Real <input> inside the design's `.input-row` wrapper. The decorative
  * `.input-row-cursor` blink CSS from the design source is intentionally
- * unused — the real text caret takes its place.
+ * unused - the real text caret takes its place.
  *
  * The chip animation uses a synchronous-cancel pattern via `cancelRef`:
  * React `useState` updates are async and would let one more tick slip

@@ -17,7 +17,7 @@ export function SpotlightHeadline() {
       </h1>
       <p className="v2-sub">
         Senior Web Developer · product-minded · 10+ years shipping production web apps. Everything
-        on this site is a chat — ask anything, or pick a prompt below.
+        on this site is a chat - ask anything, or pick a prompt below.
       </p>
     </>
   );

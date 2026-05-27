@@ -3,7 +3,7 @@ import { useThreadsStore } from "@/store/threads";
 import { useUiStore } from "@/store/ui";
 
 /**
- * Sidebar "+ NEW CHAT" CTA. Mints a fresh thread (eager registration —
+ * Sidebar "+ NEW CHAT" CTA. Mints a fresh thread (eager registration -
  * operator pick) and navigates. Closes the mobile drawer if open.
  *
  * Eager registration here intentionally diverges from the bare-/chat

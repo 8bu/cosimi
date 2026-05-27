@@ -38,7 +38,7 @@ function flushPersistNow(): void {
     const blob = useMessagesStore.getState().byThread;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(blob));
   } catch {
-    // Quota exceeded / serialize failure — silent. The in-memory state is
+    // Quota exceeded / serialize failure - silent. The in-memory state is
     // authoritative; reload degrades to "transcript lost" gracefully.
   }
 }
@@ -184,7 +184,7 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
       const parsed = JSON.parse(raw) as Record<string, ChatMessage[]>;
       set({ byThread: parsed });
     } catch {
-      // Parse error — silently reset (in-memory empty state already correct).
+      // Parse error - silently reset (in-memory empty state already correct).
     }
   },
 }));
@@ -211,7 +211,7 @@ function applyEvent(
       // Pick a random fallback so back-to-back misses don't repeat
       // verbatim, mark the bubble as no_match with empty text, then
       // kick off a self-running char-by-char fake stream. Done is
-      // fire-and-forget — the for-await loop in `send` continues and
+      // fire-and-forget - the for-await loop in `send` continues and
       // may settle the bot bubble before the fake stream finishes;
       // that's fine, the timeout chain keeps appending chars and the
       // visible state is "settled bubble with growing text" which

@@ -19,7 +19,7 @@
   height: 100%;
 }
 
-/* ChatPane shape — header / scrollable messages / footer.
+/* ChatPane shape - header / scrollable messages / footer.
  * Ported from the design source's `V1Conversation`
  * (docs/superpowers/artifacts/simlm2/project/variations-1-2.jsx). Each
  * direct child is capped to a 760px column and centered so the
@@ -40,7 +40,7 @@
 }
 
 /* Messages wrapper: scrollable middle. min-height:0 lets flex children
- * actually shrink — without it the inner scroll never engages. */
+ * actually shrink - without it the inner scroll never engages. */
 .chat-pane__messages {
   flex: 1;
   min-height: 0;
@@ -184,7 +184,7 @@ body,
 /* ─── HomePane subtitle width override ─────────────────────────────────
  * portfolio.css ships `.v2-sub` with `max-width: 400px` which forces the
  * spotlight subtitle ("Senior Web Developer · product-minded · 10+ years
- * shipping production web apps. Everything on this site is a chat — ask
+ * shipping production web apps. Everything on this site is a chat - ask
  * anything, or pick a prompt below.") into 3 lines. Widen to 620px so it
  * sits on 2 lines instead. portfolio.css is verbatim-locked; override
  * here. */
@@ -196,7 +196,7 @@ body,
  * Browsers paint a default blue focus ring on the bare `<input>` inside
  * `.input-row`. Replace with a subtle border-color shift on the parent
  * `.input-row` via :focus-within, and kill the input's native outline.
- * Only scope to the chat-pane composer — HomePane's chip-animation
+ * Only scope to the chat-pane composer - HomePane's chip-animation
  * Composer is decorative and uses its own static styling. */
 .chat-pane .input-row {
   transition: border-color 120ms ease;
@@ -209,6 +209,50 @@ body,
   border: none;
   background: transparent;
   width: 100%;
+}
+
+/* ─── Readability bumps ────────────────────────────────────────────────
+ * portfolio.css ships labels + body text at 8-13px which is uncomfortable
+ * on a 1080p+ desktop. Bump the readable surfaces by ~2px across the
+ * board so the conversation, sidebar rows, and chrome labels are usable
+ * at a normal reading distance. portfolio.css is verbatim-locked; override
+ * here. The decorative sizes (mob-notch dots, wm sub, headline scales)
+ * stay at design values - they're chrome, not content. */
+.bubble {
+  font-size: 15px;
+}
+.bubble-sender {
+  font-size: 11px;
+}
+.bubble-sender-assistant {
+  font-size: 10px;
+}
+.empty-chat {
+  font-size: 14px;
+}
+.v1-thread {
+  font-size: 13px;
+}
+.v1-thread-meta {
+  font-size: 11px;
+}
+.v1-section-label {
+  font-size: 11px;
+}
+.chip {
+  font-size: 13px;
+}
+.chip-mark {
+  font-size: 14px;
+}
+.input-row-mono {
+  font-size: 14px;
+}
+.kbd {
+  font-size: 11px;
+}
+.v2-sub {
+  font-size: 15px;
 }
 
 /* ─── Mobile-only chrome (hidden on desktop) ───────────────────────── */

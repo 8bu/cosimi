@@ -4,7 +4,7 @@ import { ChatPane } from "@/features/chat/components/ChatPane";
 import { useMessagesStore } from "@/store/messages";
 
 /**
- * /chat/$threadId — real ChatPane mount (replaces Phase D's stub).
+ * /chat/$threadId - real ChatPane mount (replaces Phase D's stub).
  *
  * If `location.state.initialPrompt` is present (HomePane Composer
  * submits with that on navigation), enqueue it as the thread's first
