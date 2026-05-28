@@ -1,4 +1,4 @@
-import { useRef, type ReactNode, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { type ReactNode, type KeyboardEvent as ReactKeyboardEvent } from "react";
 
 interface ArtifactPanelProps {
   kicker: string;
@@ -19,8 +19,6 @@ interface ArtifactPanelProps {
  * unless focus is inside an input/textarea/contentEditable.
  */
 export function ArtifactPanel({ kicker, title, meta, action, onClose, children }: ArtifactPanelProps) {
-  const ref = useRef<HTMLElement>(null);
-
   function onKeyDown(e: ReactKeyboardEvent<HTMLElement>) {
     if (e.key !== "Escape") return;
     const el = document.activeElement as HTMLElement | null;
@@ -32,9 +30,15 @@ export function ArtifactPanel({ kicker, title, meta, action, onClose, children }
     onClose();
   }
 
+  function handleKey(e: ReactKeyboardEvent<HTMLSpanElement>) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onClose();
+    }
+  }
+
   return (
     <section
-      ref={ref}
       className="artifact-pane"
       tabIndex={-1}
       onKeyDown={onKeyDown}
@@ -42,7 +46,7 @@ export function ArtifactPanel({ kicker, title, meta, action, onClose, children }
     >
       <div className="artifact-chrome">
         <div className="artifact-chrome-top">
-          <span className="artifact-back" onClick={onClose} role="button" tabIndex={0}>
+          <span className="artifact-back" onClick={onClose} onKeyDown={handleKey} role="button" tabIndex={0}>
             ← BACK
           </span>
           <span className="artifact-kicker">{kicker}</span>
@@ -50,6 +54,7 @@ export function ArtifactPanel({ kicker, title, meta, action, onClose, children }
           <span
             className="artifact-close"
             onClick={onClose}
+            onKeyDown={handleKey}
             role="button"
             tabIndex={0}
             title="close artifact"

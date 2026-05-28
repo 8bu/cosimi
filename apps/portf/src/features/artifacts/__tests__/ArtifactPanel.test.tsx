@@ -103,4 +103,66 @@ describe("<ArtifactPanel>", () => {
     );
     expect(container.querySelector(".artifact-panel-meta")).toBeNull();
   });
+
+  it("does not render .artifact-chrome-actions when action prop omitted", async () => {
+    const ArtifactPanel = await load();
+    const { container } = render(
+      <ArtifactPanel kicker="k" title="t" onClose={() => {}}>
+        <div />
+      </ArtifactPanel>,
+    );
+    expect(container.querySelector(".artifact-chrome-actions")).toBeNull();
+  });
+
+  it("× span activates on Enter key", async () => {
+    const ArtifactPanel = await load();
+    const onClose = vi.fn();
+    const { container } = render(
+      <ArtifactPanel kicker="k" title="t" onClose={onClose}>
+        <div />
+      </ArtifactPanel>,
+    );
+    const close = container.querySelector(".artifact-close") as HTMLElement;
+    fireEvent.keyDown(close, { key: "Enter" });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("× span activates on Space key", async () => {
+    const ArtifactPanel = await load();
+    const onClose = vi.fn();
+    const { container } = render(
+      <ArtifactPanel kicker="k" title="t" onClose={onClose}>
+        <div />
+      </ArtifactPanel>,
+    );
+    const close = container.querySelector(".artifact-close") as HTMLElement;
+    fireEvent.keyDown(close, { key: " " });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("← BACK span activates on Enter key", async () => {
+    const ArtifactPanel = await load();
+    const onClose = vi.fn();
+    const { container } = render(
+      <ArtifactPanel kicker="k" title="t" onClose={onClose}>
+        <div />
+      </ArtifactPanel>,
+    );
+    const back = container.querySelector(".artifact-back") as HTMLElement;
+    fireEvent.keyDown(back, { key: "Enter" });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("← BACK span activates on Space key", async () => {
+    const ArtifactPanel = await load();
+    const onClose = vi.fn();
+    const { container } = render(
+      <ArtifactPanel kicker="k" title="t" onClose={onClose}>
+        <div />
+      </ArtifactPanel>,
+    );
+    const back = container.querySelector(".artifact-back") as HTMLElement;
+    fireEvent.keyDown(back, { key: " " });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
 });
