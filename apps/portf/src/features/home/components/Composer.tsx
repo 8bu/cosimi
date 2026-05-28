@@ -48,6 +48,7 @@ export const Composer = forwardRef<ComposerHandle>(function Composer(_, ref) {
       navigate({
         to: "/chat/$threadId",
         params: { threadId: id },
+        search: { artifact: undefined },
         state: { initialPrompt: trimmed },
       });
     },

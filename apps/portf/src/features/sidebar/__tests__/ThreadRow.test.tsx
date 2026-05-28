@@ -44,6 +44,7 @@ describe("ThreadRow", () => {
     expect(navigateMock).toHaveBeenCalledWith({
       to: "/chat/$threadId",
       params: { threadId: "t1" },
+      search: { artifact: undefined },
     });
   });
 

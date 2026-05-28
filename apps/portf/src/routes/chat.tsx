@@ -22,6 +22,7 @@ export const Route = createFileRoute("/chat")({
       throw redirect({
         to: "/chat/$threadId",
         params: { threadId: crypto.randomUUID() },
+        search: { artifact: undefined },
         replace: true,
       });
     }

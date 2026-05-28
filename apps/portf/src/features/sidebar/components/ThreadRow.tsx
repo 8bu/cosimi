@@ -36,7 +36,7 @@ export function ThreadRow({ entry }: ThreadRowProps) {
       className={`v1-thread${isActive ? " active" : ""}`}
       onClick={() => {
         if (isEditing) return;
-        void navigate({ to: "/chat/$threadId", params: { threadId: entry.id } });
+        void navigate({ to: "/chat/$threadId", params: { threadId: entry.id }, search: { artifact: undefined } });
       }}
     >
       <span className="v1-dot" />

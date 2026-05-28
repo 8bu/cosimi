@@ -36,6 +36,7 @@ describe("NewChatButton", () => {
     expect(navigateMock).toHaveBeenCalledWith({
       to: "/chat/$threadId",
       params: { threadId: "new-thread-id" },
+      search: { artifact: undefined },
     });
   });
 });

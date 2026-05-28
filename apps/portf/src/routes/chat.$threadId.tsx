@@ -16,6 +16,9 @@ import { useMessagesStore } from "@/store/messages";
  * synchronously in the effect body.
  */
 export const Route = createFileRoute("/chat/$threadId")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    artifact: typeof search.artifact === "string" ? search.artifact : undefined,
+  }),
   component: function RouteComponent() {
     const { threadId } = Route.useParams();
     const navigate = Route.useNavigate();
@@ -25,7 +28,7 @@ export const Route = createFileRoute("/chat/$threadId")({
 
 interface ChatPaneRouteProps {
   params: { threadId: string };
-  navigate: (opts: { to: "."; replace: true; state: object }) => void;
+  navigate: (opts: { to: "."; replace: true; search: true; state: object }) => void;
 }
 
 /**
@@ -43,7 +46,7 @@ export function ChatPaneRoute({ params, navigate }: ChatPaneRouteProps) {
     if (!initialPrompt || consumedRef.current) return;
     consumedRef.current = true;
     void useMessagesStore.getState().send(threadId, initialPrompt);
-    void navigate({ to: ".", replace: true, state: {} });
+    void navigate({ to: ".", replace: true, search: true, state: {} });
   }, [threadId, initialPrompt, navigate]);
 
   return <ChatPane threadId={threadId} />;
