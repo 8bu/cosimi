@@ -1,18 +1,23 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 
-const { sendMock } = vi.hoisted(() => ({ sendMock: vi.fn() }));
+const { sendMock, state } = vi.hoisted(() => ({
+  sendMock: vi.fn(),
+  state: { streamingByThread: {} as Record<string, true> },
+}));
 
 vi.mock("@/store/messages", () => ({
   useMessagesStore: Object.assign(
-    (sel: (s: { send: typeof sendMock }) => unknown) => sel({ send: sendMock }),
-    { getState: () => ({ send: sendMock }) },
+    (sel: (s: { send: typeof sendMock; streamingByThread: Record<string, true> }) => unknown) =>
+      sel({ send: sendMock, streamingByThread: state.streamingByThread }),
+    { getState: () => ({ send: sendMock, streamingByThread: state.streamingByThread }) },
   ),
 }));
 
 describe("ChatComposer", () => {
   beforeEach(() => {
     sendMock.mockReset();
+    state.streamingByThread = {};
   });
 
   it("autofocuses the input on mount", async () => {
@@ -43,5 +48,27 @@ describe("ChatComposer", () => {
     render(<ChatComposer threadId="t1" />);
     const btn = screen.getByRole("button", { name: /send/i }) as HTMLButtonElement;
     expect(btn.disabled).toBe(true);
+  });
+
+  it("disables input + send button while the thread is streaming", async () => {
+    state.streamingByThread = { t1: true };
+    const { ChatComposer } = await import("@/features/chat/components/ChatComposer");
+    render(<ChatComposer threadId="t1" />);
+    const input = screen.getByRole("textbox") as HTMLInputElement;
+    const btn = screen.getByRole("button", { name: /send/i }) as HTMLButtonElement;
+    expect(input.disabled).toBe(true);
+    expect(btn.disabled).toBe(true);
+  });
+
+  it("does not submit while streaming even if value is non-empty", async () => {
+    state.streamingByThread = { t1: true };
+    const { ChatComposer } = await import("@/features/chat/components/ChatComposer");
+    render(<ChatComposer threadId="t1" />);
+    const input = screen.getByRole("textbox") as HTMLInputElement;
+    // input is disabled; change events still mutate state through fireEvent
+    // but the form submit handler must reject due to the streaming guard.
+    fireEvent.change(input, { target: { value: "ping" } });
+    fireEvent.submit(input.closest("form")!);
+    expect(sendMock).not.toHaveBeenCalled();
   });
 });

@@ -17,6 +17,14 @@ import { useThreadsStore } from "@/store/threads";
 
 interface MessagesState {
   byThread: Record<string, ChatMessage[]>;
+  /**
+   * Per-thread streaming flag. Mirrors `apps/web`'s single `isStreaming`
+   * boolean but partitioned by thread (portf is multi-thread). Sparse:
+   * absent key = not streaming, presence (value `true`) = streaming.
+   * Composer reads this to disable input + send button + re-focus on
+   * the streaming -> idle transition.
+   */
+  streamingByThread: Record<string, true>;
   send: (threadId: string, rawText: string) => Promise<void>;
   appendBotToken: (threadId: string, id: string, token: string) => void;
   finishBot: (threadId: string, id: string, status: "settled" | "error") => void;
@@ -66,8 +74,13 @@ function schedulePersist(): void {
  */
 export const useMessagesStore = create<MessagesState>((set, get) => ({
   byThread: {},
+  streamingByThread: {},
 
   async send(threadId, rawText) {
+    // Re-entrancy guard: if this thread is already streaming a reply,
+    // drop the new send. Mirrors apps/web/src/features/chat/store.ts:50.
+    if (get().streamingByThread[threadId]) return;
+
     const trimmed = rawText.trim();
     if (!trimmed) return;
 
@@ -93,16 +106,19 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
       createdAt: Date.now(),
     };
 
-    set((s) => {
-      const prior = s.byThread[threadId] ?? [];
-      return { byThread: { ...s.byThread, [threadId]: [...prior, userMsg, botMsg] } };
-    });
+    set((s) => ({
+      byThread: { ...s.byThread, [threadId]: [...(s.byThread[threadId] ?? []), userMsg, botMsg] },
+      streamingByThread: { ...s.streamingByThread, [threadId]: true },
+    }));
 
     const ac = getOrCreateAbort(threadId);
 
     try {
       for await (const ev of streamChatPortf(threadId, trimmed, ac.signal)) {
-        applyEvent(get, threadId, botMsg.id, ev);
+        // applyEvent is async so the no_match arm can AWAIT the fake-stream
+        // before the outer for-await advances. This keeps streamingByThread
+        // true for the entire visible animation (matched + no-match alike).
+        await applyEvent(get, threadId, botMsg.id, ev);
       }
     } catch (err) {
       if ((err as Error).name !== "AbortError") {
@@ -118,6 +134,11 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
       if (current?.kind === "bot" && current.status === "streaming") {
         get().finishBot(threadId, botMsg.id, "settled");
       }
+      set((s) => {
+        const next = { ...s.streamingByThread };
+        delete next[threadId];
+        return { streamingByThread: next };
+      });
       clearAbort(threadId);
       flushPersistNow();
     }
@@ -231,12 +252,12 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
   },
 }));
 
-function applyEvent(
+async function applyEvent(
   get: () => MessagesState,
   threadId: string,
   botId: string,
   ev: ChatStreamEvent,
-): void {
+): Promise<void> {
   switch (ev.type) {
     case "session":
       // Adoption happens inside streamChatPortf; no UI mutation needed.
@@ -251,17 +272,15 @@ function applyEvent(
       break;
     case "no_match": {
       // Pick a random fallback so back-to-back misses don't repeat
-      // verbatim, mark the bubble as no_match with empty text, then
-      // kick off a self-running char-by-char fake stream. Done is
-      // fire-and-forget - the for-await loop in `send` continues and
-      // may settle the bot bubble before the fake stream finishes;
-      // that's fine, the timeout chain keeps appending chars and the
-      // visible state is "settled bubble with growing text" which
-      // reads as natural streaming completion.
+      // verbatim. Mark the bubble as no_match (empty text), then AWAIT
+      // the char-by-char fake stream inline. Awaiting keeps the outer
+      // for-await in send() paused, which keeps streamingByThread true
+      // until the visible animation completes. Mirrors apps/web's
+      // `await streamFallback(...)` pattern.
       const idx = Math.floor(Math.random() * FALLBACK_EN_POOL.length);
       const fallback = FALLBACK_EN_POOL[idx]!;
       get().applyNoMatch(threadId, botId, "");
-      void fakeStreamFallback(get, threadId, botId, fallback);
+      await fakeStreamFallback(get, threadId, botId, fallback);
       break;
     }
     case "token":

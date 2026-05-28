@@ -2,7 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 vi.mock("@/store/messages", () => {
-  const state: { byThread: Record<string, unknown[]> } = { byThread: {} };
+  const state: {
+    byThread: Record<string, unknown[]>;
+    streamingByThread: Record<string, true>;
+  } = { byThread: {}, streamingByThread: {} };
   const useStore = (sel: (s: typeof state) => unknown) => sel(state);
   useStore.getState = () => state;
   useStore.setState = (next: Partial<typeof state>) => Object.assign(state, next);

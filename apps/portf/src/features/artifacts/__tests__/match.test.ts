@@ -33,26 +33,53 @@ describe("matchArtifact", () => {
     ).toBeNull();
   });
 
-  it("returns null when tier is trigram", async () => {
+  it("returns descriptor on trigram-tier match (loosened gate)", async () => {
     const { matchArtifact } = await import("@/features/artifacts/match");
+    const d = descriptor();
     expect(
       matchArtifact({
         input: "fixture",
         tier: "trigram",
         primaryLocale: "en",
-        catalog: [descriptor()],
+        catalog: [d],
       }),
-    ).toBeNull();
+    ).toBe(d);
   });
 
-  it("returns null when tier is session_teach", async () => {
+  it("returns descriptor on session_teach-tier match (any non-null tier)", async () => {
     const { matchArtifact } = await import("@/features/artifacts/match");
+    const d = descriptor();
     expect(
       matchArtifact({
         input: "fixture",
         tier: "session_teach",
         primaryLocale: "en",
-        catalog: [descriptor()],
+        catalog: [d],
+      }),
+    ).toBe(d);
+  });
+
+  it("reverse-matches a typo/prefix shorter than the pattern (len >= 4)", async () => {
+    const { matchArtifact } = await import("@/features/artifacts/match");
+    const d = descriptor({ matchPatterns: ["wegopro"] });
+    expect(
+      matchArtifact({
+        input: "wegopr", // 6 chars, prefix of "wegopro"
+        tier: "trigram",
+        primaryLocale: "en",
+        catalog: [d],
+      }),
+    ).toBe(d);
+  });
+
+  it("does NOT reverse-match when input is shorter than 4 chars", async () => {
+    const { matchArtifact } = await import("@/features/artifacts/match");
+    expect(
+      matchArtifact({
+        input: "weg", // 3 chars — would otherwise be substring of "wegopro"
+        tier: "trigram",
+        primaryLocale: "en",
+        catalog: [descriptor({ matchPatterns: ["wegopro"] })],
       }),
     ).toBeNull();
   });
