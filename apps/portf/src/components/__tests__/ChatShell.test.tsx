@@ -2,16 +2,27 @@ import { describe, expect, it, vi } from "vitest";
 import { render } from "@testing-library/react";
 
 let mockPath = "/";
+let mockSearch: Record<string, unknown> = {};
 
 vi.mock("@tanstack/react-router", () => ({
-  useRouterState: (arg?: { select?: (s: { location: { pathname: string } }) => string }) =>
-    arg?.select ? arg.select({ location: { pathname: mockPath } }) : mockPath,
+  useRouterState: (arg?: { select?: (s: { location: { pathname: string; search: Record<string, unknown> } }) => unknown }) => {
+    const state = { location: { pathname: mockPath, search: mockSearch } };
+    return arg?.select ? arg.select(state) : state;
+  },
   useNavigate: () => vi.fn(),
   useParams: () => ({}),
 }));
 
 vi.mock("@/features/sidebar/components/Sidebar", () => ({
   Sidebar: () => <div data-testid="sidebar" />,
+}));
+
+vi.mock("@/features/artifacts/catalog", () => ({
+  getDescriptor: () => null,
+}));
+
+vi.mock("@/features/artifacts/components/ArtifactPane", () => ({
+  ArtifactPane: () => <div data-testid="artifact-pane" />,
 }));
 
 describe("ChatShell", () => {
