@@ -74,6 +74,7 @@ export function _buildCatalog(
       matchPatterns: fm.matchPatterns,
       locale: fm.locale,
       order: fm.order,
+      url: fm.url,
       Component: mod.default,
     });
   }

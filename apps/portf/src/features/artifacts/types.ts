@@ -36,6 +36,7 @@ export const FrontmatterSchema = v.object({
   matchPatterns: v.array(v.pipe(v.string(), v.minLength(2))),
   locale: v.optional(v.string(), "en"),
   order: v.optional(v.number(), 0),
+  url: v.optional(v.string()),
 });
 
 export type Frontmatter = v.InferOutput<typeof FrontmatterSchema>;
@@ -60,5 +61,6 @@ export interface ArtifactDescriptor {
   matchPatterns: string[];
   locale: string;
   order: number;
+  url?: string;
   Component: ComponentType;
 }

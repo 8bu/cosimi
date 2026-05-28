@@ -179,3 +179,42 @@ describe("catalog", () => {
     expect(getDescriptor("nonexistent")).toBeNull();
   });
 });
+
+describe("optional url field", () => {
+  it("propagates url from frontmatter onto the descriptor", async () => {
+    const { _buildCatalog } = await import("@/features/artifacts/catalog");
+    const mod = {
+      default: () => null,
+      frontmatter: {
+        slug: "wegopro",
+        kind: "projects",
+        title: "WegoPro",
+        period: "2022–2026",
+        stack: ["Nuxt"],
+        summary: "x",
+        matchPatterns: ["xx"],
+        url: "https://wegopro.com",
+      },
+    };
+    const catalog = _buildCatalog({ "/p/artifacts/projects/wegopro.mdx": mod });
+    expect(catalog.get("wegopro")?.url).toBe("https://wegopro.com");
+  });
+
+  it("descriptor.url is undefined when frontmatter omits it", async () => {
+    const { _buildCatalog } = await import("@/features/artifacts/catalog");
+    const mod = {
+      default: () => null,
+      frontmatter: {
+        slug: "essay-1",
+        kind: "essays",
+        title: "E",
+        period: "2026",
+        stack: [],
+        summary: "x",
+        matchPatterns: ["xx"],
+      },
+    };
+    const catalog = _buildCatalog({ "/p/artifacts/essays/e.mdx": mod });
+    expect(catalog.get("essay-1")?.url).toBeUndefined();
+  });
+});
