@@ -1,3 +1,4 @@
+import { useNavigate } from "@tanstack/react-router";
 import { getDescriptor } from "@/features/artifacts/catalog";
 import { ArtifactPreviewCard } from "@/features/artifacts/components/ArtifactPreviewCard";
 import type { ArtifactDescriptor } from "@/features/artifacts/types";
@@ -24,6 +25,7 @@ interface MessageBubbleProps {
 }
 
 export function MessageBubble({ message }: MessageBubbleProps) {
+  const navigate = useNavigate();
   if (message.kind === "user") {
     return (
       <div className="bubble-row bubble-row-user">
@@ -43,7 +45,10 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           <ArtifactPreviewCard
             descriptor={artifact}
             onOpen={(d: ArtifactDescriptor) =>
-              console.info("[portf] artifact open requested:", d.slug)
+              navigate({
+                to: ".",
+                search: (prev: Record<string, unknown>) => ({ ...prev, artifact: d.slug }),
+              })
             }
           />
         ) : null}

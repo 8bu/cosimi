@@ -1,7 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MessageBubble } from "@/features/chat/components/MessageBubble";
 import type { ChatMessage } from "@/features/chat/types";
+
+vi.mock("@tanstack/react-router", () => ({
+  useNavigate: () => vi.fn(),
+}));
 
 const user: ChatMessage = {
   kind: "user",
@@ -149,5 +153,56 @@ describe("MessageBubble artifact preview", () => {
 
     render(<Fresh message={bot} />);
     expect(screen.queryByText(/tap to open it on the right/i)).toBeNull();
+  });
+
+  it("clicking card calls navigate with to='.' and artifact search param", async () => {
+    const navigateMock = vi.fn();
+
+    vi.doMock("@tanstack/react-router", () => ({
+      useNavigate: () => navigateMock,
+    }));
+
+    vi.doMock("@/features/artifacts/catalog", () => ({
+      getDescriptor: vi.fn(() => ({
+        kind: "projects",
+        slug: "wegopro",
+        title: "WegoPro",
+        kicker: "open artifact",
+        period: "2022–2026",
+        stack: ["Nuxt"],
+        summary: "",
+        thumb: null,
+        matchPatterns: ["wegopro"],
+        locale: "en",
+        order: 0,
+        Component: () => null,
+      })),
+    }));
+
+    const { MessageBubble: Fresh } = await import("@/features/chat/components/MessageBubble");
+
+    const bot: ChatMessage = {
+      kind: "bot",
+      id: "b1",
+      text: "Probably WegoPro.",
+      status: "settled",
+      meta: { tier: "exact", confidence: 1, lowConfidence: false, locale: "en" },
+      noMatch: false,
+      artifactSlug: "wegopro",
+      createdAt: 1,
+    };
+
+    render(<Fresh message={bot} />);
+    fireEvent.click(screen.getByRole("button", { name: /open artifact: wegopro/i }));
+
+    expect(navigateMock).toHaveBeenCalledTimes(1);
+    const rawCall = navigateMock.mock.calls[0] as unknown as [{ to: string; search: unknown }];
+    const call = rawCall[0];
+    expect(call.to).toBe(".");
+    const searchResult =
+      typeof call.search === "function"
+        ? (call.search as (prev: Record<string, unknown>) => Record<string, unknown>)({})
+        : call.search;
+    expect(searchResult).toEqual({ artifact: "wegopro" });
   });
 });
