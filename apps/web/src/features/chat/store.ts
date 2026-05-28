@@ -2,6 +2,7 @@ import { toast } from "sonner";
 import { create } from "zustand";
 import { streamChat } from "@/api/chat";
 import type { BotMsg, ChatMessage, MessageStatus } from "@/features/chat/types";
+import { streamFallback } from "@/features/chat/fallback-stream";
 import { TEACH_PREFIX_RE } from "@/features/chat/tokens";
 import { getLoadedDict, translate } from "@/lib/i18n";
 import { preferencesStore } from "@/store/preferences";
@@ -129,11 +130,15 @@ export const useChat = create<ChatState>((set, get) => ({
               // preload settles), getLoadedDict falls back to vi.
               const pool = getLoadedDict(fallbackLocale)["noMatch.fallback"];
               const fallbackText = pool[Math.floor(Math.random() * pool.length)]!;
+              // Flag noMatch immediately so the badge appears alongside
+              // the typing animation; text streams in to mimic server SSE
+              // pacing (see fallback-stream.ts).
               set((s) => ({
                 messages: s.messages.map((m) =>
-                  m.kind === "bot" && m.id === id ? { ...m, noMatch: true, text: fallbackText } : m,
+                  m.kind === "bot" && m.id === id ? { ...m, noMatch: true } : m,
                 ),
               }));
+              await streamFallback(fallbackText, (tok) => get().appendBotToken(id, tok));
             }
             break;
           case "token":
