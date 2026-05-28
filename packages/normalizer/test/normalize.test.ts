@@ -35,4 +35,39 @@ describe("normalize", () => {
   it("returns empty string for empty input", () => {
     expect(normalize("")).toBe("");
   });
+
+  describe("destylize: collapse stylized letter-spacing", () => {
+    it("collapses dash-separated single letters", () => {
+      expect(normalize("B-A-S-E-D")).toBe("based");
+      expect(normalize("F-B-I")).toBe("fbi");
+    });
+
+    it("collapses space-separated single letters", () => {
+      expect(normalize("B A S E D")).toBe("based");
+      expect(normalize("f b i")).toBe("fbi");
+    });
+
+    it("collapses single letters with mixed dash + space separators", () => {
+      expect(normalize("B-A S-E-D")).toBe("based");
+    });
+
+    it("collapses multi-space separated single letters via prior whitespace collapse", () => {
+      expect(normalize("B   A   S   E   D")).toBe("based");
+    });
+
+    it("does NOT collapse multi-char tokens like x-ray or well-known", () => {
+      expect(normalize("x-ray")).toBe("x-ray");
+      expect(normalize("well-known")).toBe("well-known");
+    });
+
+    it("only collapses the stretched run, leaving surrounding text intact", () => {
+      expect(normalize("yo b-a-s-e-d bro")).toBe("yo based bro");
+      expect(normalize("that's sus l-o-l")).toBe("that's sus lol");
+    });
+
+    it("leaves non-stylized inputs unchanged", () => {
+      expect(normalize("based")).toBe("based");
+      expect(normalize("hello world")).toBe("hello world");
+    });
+  });
 });
