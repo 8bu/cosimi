@@ -385,3 +385,112 @@ body,
   margin-top: 6px;
   color: var(--ink-4);
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Phase G — artifact pane layout
+   ───────────────────────────────────────────────────────────── */
+
+/* When the chat shell has an artifact open, switch from 2-col to 3-col.
+ * The conversation column compresses to a comfortable reading width and
+ * the artifact column fills remaining space. */
+.chat-shell[data-artifact-open="true"] {
+  grid-template-columns: 240px minmax(0, 360px) minmax(0, 1fr);
+}
+
+/* The artifact-pane is the section element <ArtifactPanel> renders.
+ * Default desktop styling: column flex inside its grid cell. */
+.artifact-pane {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--cream-2);
+  border-left: 2px solid var(--ink);
+  outline: none;
+}
+
+/* Title block sits below the chrome row. */
+.artifact-panel-head {
+  padding: 14px 18px 10px;
+  border-bottom: 1px solid var(--line);
+}
+.artifact-panel-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.018em;
+  line-height: 1.05;
+}
+.artifact-panel-meta {
+  margin-top: 4px;
+}
+
+/* Scrollable body area. */
+.artifact-panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 14px 18px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Per-body preamble (stack row only; summary lives in panel meta). */
+.artifact-body-header {
+  margin: 0 0 4px;
+}
+.artifact-body-stack {
+  margin: 0;
+}
+
+/* MDX body wrapper — per-kind typography. */
+.artifact-body {
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.artifact-body.is-essays p:first-of-type::first-letter {
+  font-family: var(--font-display);
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 0.82;
+  padding-right: 8px;
+  color: var(--coral);
+  float: left;
+}
+.artifact-body.is-resume {
+  font-size: 11px;
+}
+
+/* Desktop default: show ×, hide ← BACK. */
+.artifact-back {
+  display: none;
+}
+
+/* Mobile (≤768px): fullscreen artifact, hide chat columns, show ← BACK,
+ * hide × close. Single DOM tree — CSS owns the swap. */
+@media (max-width: 768px) {
+  .chat-shell[data-artifact-open="true"] {
+    grid-template-columns: 1fr;
+  }
+  .chat-shell[data-artifact-open="true"] .v1-sidebar,
+  .chat-shell[data-artifact-open="true"] .chat-pane,
+  .chat-shell[data-artifact-open="true"] .sidebar-backdrop,
+  .chat-shell[data-artifact-open="true"] .mobile-topbar {
+    display: none;
+  }
+  .chat-shell[data-artifact-open="true"] .artifact-pane {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    border-left: 0;
+  }
+  .artifact-pane .artifact-close {
+    display: none;
+  }
+  .artifact-pane .artifact-back {
+    display: inline-flex;
+  }
+}
