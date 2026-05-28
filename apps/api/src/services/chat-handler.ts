@@ -130,6 +130,7 @@ async function runMatchBranch(args: RunChatArgs, env: Env): Promise<void> {
       score: env.EXPOSE_MATCH_INSIGHTS ? result.score : null,
       lowConfidence: result.lowConfidence,
       locale: env.EXPOSE_MATCH_INSIGHTS ? result.locale : null,
+      topic: env.EXPOSE_MATCH_INSIGHTS ? result.topic : null,
     });
     await streamTokens(renderTemplate(result.response, config), args.emit, env);
     return;

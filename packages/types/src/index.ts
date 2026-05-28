@@ -16,6 +16,11 @@ export interface MatchResult {
   // here, which is what the UI badge surfaces (gated by
   // EXPOSE_MATCH_INSIGHTS like tier/confidence/score).
   locale: string;
+  // Operator-assigned topic slug on the matched pair (e.g.
+  // "portfolio/artifact/wegopro"). null for session_teach tier (no
+  // underlying pair) and for pairs without a topic. Used by portf's
+  // matchArtifact as an unambiguous discriminator ahead of matchPatterns.
+  topic: string | null;
 }
 
 export interface ChatRequest {
@@ -66,6 +71,10 @@ export type ChatStreamEvent =
       // BCP-47 code of the matched row. Null on the wire when
       // EXPOSE_MATCH_INSIGHTS=false (same gating as tier/confidence/score).
       locale: string | null;
+      // Operator-assigned topic slug. Null when EXPOSE_MATCH_INSIGHTS=false
+      // (gated alongside tier/confidence/score/locale) or when the matched
+      // pair carries no topic.
+      topic: string | null;
     }
   | { type: "no_match" }
   | { type: "token"; content: string }

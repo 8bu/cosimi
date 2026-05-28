@@ -33,5 +33,7 @@ export async function sessionTeachTier(
     score: null,
     lowConfidence: false,
     locale: rows[0]!.locale,
+    // session_teaches has no topic column; topic is pair-level metadata.
+    topic: null,
   };
 }

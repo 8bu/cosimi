@@ -14,8 +14,10 @@ export async function exactTier(
   // by default; the cast lands a JS number to match MatchResult.pairId's
   // type and keeps wire shapes numeric (the chat-handler emits this id in
   // the SSE metadata event; feedback's valibot validator wants v.number()).
-  const rows = await sql()<{ id: number; response: string; score: number; locale: string }[]>`
-    SELECT id::int AS id, response, score, locale
+  const rows = await sql()<
+    { id: number; response: string; score: number; locale: string; topic: string | null }[]
+  >`
+    SELECT id::int AS id, response, score, locale, topic
     FROM pairs
     WHERE normalized_unaccented = f_unaccent(${normalizedInput})
       AND deleted_at IS NULL
@@ -33,5 +35,6 @@ export async function exactTier(
     score: pick.score,
     lowConfidence: false,
     locale: pick.locale,
+    topic: pick.topic,
   };
 }

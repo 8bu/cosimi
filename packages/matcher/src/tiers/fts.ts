@@ -13,15 +13,23 @@ export async function ftsTier(
   // `id::int AS id` — BIGSERIAL ships as string through postgres.js;
   // cast so MatchResult.pairId is a number (see exact.ts for full rationale).
   const rows = await sql()<
-    { id: number; response: string; rank: number; score: number; locale: string }[]
+    {
+      id: number;
+      response: string;
+      rank: number;
+      score: number;
+      locale: string;
+      topic: string | null;
+    }[]
   >`
-    SELECT id, response, rank, score, locale
+    SELECT id, response, rank, score, locale, topic
     FROM (
       SELECT
         id::int AS id,
         response,
         score,
         locale,
+        topic,
         ts_rank(
           to_tsvector('simple', normalized_unaccented),
           plainto_tsquery('simple', f_unaccent(${normalizedInput}))
@@ -46,5 +54,6 @@ export async function ftsTier(
     score: pick.score,
     lowConfidence: false,
     locale: pick.locale,
+    topic: pick.topic,
   };
 }
