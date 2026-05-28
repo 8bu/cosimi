@@ -28,9 +28,7 @@ afterEach(() => {
 describe("<ProjectAction>", () => {
   it("renders external link with hostname when url present", async () => {
     const { ProjectAction } = await import("@/features/artifacts/components/actions/ProjectAction");
-    const { container } = render(
-      <ProjectAction descriptor={d({ url: "https://wegopro.com" })} />,
-    );
+    const { container } = render(<ProjectAction descriptor={d({ url: "https://wegopro.com" })} />);
     const link = container.querySelector("a.artifact-action") as HTMLAnchorElement;
     expect(link).toBeTruthy();
     expect(link.href).toBe("https://wegopro.com/");

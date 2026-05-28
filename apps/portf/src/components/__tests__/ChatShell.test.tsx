@@ -5,7 +5,9 @@ let mockPath = "/";
 let mockSearch: Record<string, unknown> = {};
 
 vi.mock("@tanstack/react-router", () => ({
-  useRouterState: (arg?: { select?: (s: { location: { pathname: string; search: Record<string, unknown> } }) => unknown }) => {
+  useRouterState: (arg?: {
+    select?: (s: { location: { pathname: string; search: Record<string, unknown> } }) => unknown;
+  }) => {
     const state = { location: { pathname: mockPath, search: mockSearch } };
     return arg?.select ? arg.select(state) : state;
   },

@@ -18,7 +18,14 @@ interface ArtifactPanelProps {
  * media query. Both call onClose. Esc on a focused section also closes,
  * unless focus is inside an input/textarea/contentEditable.
  */
-export function ArtifactPanel({ kicker, title, meta, action, onClose, children }: ArtifactPanelProps) {
+export function ArtifactPanel({
+  kicker,
+  title,
+  meta,
+  action,
+  onClose,
+  children,
+}: ArtifactPanelProps) {
   function onKeyDown(e: ReactKeyboardEvent<HTMLElement>) {
     if (e.key !== "Escape") return;
     const el = document.activeElement as HTMLElement | null;
@@ -46,7 +53,13 @@ export function ArtifactPanel({ kicker, title, meta, action, onClose, children }
     >
       <div className="artifact-chrome">
         <div className="artifact-chrome-top">
-          <span className="artifact-back" onClick={onClose} onKeyDown={handleKey} role="button" tabIndex={0}>
+          <span
+            className="artifact-back"
+            onClick={onClose}
+            onKeyDown={handleKey}
+            role="button"
+            tabIndex={0}
+          >
             ← BACK
           </span>
           <span className="artifact-kicker">{kicker}</span>

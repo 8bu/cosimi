@@ -26,8 +26,7 @@ export function ChatShell({ children }: ChatShellProps) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const search = useRouterState({ select: (s) => s.location.search }) as Record<string, unknown>;
   const isChat = pathname.startsWith("/chat");
-  const slug =
-    isChat && typeof search.artifact === "string" ? search.artifact : null;
+  const slug = isChat && typeof search.artifact === "string" ? search.artifact : null;
   const descriptor = slug ? getDescriptor(slug) : null;
 
   if (!isChat) return <>{children}</>;

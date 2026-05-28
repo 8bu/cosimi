@@ -25,41 +25,38 @@ afterEach(() => {
   cleanup();
 });
 
-describe.each(["projects", "essays", "resume", "misc"] as const)("body component for %s", (kind) => {
-  const fileByKind: Record<typeof kind, string> = {
-    projects: "ProjectBody",
-    essays: "EssayBody",
-    resume: "CvBody",
-    misc: "GenericBody",
-  };
+describe.each(["projects", "essays", "resume", "misc"] as const)(
+  "body component for %s",
+  (kind) => {
+    const fileByKind: Record<typeof kind, string> = {
+      projects: "ProjectBody",
+      essays: "EssayBody",
+      resume: "CvBody",
+      misc: "GenericBody",
+    };
 
-  it(`renders stack preamble and mdx body with .is-${kind} modifier`, async () => {
-    const Mod = await import(
-      `@/features/artifacts/components/bodies/${fileByKind[kind]}`
-    );
-    const Component = Mod[fileByKind[kind]];
-    const { container } = render(<Component descriptor={d({ kind })} />);
-    expect(screen.getByText("TypeScript · React")).toBeTruthy();
-    expect(screen.getByTestId("mdx-body")).toBeTruthy();
-    const body = container.querySelector(`.artifact-body.is-${kind}`);
-    expect(body).toBeTruthy();
-  });
+    it(`renders stack preamble and mdx body with .is-${kind} modifier`, async () => {
+      const Mod = await import(`@/features/artifacts/components/bodies/${fileByKind[kind]}`);
+      const Component = Mod[fileByKind[kind]];
+      const { container } = render(<Component descriptor={d({ kind })} />);
+      expect(screen.getByText("TypeScript · React")).toBeTruthy();
+      expect(screen.getByTestId("mdx-body")).toBeTruthy();
+      const body = container.querySelector(`.artifact-body.is-${kind}`);
+      expect(body).toBeTruthy();
+    });
 
-  it("does NOT render summary inside the body (panel.meta owns it)", async () => {
-    const Mod = await import(
-      `@/features/artifacts/components/bodies/${fileByKind[kind]}`
-    );
-    const Component = Mod[fileByKind[kind]];
-    const { container } = render(<Component descriptor={d({ kind })} />);
-    expect(container.textContent).not.toContain("a one-line blurb");
-  });
+    it("does NOT render summary inside the body (panel.meta owns it)", async () => {
+      const Mod = await import(`@/features/artifacts/components/bodies/${fileByKind[kind]}`);
+      const Component = Mod[fileByKind[kind]];
+      const { container } = render(<Component descriptor={d({ kind })} />);
+      expect(container.textContent).not.toContain("a one-line blurb");
+    });
 
-  it("omits stack line when stack is empty", async () => {
-    const Mod = await import(
-      `@/features/artifacts/components/bodies/${fileByKind[kind]}`
-    );
-    const Component = Mod[fileByKind[kind]];
-    const { container } = render(<Component descriptor={d({ kind, stack: [] })} />);
-    expect(container.querySelector(".artifact-body-stack")).toBeNull();
-  });
-});
+    it("omits stack line when stack is empty", async () => {
+      const Mod = await import(`@/features/artifacts/components/bodies/${fileByKind[kind]}`);
+      const Component = Mod[fileByKind[kind]];
+      const { container } = render(<Component descriptor={d({ kind, stack: [] })} />);
+      expect(container.querySelector(".artifact-body-stack")).toBeNull();
+    });
+  },
+);

@@ -16,10 +16,9 @@ describe("<ArtifactPane> smoke (real MDX)", () => {
     const { _buildCatalog } = await import("@/features/artifacts/catalog");
     // Use a single explicit fixture path to avoid hitting the error fixtures
     // (duplicate-slug.mdx and mismatched-kind.mdx both throw at _buildCatalog).
-    const mods = import.meta.glob(
-      "../../../artifacts/__fixtures__/projects/sample-project.mdx",
-      { eager: true },
-    );
+    const mods = import.meta.glob("../../../artifacts/__fixtures__/projects/sample-project.mdx", {
+      eager: true,
+    });
     const catalog = _buildCatalog(mods as never);
     // Pick the first (and only) descriptor.
     const descriptor = Array.from(catalog.values())[0];

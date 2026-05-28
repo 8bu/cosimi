@@ -23,7 +23,11 @@ export function NewChatButton() {
       onClick={() => {
         const id = create();
         setSidebarOpen(false);
-        void navigate({ to: "/chat/$threadId", params: { threadId: id }, search: { artifact: undefined } });
+        void navigate({
+          to: "/chat/$threadId",
+          params: { threadId: id },
+          search: { artifact: undefined },
+        });
       }}
     >
       <span className="plus">+</span> NEW CHAT
