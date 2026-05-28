@@ -30,6 +30,7 @@ export interface BotMessage {
     confidence: number | null;
     lowConfidence: boolean;
     locale: string | null;
+    topic: string | null;
   } | null;
   noMatch: boolean;
   /**

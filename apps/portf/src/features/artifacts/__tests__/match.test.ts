@@ -239,4 +239,50 @@ describe("matchArtifact", () => {
       }),
     ).toBeNull();
   });
+
+  describe("topic-first matching", () => {
+    it("topic 'portfolio/artifact/<slug>' returns matching descriptor (bypasses matchPatterns)", async () => {
+      const { matchArtifact } = await import("@/features/artifacts/match");
+      // Descriptor has no matchPatterns that overlap with the input — proves
+      // the topic path bypasses the matchPatterns loop entirely.
+      const d = descriptor({ slug: "wegopro", matchPatterns: ["completely-unrelated-pattern"] });
+      const result = matchArtifact({
+        input: "b2b travel expenses at scale",
+        tier: "exact",
+        primaryLocale: "en",
+        topic: "portfolio/artifact/wegopro",
+        catalog: [d],
+      });
+      expect(result).toBe(d);
+    });
+
+    it("topic 'portfolio/artifact/<unknown>' returns null (catalog miss)", async () => {
+      const { matchArtifact } = await import("@/features/artifacts/match");
+      const d = descriptor({ slug: "wegopro", matchPatterns: ["wegopro"] });
+      const result = matchArtifact({
+        input: "wegopro",
+        tier: "exact",
+        primaryLocale: "en",
+        topic: "portfolio/artifact/no-such-slug",
+        catalog: [d],
+      });
+      expect(result).toBeNull();
+    });
+
+    it("topic 'portfolio/experience/wegopro' does NOT auto-fire (falls through to matchPatterns)", async () => {
+      const { matchArtifact } = await import("@/features/artifacts/match");
+      const d = descriptor({ slug: "wegopro", matchPatterns: ["wegopro"] });
+      // Topic prefix is NOT "portfolio/artifact/" so it falls through to
+      // matchPatterns. The input matches "wegopro", so descriptor is returned
+      // (proving it reached the matchPatterns path, not the topic path).
+      const result = matchArtifact({
+        input: "wegopro",
+        tier: "exact",
+        primaryLocale: "en",
+        topic: "portfolio/experience/wegopro",
+        catalog: [d],
+      });
+      expect(result).toBe(d);
+    });
+  });
 });

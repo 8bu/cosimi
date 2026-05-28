@@ -175,6 +175,7 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
                 input: candidate.text,
                 tier: bot.meta?.tier ?? null,
                 primaryLocale,
+                topic: bot.meta?.topic ?? null,
               });
               nextArtifactSlug = descriptor?.slug ?? null;
             }
@@ -268,6 +269,7 @@ async function applyEvent(
         confidence: ev.confidence,
         lowConfidence: ev.lowConfidence,
         locale: ev.locale,
+        topic: ev.topic,
       });
       break;
     case "no_match": {
