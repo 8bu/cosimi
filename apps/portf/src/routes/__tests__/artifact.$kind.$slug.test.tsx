@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { cleanup, render } from "@testing-library/react";
+import { cleanup } from "@testing-library/react";
 
 import type { ArtifactDescriptor } from "@/features/artifacts/types";
 
@@ -7,7 +7,7 @@ vi.mock("@tanstack/react-router", () => ({
   createFileRoute: (_path: string) => (config: unknown) => ({ ...(config as object) }),
   notFound: () => {
     const e = new Error("NOT_FOUND");
-    (e as Error & { _tag?: string })._tag = "notFound";
+    (e as Error & { tag?: string }).tag = "notFound";
     return e;
   },
   useRouter: () => ({ navigate: vi.fn(), history: { back: vi.fn() } }),
