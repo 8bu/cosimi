@@ -12,65 +12,81 @@ interface ChatComposerProps {
  * class="input-row-mono">` (mono font, ink-4 placeholder), a `.kbd ⏎`
  * affordance, and a circular `.send-btn` in coral.
  *
- * Submits via `messagesStore.send`. No /teach prefix detection (out of
- * scope per spec §2). Auto-focuses on `threadId` change so switching
- * threads always lands the cursor in the input.
- *
- * Disabled-while-streaming pattern mirrors `apps/web`'s Composer: both
- * input + send button gate on `streamingByThread[threadId]`; on the
- * streaming -> idle transition we re-focus the input so the visitor
- * keeps typing without reaching for the mouse between turns.
+ * Compose-while-streaming UX:
+ *   - Input is ALWAYS enabled (visitor can draft the next question while
+ *     reading the in-flight reply).
+ *   - When the thread is streaming and the queue slot is empty: submit
+ *     stashes the message via `queueNext`; auto-fires when the stream ends.
+ *   - When the queue slot is FULL: send button is disabled (one slot per
+ *     thread; no stacking).
+ *   - When idle: submit fires `send` directly.
+ *   - A small hint below the input shows the queued message preview while
+ *     waiting for the stream to settle.
  */
 export function ChatComposer({ threadId }: ChatComposerProps) {
   const [value, setValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const send = useMessagesStore((s) => s.send);
+  const queueNext = useMessagesStore((s) => s.queueNext);
   const isStreaming = useMessagesStore((s) => Boolean(s.streamingByThread[threadId]));
+  const queued = useMessagesStore((s) => s.queuedByThread[threadId] ?? null);
 
   // Initial focus on thread change.
   useEffect(() => {
     inputRef.current?.focus();
   }, [threadId]);
 
-  // Re-focus on streaming -> idle transition. The input is `disabled` while
-  // streaming (browser blurs disabled elements), so this restores the cursor
-  // for the next turn without the visitor reaching for the mouse.
-  useEffect(() => {
-    if (!isStreaming) inputRef.current?.focus();
-  }, [isStreaming]);
-
   const trimmed = value.trim();
+  const slotFull = isStreaming && queued !== null;
+  const submitDisabled = !trimmed || slotFull;
 
   return (
-    <form
-      className="input-row"
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (!trimmed || isStreaming) return;
-        setValue("");
-        void send(threadId, trimmed);
-      }}
-    >
-      <input
-        ref={inputRef}
-        className="input-row-mono"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        placeholder="Ask a follow-up…"
-        aria-label="Ask a follow-up"
-        disabled={isStreaming}
-      />
-      <span className="kbd" aria-hidden="true">
-        ⏎
-      </span>
-      <button
-        type="submit"
-        className="send-btn"
-        disabled={!trimmed || isStreaming}
-        aria-label="Send"
+    <>
+      <form
+        className="input-row"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (submitDisabled) return;
+          if (isStreaming) {
+            queueNext(threadId, trimmed);
+          } else {
+            void send(threadId, trimmed);
+          }
+          setValue("");
+        }}
       >
-        ↑
-      </button>
-    </form>
+        <input
+          ref={inputRef}
+          className="input-row-mono"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder={isStreaming ? "Queue a follow-up…" : "Ask a follow-up…"}
+          aria-label="Ask a follow-up"
+        />
+        <span className="kbd" aria-hidden="true">
+          ⏎
+        </span>
+        <button
+          type="submit"
+          className="send-btn"
+          disabled={submitDisabled}
+          aria-label={isStreaming ? "Queue" : "Send"}
+          title={
+            slotFull
+              ? "Queue full — wait for the reply"
+              : isStreaming
+                ? "Queue — sends when the current reply finishes"
+                : "Send"
+          }
+        >
+          {isStreaming ? "⏳" : "↑"}
+        </button>
+      </form>
+      {queued && (
+        <div className="composer-queue-hint" aria-live="polite">
+          <span className="kbd">QUEUED</span> <span className="composer-queue-text">{queued}</span>
+        </div>
+      )}
+    </>
   );
 }

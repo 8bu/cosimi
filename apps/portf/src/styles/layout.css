@@ -568,3 +568,25 @@ body,
   font-weight: 600;
   letter-spacing: -0.005em;
 }
+
+/* Queued follow-up hint shown below the composer while a stream is in
+ * flight and a single-slot queue item is waiting. Renders ONLY when the
+ * queue slot is populated. */
+.composer-queue-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 4px 10px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--ink-3);
+  border-top: 1px dashed var(--line);
+}
+.composer-queue-text {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

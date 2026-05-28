@@ -5,7 +5,9 @@ vi.mock("@/store/messages", () => {
   const state: {
     byThread: Record<string, unknown[]>;
     streamingByThread: Record<string, true>;
-  } = { byThread: {}, streamingByThread: {} };
+    queuedByThread: Record<string, string>;
+    queueNext: () => void;
+  } = { byThread: {}, streamingByThread: {}, queuedByThread: {}, queueNext: () => {} };
   const useStore = (sel: (s: typeof state) => unknown) => sel(state);
   useStore.getState = () => state;
   useStore.setState = (next: Partial<typeof state>) => Object.assign(state, next);

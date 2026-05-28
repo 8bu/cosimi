@@ -21,10 +21,19 @@ interface MessagesState {
    * Per-thread streaming flag. Mirrors `apps/web`'s single `isStreaming`
    * boolean but partitioned by thread (portf is multi-thread). Sparse:
    * absent key = not streaming, presence (value `true`) = streaming.
-   * Composer reads this to disable input + send button + re-focus on
+   * Composer reads this to disable the input + send button + re-focus on
    * the streaming -> idle transition.
    */
   streamingByThread: Record<string, true>;
+  /**
+   * Per-thread queued-next-message slot. Single slot per thread (no
+   * stacking). Set when the visitor submits during an active stream;
+   * auto-fires when that stream ends (see `send`'s finally block).
+   * Sparse: absent key = no queue, presence = queued text.
+   */
+  queuedByThread: Record<string, string>;
+  /** Stash a follow-up to fire after the current thread's stream ends. */
+  queueNext: (threadId: string, text: string) => void;
   send: (threadId: string, rawText: string) => Promise<void>;
   appendBotToken: (threadId: string, id: string, token: string) => void;
   finishBot: (threadId: string, id: string, status: "settled" | "error") => void;
@@ -75,6 +84,17 @@ function schedulePersist(): void {
 export const useMessagesStore = create<MessagesState>((set, get) => ({
   byThread: {},
   streamingByThread: {},
+  queuedByThread: {},
+
+  queueNext(threadId, text) {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    // Single-slot per thread: no-op if a queue item already exists. The
+    // composer-side guard disables the send button to make this visible;
+    // this defensive check is a belt-and-suspenders for direct callers.
+    if (get().queuedByThread[threadId]) return;
+    set((s) => ({ queuedByThread: { ...s.queuedByThread, [threadId]: trimmed } }));
+  },
 
   async send(threadId, rawText) {
     // Re-entrancy guard: if this thread is already streaming a reply,
@@ -141,6 +161,18 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
       });
       clearAbort(threadId);
       flushPersistNow();
+
+      // Auto-fire any queued follow-up. Pop the slot first so the recursive
+      // send() doesn't see the stale value via its own queue check.
+      const queued = get().queuedByThread[threadId];
+      if (queued) {
+        set((s) => {
+          const next = { ...s.queuedByThread };
+          delete next[threadId];
+          return { queuedByThread: next };
+        });
+        void get().send(threadId, queued);
+      }
     }
   },
 
