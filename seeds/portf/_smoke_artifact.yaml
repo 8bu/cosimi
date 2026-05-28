@@ -3,7 +3,20 @@
 
 # WegoPro project artifact triggers
 - input: best project
-  response: Probably WegoPro - four years building B2B corporate travel and expense at scale. Led the Nuxt 2 to Vue 3 SPA migration and solo-migrated the back-office to Nuxt 4.
+  response: |
+    Probably WegoPro - four years building B2B corporate travel and expense at scale.
+
+    Shipped:
+    - Recent bookings
+    - Policy change indicators
+    - Hierarchy approvals
+    - Custom fields
+    - Onboarding flow
+    - Back-office dashboard
+
+    Led the Nuxt 2 to Vue 3 SPA migration, then solo-migrated the back-office to Nuxt 4 + Nuxt UI.
+
+    Tap the card to open it on the right.
   topic: portfolio/artifact/wegopro
 
 - input: wegopro

@@ -494,3 +494,14 @@ body,
     display: inline-flex;
   }
 }
+
+/* Preserve author-authored newlines + soft-wrap long unbroken tokens.
+ * portfolio.css's .bubble has no white-space rule -> default `normal`
+ * collapses every `\n` to a space. Multi-line YAML responses
+ * (`response: |` blocks) need pre-wrap to render line breaks.
+ * Mirrors apps/web's `whitespace-pre-wrap break-words` on its
+ * BotMessage / UserMessage / TeachMessage components. */
+.bubble {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
