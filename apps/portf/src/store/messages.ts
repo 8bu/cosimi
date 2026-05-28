@@ -309,3 +309,13 @@ async function fakeStreamFallback(
     get().appendBotToken(threadId, botId, ch);
   }
 }
+
+// Dev-only debug hook. Lets the operator drive the messages store from the
+// browser console for manual smoke (e.g. flipping `artifactSlug` on a bot
+// message to verify the ArtifactPreviewCard renders). Gated on
+// `import.meta.env.DEV` so the production bundle is unaffected.
+if (import.meta.env.DEV) {
+  (
+    globalThis as unknown as { __portfMessagesStore__: typeof useMessagesStore }
+  ).__portfMessagesStore__ = useMessagesStore;
+}
