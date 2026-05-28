@@ -20,7 +20,12 @@
   topic: portfolio/artifact/wegopro
 
 - input: wegopro
-  response: WegoPro - B2B corporate travel and expense platform. 4 years as Senior Web Developer, remote. Tap the card to open it on the right.
+  response: |
+    **WegoPro** - B2B corporate travel and expense platform.
+
+    *4 years* as Senior Web Developer, remote. Stack: `Nuxt 4`, `Vue 3`, `TypeScript`, `Tailwind`, `AWS`.
+
+    > Tap the card to open it on the right - or visit [wegopro.com](https://wegopro.com).
   topic: portfolio/artifact/wegopro
 
 - input: b2b travel

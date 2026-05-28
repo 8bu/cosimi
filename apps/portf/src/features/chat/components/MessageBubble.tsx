@@ -3,6 +3,7 @@ import { getDescriptor } from "@/features/artifacts/catalog";
 import { ArtifactPreviewCard } from "@/features/artifacts/components/ArtifactPreviewCard";
 import type { ArtifactDescriptor } from "@/features/artifacts/types";
 import type { ChatMessage } from "@/features/chat/types";
+import { MarkdownBubble } from "@/features/chat/components/MarkdownBubble";
 import { TypingIndicator } from "@/features/chat/components/TypingIndicator";
 
 /**
@@ -40,7 +41,11 @@ export function MessageBubble({ message }: MessageBubbleProps) {
     <div className="bubble-row bubble-row-assistant">
       <span className="bubble-sender bubble-sender-assistant">8BU</span>
       <div className={`bubble bubble-assistant${errorClass}`}>
-        {message.text ? message.text : message.status === "streaming" ? <TypingIndicator /> : null}
+        {message.text ? (
+          <MarkdownBubble text={message.text} />
+        ) : message.status === "streaming" ? (
+          <TypingIndicator />
+        ) : null}
         {artifact ? (
           <ArtifactPreviewCard
             descriptor={artifact}

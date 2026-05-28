@@ -505,3 +505,66 @@ body,
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+/* Inside-bubble markdown subset (see MarkdownBubble.tsx).
+ * react-markdown wraps every paragraph in <p>; tighten margins so a
+ * single-paragraph bubble looks identical to a plain-text bubble.
+ * Lists, blockquotes, and headings only add chrome when actually used. */
+.bubble-assistant > p,
+.bubble-assistant > ul,
+.bubble-assistant > ol,
+.bubble-assistant > blockquote,
+.bubble-assistant > h2,
+.bubble-assistant > h3 {
+  margin: 0;
+}
+.bubble-assistant > * + * {
+  margin-top: 8px;
+}
+.bubble-assistant ul,
+.bubble-assistant ol {
+  padding-left: 1.2em;
+}
+.bubble-assistant li + li {
+  margin-top: 2px;
+}
+.bubble-assistant code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--cream-card);
+  border: 1px solid var(--line);
+  padding: 0 4px;
+  border-radius: 3px;
+}
+.bubble-assistant strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+.bubble-assistant em {
+  font-style: italic;
+}
+.bubble-assistant a {
+  color: var(--coral);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.bubble-assistant a:hover {
+  text-decoration-thickness: 2px;
+}
+.bubble-assistant blockquote {
+  border-left: 2px solid var(--line-strong);
+  padding-left: 10px;
+  color: var(--ink-3);
+}
+.bubble-assistant h2 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.bubble-assistant h3 {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
