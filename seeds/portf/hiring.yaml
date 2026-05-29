@@ -1,0 +1,9 @@
+# hiring.yaml - portfolio corpus split (Phase J option B)
+# GROUNDED ONLY in: (a) CV content, (b) Long's direct interview answers.
+# No inferred opinions, no invented stories, no fabricated tool preferences.
+# Inputs span four registers: slang/textspeak, casual, normal chat, formal.
+# Locale stamping: `pnpm seed:portf --locale=en` - NO `locale:` per row.
+
+# Phase J3 distill target - currently empty. Operator interview pending.
+
+[]
