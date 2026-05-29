@@ -10,6 +10,7 @@ import { EssayAction } from "@/features/artifacts/components/actions/EssayAction
 import { CvAction } from "@/features/artifacts/components/actions/CvAction";
 import { useArtifactScrollRestore } from "@/features/artifacts/hooks/useArtifactScrollRestore";
 import { useCloseArtifact } from "@/features/artifacts/hooks/useCloseArtifact";
+import { useOpenerFocusRestore } from "@/features/artifacts/hooks/useOpenerFocusRestore";
 import type { ArtifactDescriptor } from "@/features/artifacts/types";
 
 interface Props {
@@ -61,7 +62,8 @@ function actionFor(d: ArtifactDescriptor): ReactNode {
  * desktop-split vs mobile-fullscreen swap (see layout.css).
  */
 export function ArtifactPane({ descriptor }: Props) {
-  const { close } = useCloseArtifact();
+  const restoreOpenerFocus = useOpenerFocusRestore();
+  const { close } = useCloseArtifact(restoreOpenerFocus);
   const bodyRef = useArtifactScrollRestore(descriptor.slug);
   return (
     <ArtifactPanel

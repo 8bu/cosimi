@@ -65,3 +65,32 @@ describe("ArtifactPanel chrome + behaviors", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("useOpenerFocusRestore", () => {
+  afterEach(cleanup);
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("captures the active element on mount and restores it when called", async () => {
+    document.body.innerHTML = '<button id="opener">Open</button>';
+    const opener = document.getElementById("opener") as HTMLButtonElement;
+    opener.focus();
+    expect(document.activeElement).toBe(opener);
+
+    let restore: () => void = () => {};
+    const { useOpenerFocusRestore } =
+      await import("@/features/artifacts/hooks/useOpenerFocusRestore");
+    function Harness() {
+      restore = useOpenerFocusRestore();
+      return <div tabIndex={0} data-testid="distract" />;
+    }
+    render(<Harness />);
+    const distract = document.querySelector('[data-testid="distract"]') as HTMLElement;
+    distract.focus();
+    expect(document.activeElement).toBe(distract);
+
+    restore();
+    expect(document.activeElement).toBe(opener);
+  });
+});
