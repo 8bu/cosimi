@@ -29,9 +29,9 @@ export const FALLBACK_EN_POOL = [
  * Per-char delay for the client-side fake-stream of `no_match` fallback
  * text. Server emits `no_match` as a single event (no token stream); the
  * client paces the fallback char-by-char so the "thinking" UX matches
- * matched-reply token streaming. Synced to server's SSE_DELAY_BASE_MS=50 /
- * JITTER_MS=30 in `.env.portf` so matched and no-match replies pace
+ * matched-reply token streaming. Synced to server's SSE_DELAY_BASE_MS=5 /
+ * JITTER_MS=3 in `.env.portf` so matched and no-match replies pace
  * identically.
  */
-export const FAKE_STREAM_BASE_MS = 50;
-export const FAKE_STREAM_JITTER_MS = 30;
+export const FAKE_STREAM_BASE_MS = 5;
+export const FAKE_STREAM_JITTER_MS = 3;
