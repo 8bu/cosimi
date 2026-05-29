@@ -219,6 +219,45 @@ describe("optional url field", () => {
   });
 });
 
+describe("optional repo field", () => {
+  it("propagates repo from frontmatter onto the descriptor", async () => {
+    const { _buildCatalog } = await import("@/features/artifacts/catalog");
+    const mod = {
+      default: () => null,
+      frontmatter: {
+        slug: "simlm",
+        kind: "projects",
+        title: "simlm",
+        period: "2026",
+        stack: ["TypeScript"],
+        summary: "x",
+        matchPatterns: ["xx"],
+        repo: "https://github.com/8bu/x",
+      },
+    };
+    const catalog = _buildCatalog({ "/p/artifacts/projects/simlm.mdx": mod });
+    expect(catalog.get("simlm")?.repo).toBe("https://github.com/8bu/x");
+  });
+
+  it("descriptor.repo is undefined when frontmatter omits it", async () => {
+    const { _buildCatalog } = await import("@/features/artifacts/catalog");
+    const mod = {
+      default: () => null,
+      frontmatter: {
+        slug: "essay-2",
+        kind: "essays",
+        title: "E",
+        period: "2026",
+        stack: [],
+        summary: "x",
+        matchPatterns: ["xx"],
+      },
+    };
+    const catalog = _buildCatalog({ "/p/artifacts/essays/e2.mdx": mod });
+    expect(catalog.get("essay-2")?.repo).toBeUndefined();
+  });
+});
+
 describe("FrontmatterSchema.repo", () => {
   it("accepts optional repo URL", async () => {
     const v = await import("valibot");

@@ -75,6 +75,7 @@ export function _buildCatalog(
       locale: fm.locale,
       order: fm.order,
       url: fm.url,
+      repo: fm.repo,
       Component: mod.default,
     });
   }
