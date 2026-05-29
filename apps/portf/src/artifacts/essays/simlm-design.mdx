@@ -1,0 +1,40 @@
+---
+slug: simlm-design
+kind: essays
+title: SimLM - a chatbot without an LLM
+kicker: essay
+period: 2026-05
+stack:
+  - TypeScript
+  - Hono
+  - Postgres
+  - Vite
+  - React
+summary: How the chat you are using right now works. Three-tier matcher, no LLM at runtime, curated pair store.
+thumb: null
+matchPatterns:
+  - simlm design
+  - how does this work
+  - chatbot architecture
+  - pattern matcher essay
+locale: en
+order: 2
+---
+
+This chat is powered by SimLM. There is no LLM in the request path. Replies come from a curated pair store, scored by a three-tier matching engine.
+
+## The matcher
+
+User input flows through three tiers in order: exact match, Postgres full-text search, trigram similarity. First tier to return a non-null result wins. No tier escalation if a higher tier scores poorly enough.
+
+## Why no LLM
+
+The corpus is mine. The voice is mine. I do not want it laundered through a generative layer that hallucinates around the edges. If I do not have an answer for a question, the right behavior is to say so - not to make one up that sounds plausible.
+
+## Trade-offs
+
+The system cannot reply to inputs it has not seen patterns for. That is the point. The trade is depth-for-honesty: every reply is a reply I wrote.
+
+## Stack
+
+pnpm + Turbo monorepo. Hono API. Vite/React UIs. Postgres with pg_trgm and full-text search. The matcher is small TypeScript code. The corpus is hand-curated YAML.

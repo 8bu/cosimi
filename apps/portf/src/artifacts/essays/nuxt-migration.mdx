@@ -1,0 +1,40 @@
+---
+slug: nuxt-migration
+kind: essays
+title: Migrating a 4-year Nuxt 2 codebase to Vue 3
+kicker: essay
+period: 2026-04
+stack:
+  - Nuxt 2
+  - Nuxt 4
+  - Vue 2
+  - Vue 3
+  - Web Components
+summary: A post-mortem on the WegoPro migration. What worked, what I would undo, and the parts nobody warns you about.
+thumb: null
+matchPatterns:
+  - nuxt migration
+  - nuxt 2 to vue 3
+  - vue 3 migration
+  - migration essay
+locale: en
+order: 1
+---
+
+The hard part of migrating Nuxt 2 to Vue 3 is not Vue 3. It is the four years of accreted decisions you have to ship alongside it: every legacy module, every i18n string, every Vuex store still humming along in the background.
+
+## The bridge
+
+The unlock was Vue 3 web components. New features were authored in Vue 3, compiled as custom elements, and embedded inside the still-running Nuxt 2 host. The host stays alive while the bridge layer carries each surface across one at a time. No big-bang rewrite, no parallel deploys.
+
+## The back-office
+
+The back-office dashboard moved separately. Solo migration to Nuxt 4 + Nuxt UI - fresh app, fresh tooling, fresh routing. Easier path because the back-office had a cleaner boundary; the customer-facing app was the one carrying the historical scar tissue.
+
+## What I would undo
+
+The bridge worked but it taught the team to defer the hard cleanup. Some Nuxt 2 modules are still there, still humming, still pinning the host to Vue 2 runtime in a few corners. Next migration I would budget a "delete week" upfront.
+
+## What nobody warns you
+
+i18n strings. SCSS variables shared across modules. Vuex stores with assumptions baked into store-action sequencing. None of those move on a per-component cadence. They move when you write the lift yourself.

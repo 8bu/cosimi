@@ -1,0 +1,38 @@
+---
+slug: vue3-web-components-bridge
+kind: essays
+title: Vue 3 web components as a migration bridge
+kicker: essay · deep dive
+period: 2026-04
+stack:
+  - Vue 3
+  - Web Components
+  - Nuxt 2
+summary: Technical deep-dive on the bridge layer that unlocked the WegoPro Nuxt migration.
+thumb: null
+matchPatterns:
+  - vue 3 web components
+  - migration bridge
+  - web components essay
+  - nuxt bridge layer
+locale: en
+order: 3
+---
+
+The "incremental migration" promise of any framework version-bump only works if the new and the old can share a page. For Nuxt 2 to Vue 3, the bridge is Vue 3 web components.
+
+## The shape
+
+Author the new feature as a Vue 3 component. Wrap it as a custom element via `defineCustomElement`. Mount it inside the Nuxt 2 page like any other tag. Two reactive runtimes coexist on the same page.
+
+## What you give up
+
+Slots cross the boundary as plain DOM. Vue 2 host components cannot pass reactive props directly into Vue 3 custom elements - serialize through attributes or events. Most state lives in the Vue 3 island and is fed by URL or a shared store.
+
+## What you keep
+
+The Nuxt 2 router stays the source of truth. SSR keeps working for the host. You ship one feature at a time. The day you finish migrating, the bridge becomes garbage to collect.
+
+## When it fails
+
+Tightly-coupled UI that crosses the boundary every render. If you cannot draw a clean line around the island, the bridge is more expensive than the cleanup. Pick boundaries that match data ownership.
