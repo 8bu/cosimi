@@ -4,19 +4,36 @@ interface Props {
   descriptor: ArtifactDescriptor;
 }
 
-function hostname(url: string): string {
+function hostPlusPath(url: string): string {
   try {
-    return new URL(url).hostname;
+    const u = new URL(url);
+    const tail = u.pathname.replace(/^\/|\/$/g, "");
+    return tail ? `${u.hostname}/${tail}` : u.hostname;
   } catch {
     return url;
   }
 }
 
 export function ProjectAction({ descriptor }: Props) {
-  if (!descriptor.url) return null;
+  const { url, repo } = descriptor;
+  if (!url && !repo) return null;
   return (
-    <a className="artifact-action" href={descriptor.url} target="_blank" rel="noopener noreferrer">
-      ↗ {hostname(descriptor.url)}
-    </a>
+    <>
+      {url && (
+        <a className="artifact-action" href={url} target="_blank" rel="noopener noreferrer">
+          ↗ {hostPlusPath(url)}
+        </a>
+      )}
+      {repo && (
+        <a
+          className="artifact-action artifact-action-secondary"
+          href={repo}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          ↗ {hostPlusPath(repo)}
+        </a>
+      )}
+    </>
   );
 }
