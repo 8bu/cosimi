@@ -8,6 +8,7 @@ import { GenericBody } from "@/features/artifacts/components/bodies/GenericBody"
 import { ProjectAction } from "@/features/artifacts/components/actions/ProjectAction";
 import { EssayAction } from "@/features/artifacts/components/actions/EssayAction";
 import { CvAction } from "@/features/artifacts/components/actions/CvAction";
+import { useArtifactScrollRestore } from "@/features/artifacts/hooks/useArtifactScrollRestore";
 import { useCloseArtifact } from "@/features/artifacts/hooks/useCloseArtifact";
 import type { ArtifactDescriptor } from "@/features/artifacts/types";
 
@@ -61,8 +62,10 @@ function actionFor(d: ArtifactDescriptor): ReactNode {
  */
 export function ArtifactPane({ descriptor }: Props) {
   const { close } = useCloseArtifact();
+  const bodyRef = useArtifactScrollRestore(descriptor.slug);
   return (
     <ArtifactPanel
+      bodyRef={bodyRef}
       kicker={kickerFor(descriptor)}
       title={descriptor.title}
       meta={descriptor.summary || undefined}

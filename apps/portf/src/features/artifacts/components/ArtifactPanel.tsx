@@ -5,6 +5,7 @@ interface ArtifactPanelProps {
   title: string;
   meta?: string;
   action?: ReactNode;
+  bodyRef?: (el: HTMLElement | null) => void;
   onClose: () => void;
   children: ReactNode;
 }
@@ -21,6 +22,7 @@ export function ArtifactPanel({
   title,
   meta,
   action,
+  bodyRef,
   onClose,
   children,
 }: ArtifactPanelProps) {
@@ -85,7 +87,9 @@ export function ArtifactPanel({
         <div className="artifact-panel-title">{title}</div>
         {meta && <div className="artifact-panel-meta kbd">{meta}</div>}
       </div>
-      <div className="artifact-panel-body">{children}</div>
+      <div ref={bodyRef} className="artifact-panel-body">
+        {children}
+      </div>
     </section>
   );
 }
