@@ -14,7 +14,7 @@ export function EssayCard({ e }: EssayCardProps) {
     <Link to={e.href} className="artx-essay artx-essay-lg" aria-label={`Open essay ${e.title}`}>
       <span className="artx-essay-num">{e.n}</span>
       <div className="artx-essay-main">
-        <div className="artx-essay-title" style={{ fontSize: 15 }}>
+        <div className="artx-essay-title" style={{ fontSize: 17 }}>
           {e.title}
         </div>
         <p className="artx-essay-dek">{e.dek}</p>
