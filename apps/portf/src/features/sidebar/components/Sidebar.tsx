@@ -53,6 +53,7 @@ export function Sidebar() {
           <Wordmark sub={null} size={13} />
         </Link>
         <NewChatButton />
+        <div className="v1-section-label">Resources</div>
         <ArtifactsNavItem />
         <ThreadList />
 
