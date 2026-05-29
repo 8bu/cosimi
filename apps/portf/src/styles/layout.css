@@ -25,40 +25,72 @@
  * direct child is capped to a 760px column and centered so the
  * conversation reads like a real chat product (Claude / ChatGPT
  * standard), not a full-bleed terminal log. */
+/* Flex column with overflow-y:auto. Key insight: __messages uses
+ * `flex: 1 0 auto` (grow OK, shrink-disabled, basis=natural content
+ * height) so its natural content height is always honored. When that
+ * sum (header + content + footer) exceeds chat-pane height, the parent
+ * scrolls. With shrink disabled, content NEVER gets clipped to the
+ * available flex space - the overflow propagates to chat-pane and
+ * sticky position works correctly. */
 .chat-pane {
   display: flex;
   flex-direction: column;
   height: 100%;
-  overflow: hidden;
-  padding: 16px 22px 24px;
+  overflow-y: auto;
+  /* No vertical padding - sticky elements hug viewport edges. */
 }
+/* All direct children centered in 760 reading column with own h-padding. */
 .chat-pane > * {
   width: 100%;
   max-width: 760px;
   margin-left: auto;
   margin-right: auto;
+  padding-left: 22px;
+  padding-right: 22px;
 }
 
-/* Messages wrapper: scrollable middle. min-height:0 lets flex children
- * actually shrink - without it the inner scroll never engages. */
 .chat-pane__messages {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
+  /* `flex: 1 0 auto` = grow:1 shrink:0 basis:auto. Grows to fill empty
+   * space on short threads (pushes footer to viewport bottom). Won't
+   * shrink below content height, so tall threads expand the flex parent
+   * past chat-pane's height = scrollbar engages. */
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
 }
 
+/* mobile-topbar + ChatHeader pinned to true top:0 (no parent padding).
+ * Padding-top sits INSIDE the sticky element so the gradient fade starts
+ * from the actual viewport edge, not 16px below. */
+.chat-pane > .mobile-topbar,
+.chat-pane > .chat-header {
+  position: sticky;
+  top: 0;
+  background: linear-gradient(to bottom, var(--canvas) 60%, transparent 100%);
+  padding-top: 16px;
+  padding-bottom: 32px;
+  z-index: 2;
+}
+
+/* Composer pinned to true bottom:0. Padding-bottom inside the sticky
+ * element so the bottom gutter sits below the gradient fade. */
 .chat-pane__footer {
-  flex-shrink: 0;
+  position: sticky;
+  bottom: 0;
+  background: linear-gradient(to top, var(--canvas) 60%, transparent 100%);
   display: flex;
   flex-direction: column;
   gap: 12px;
+  padding-top: 32px;
+  padding-bottom: 24px;
+  z-index: 2;
 }
 
+/* Natural height (no flex:1). With chat-pane as the grid scroll container,
+ * message-list expanding past the 1fr row's allocation is what triggers
+ * .chat-pane's overflow scroll. flex:1 here caps it at allocation and
+ * the overflowing bubbles render visibly but don't bump the row height. */
 .message-list {
-  flex: 1;
-  overflow-y: auto;
   padding: 8px 0;
   display: flex;
   flex-direction: column;
@@ -263,6 +295,15 @@ body,
   display: none;
 }
 
+/* portfolio.css sets `.v1-sidebar { width: 220px }`. The chat-shell grid
+ * already controls the sidebar column width (240px), so the explicit
+ * width is redundant + conflicts (220 vs 240 leaves a 20px gap). Override
+ * to auto so the grid template wins as the single source of truth.
+ * portfolio.css is verbatim-locked (Phase C rule) - can't edit there. */
+.v1-sidebar {
+  width: auto;
+}
+
 /* ─── Mobile drawer overrides ──────────────────────────────────────── */
 @media (max-width: 768px) {
   .chat-shell {
@@ -391,10 +432,24 @@ body,
    ───────────────────────────────────────────────────────────── */
 
 /* When the chat shell has an artifact open, switch from 2-col to 3-col.
- * The conversation column compresses to a comfortable reading width and
- * the artifact column fills remaining space. */
+ * sidebar fixed; chat respects 360px min then grows; artifact takes equal
+ * share of remaining (1fr/1fr) so XL viewports give ~50% to each instead
+ * of letting artifact eat everything past chat's old 360px cap. */
 .chat-shell[data-artifact-open="true"] {
-  grid-template-columns: 240px minmax(0, 360px) minmax(0, 1fr);
+  grid-template-columns: 240px minmax(360px, 1fr) minmax(0, 1fr);
+}
+
+/* Mount animation: slide-in from right + fade. ~220ms ease-out.
+ * Global prefers-reduced-motion rule in theme.css clamps duration. */
+@keyframes artifact-slide-in {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 /* The artifact-pane is the section element <ArtifactPanel> renders.
@@ -407,6 +462,7 @@ body,
   background: var(--cream-2);
   border-left: 2px solid var(--ink);
   outline: none;
+  animation: artifact-slide-in 220ms ease-out;
 }
 
 /* Title block sits below the chrome row. */

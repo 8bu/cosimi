@@ -37,8 +37,14 @@ describe("MessageList", () => {
   it("calls scrollTo on message change", () => {
     const scrollSpy = vi.fn();
     Element.prototype.scrollTo = scrollSpy as unknown as Element["scrollTo"];
-    const { rerender } = render(<MessageList messages={[u("u1", "a")]} />);
-    rerender(<MessageList messages={[u("u1", "a"), b("b1", "b")]} />);
+    // MessageList's effect targets .closest('.chat-pane'); wrap so it resolves.
+    const Wrap = ({ msgs }: { msgs: ChatMessage[] }) => (
+      <div className="chat-pane">
+        <MessageList messages={msgs} />
+      </div>
+    );
+    const { rerender } = render(<Wrap msgs={[u("u1", "a")]} />);
+    rerender(<Wrap msgs={[u("u1", "a"), b("b1", "b")]} />);
     expect(scrollSpy).toHaveBeenCalled();
   });
 });

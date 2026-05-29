@@ -35,6 +35,7 @@ export function ChatHeader({ threadId, messages }: ChatHeaderProps) {
 
   return (
     <div
+      className="chat-header"
       style={{
         display: "flex",
         justifyContent: "space-between",

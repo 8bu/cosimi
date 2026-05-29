@@ -20,7 +20,11 @@ export function MessageList({ messages }: MessageListProps) {
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+    // Scroll container is .chat-pane (overflow-y owner). closest() handles
+    // depth changes (e.g. wrapping in fragments) without re-wiring.
+    const scroller = el.closest<HTMLElement>(".chat-pane");
+    if (!scroller) return;
+    scroller.scrollTo({ top: scroller.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
   return (
