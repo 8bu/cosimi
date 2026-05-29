@@ -18,7 +18,7 @@ describe("<ArtifactPanel>", () => {
         <div data-testid="body">body</div>
       </ArtifactPanel>,
     );
-    expect(screen.getByText("ARTIFACT · WEGOPRO")).toBeTruthy();
+    expect(screen.getByText("↗ ARTIFACT · WEGOPRO")).toBeTruthy();
     expect(screen.getByText("WegoPro")).toBeTruthy();
     expect(screen.getByText("x")).toBeTruthy();
     expect(screen.getByTestId("body")).toBeTruthy();

@@ -1,4 +1,4 @@
-import { type ReactNode, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useEffect, useRef, type ReactNode, type KeyboardEvent as ReactKeyboardEvent } from "react";
 
 interface ArtifactPanelProps {
   kicker: string;
@@ -10,13 +10,11 @@ interface ArtifactPanelProps {
 }
 
 /**
- * Chrome wrapper for the artifact pane. Ported from
- * `docs/superpowers/artifacts/simlm2/project/flow-and-pages.jsx:273-306`.
- *
- * Renders BOTH the desktop `×` close button AND the mobile `← BACK` pill in
- * the DOM unconditionally. `layout.css` (Task 12) shows one per viewport via
- * media query. Both call onClose. Esc on a focused section also closes,
- * unless focus is inside an input/textarea/contentEditable.
+ * Chrome wrapper for the artifact pane. Ports the design source
+ * flow-and-pages.jsx:273-306. Auto-focuses the section on mount so Esc
+ * works immediately without manual tab-in. Renders BOTH the desktop ×
+ * close button AND the mobile ← BACK pill; layout.css media query shows
+ * one per viewport.
  */
 export function ArtifactPanel({
   kicker,
@@ -26,6 +24,12 @@ export function ArtifactPanel({
   onClose,
   children,
 }: ArtifactPanelProps) {
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    sectionRef.current?.focus({ preventScroll: true });
+  }, []);
+
   function onKeyDown(e: ReactKeyboardEvent<HTMLElement>) {
     if (e.key !== "Escape") return;
     const el = document.activeElement as HTMLElement | null;
@@ -46,6 +50,7 @@ export function ArtifactPanel({
 
   return (
     <section
+      ref={sectionRef}
       className="artifact-pane"
       tabIndex={-1}
       onKeyDown={onKeyDown}
@@ -62,7 +67,7 @@ export function ArtifactPanel({
           >
             ← BACK
           </span>
-          <span className="artifact-kicker">{kicker}</span>
+          <span className="artifact-kicker">↗ {kicker}</span>
           {action && <div className="artifact-chrome-actions">{action}</div>}
           <span
             className="artifact-close"

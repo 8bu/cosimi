@@ -44,7 +44,7 @@ describe("<ArtifactPane>", () => {
   it("renders project kicker, project body, and project action", async () => {
     const { ArtifactPane } = await import("@/features/artifacts/components/ArtifactPane");
     const { container } = render(<ArtifactPane descriptor={d()} />);
-    expect(screen.getByText("ARTIFACT · WegoPro · 2022–2026")).toBeTruthy();
+    expect(screen.getByText("↗ ARTIFACT · WegoPro · 2022–2026")).toBeTruthy();
     expect(container.querySelector(".artifact-body.is-projects")).toBeTruthy();
     expect(container.querySelector("a.artifact-action")?.getAttribute("href")).toBe(
       "https://wegopro.com",
@@ -57,7 +57,7 @@ describe("<ArtifactPane>", () => {
     const { container } = render(
       <ArtifactPane descriptor={d({ kind: "essays", title: "Migration", period: "04 · 2026" })} />,
     );
-    expect(screen.getByText("ESSAY · 04 · 2026")).toBeTruthy();
+    expect(screen.getByText("↗ ESSAY · 04 · 2026")).toBeTruthy();
     expect(container.querySelector(".artifact-body.is-essays")).toBeTruthy();
     expect(container.querySelector("a.artifact-action")?.getAttribute("href")).toBe("/rss.xml");
   });
@@ -74,7 +74,7 @@ describe("<ArtifactPane>", () => {
         })}
       />,
     );
-    expect(screen.getByText("CV · longnguyen-2026.pdf · UPDATED 12 days ago")).toBeTruthy();
+    expect(screen.getByText("↗ CV · longnguyen-2026.pdf · UPDATED 12 days ago")).toBeTruthy();
     expect(container.querySelector(".artifact-body.is-resume")).toBeTruthy();
     const link = container.querySelector("a.artifact-action") as HTMLAnchorElement;
     expect(link.hasAttribute("download")).toBe(true);
@@ -85,9 +85,9 @@ describe("<ArtifactPane>", () => {
     const { container } = render(
       <ArtifactPane descriptor={d({ kind: "misc", title: "Thing", url: undefined })} />,
     );
-    // misc kicker = bare title; it also appears in the panel title — use getAllByText
+    // misc kicker = bare title (now glyph-prefixed); panel title still bare.
     expect(screen.getAllByText("Thing").length).toBeGreaterThanOrEqual(1);
-    expect(container.querySelector(".artifact-kicker")?.textContent).toBe("Thing");
+    expect(container.querySelector(".artifact-kicker")?.textContent).toBe("↗ Thing");
     expect(container.querySelector(".artifact-body.is-misc")).toBeTruthy();
     expect(container.querySelector("a.artifact-action")).toBeNull();
   });
