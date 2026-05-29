@@ -472,7 +472,7 @@ body,
 }
 .artifact-panel-title {
   font-family: var(--font-display);
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
   letter-spacing: -0.018em;
   line-height: 1.05;
@@ -486,7 +486,7 @@ body,
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 14px 18px 24px;
+  padding: 16px 18px 24px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -507,6 +507,46 @@ body,
   line-height: 1.55;
   color: var(--ink-2);
 }
+
+/* Project body: heading emphasis + footer balance.
+ * Design source flow-and-pages.jsx:351-360 places stack/CTA at the bottom. */
+.artifact-body.is-projects h1,
+.artifact-body.is-projects h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.012em;
+  line-height: 1.1;
+  margin: 0 0 8px;
+}
+.artifact-body.is-projects h1 {
+  font-size: 18px;
+}
+.artifact-body.is-projects h2 {
+  font-size: 14px;
+  margin-top: 14px;
+}
+.artifact-body.is-projects p {
+  margin: 0 0 10px;
+}
+.artifact-body.is-projects ul {
+  margin: 0 0 10px;
+  padding-left: 18px;
+}
+.artifact-body.is-projects li {
+  margin: 0 0 4px;
+}
+
+/* Essay body: drop-cap + reading-friendly measure + footer rule.
+ * Design source flow-and-pages.jsx:428-463. */
+.artifact-body.is-essays {
+  font-family: var(--font-display);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.artifact-body.is-essays p {
+  margin: 0 0 10px;
+  text-wrap: pretty;
+}
 .artifact-body.is-essays p:first-of-type::first-letter {
   font-family: var(--font-display);
   font-size: 56px;
@@ -516,8 +556,115 @@ body,
   color: var(--coral);
   float: left;
 }
+.artifact-body.is-essays h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  margin: 16px 0 8px;
+}
+.artifact-body.is-essays blockquote {
+  border-left: 2px solid var(--coral);
+  padding-left: 12px;
+  margin: 12px 0;
+  color: var(--ink-3);
+  font-style: italic;
+}
+
+/* Resume body: 2fr/1fr grid layout via CvSection wrappers.
+ * Design source flow-and-pages.jsx:531-577. */
 .artifact-body.is-resume {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
   font-size: 11px;
+}
+.artifact-body.is-resume .cv-section.is-left {
+  grid-column: 1;
+}
+.artifact-body.is-resume .cv-section.is-right {
+  grid-column: 2;
+}
+.artifact-body.is-resume h2 {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--coral);
+  margin: 0 0 6px;
+}
+.artifact-body.is-resume h2 + h2 {
+  margin-top: 14px;
+}
+.artifact-body.is-resume strong {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--ink);
+}
+.artifact-body.is-resume p {
+  margin: 0 0 5px;
+}
+.artifact-body.is-resume ul {
+  margin: 0 0 10px;
+  padding-left: 14px;
+}
+.artifact-body.is-resume li {
+  margin: 0 0 3px;
+}
+@media (max-width: 768px) {
+  .artifact-body.is-resume {
+    grid-template-columns: 1fr;
+  }
+  .artifact-body.is-resume .cv-section.is-left,
+  .artifact-body.is-resume .cv-section.is-right {
+    grid-column: 1;
+  }
+}
+
+/* Misc body: simple readable defaults; no decoration. */
+.artifact-body.is-misc h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  margin: 14px 0 6px;
+}
+.artifact-body.is-misc h2:first-child {
+  margin-top: 0;
+}
+.artifact-body.is-misc p {
+  margin: 0 0 10px;
+}
+.artifact-body.is-misc a {
+  color: var(--coral);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.artifact-body.is-misc ul {
+  margin: 0 0 10px;
+  padding-left: 18px;
+}
+.artifact-body.is-misc li {
+  margin: 0 0 4px;
+}
+
+/* Secondary action variant — same shape, inverted color for stacking with primary.
+ * Used by ProjectAction when both `url` and `repo` are present (Task 3). */
+.artifact-action-secondary {
+  background: transparent;
+  color: var(--ink);
+  border: 1.5px solid var(--ink);
+}
+.artifact-action-secondary:hover {
+  background: var(--ink);
+  color: var(--canvas);
+}
+
+/* Override: allow multi-action wrap when stacking primary + secondary. */
+.artifact-chrome-actions {
+  flex-wrap: wrap;
+  row-gap: 4px;
 }
 
 /* Desktop default: show ×, hide ← BACK. */
