@@ -346,13 +346,14 @@ body,
   border: 2px solid var(--ink);
   display: flex;
   gap: 12px;
-  padding: 10px;
+  padding: 10px 12px 10px 10px;
   cursor: pointer;
   align-items: stretch;
   background: transparent;
   font: inherit;
   width: 100%;
   text-align: left;
+  transition: background 120ms ease;
 }
 
 .artifact-preview-card:focus-visible {
@@ -361,11 +362,11 @@ body,
 }
 
 .artifact-preview-card:hover {
-  background: var(--cream-2, transparent);
+  background: var(--cream-2);
 }
 
 .artifact-preview-card-thumb {
-  width: 96px;
+  width: 88px;
   height: 64px;
   flex-shrink: 0;
   object-fit: cover;
@@ -379,7 +380,7 @@ body,
   justify-content: center;
   font-family: var(--font-mono);
   font-size: 9px;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.18em;
   color: var(--ink-4);
   text-transform: uppercase;
 }
@@ -394,8 +395,8 @@ body,
 
 .artifact-preview-card-kicker {
   font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.16em;
+  font-size: 9px;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--coral);
 }
@@ -403,13 +404,14 @@ body,
 .artifact-preview-card-title {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
   letter-spacing: -0.01em;
+  line-height: 1.2;
 }
 
 .artifact-preview-card-stack {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 9.5px;
   color: var(--ink-3);
   margin-top: 2px;
   overflow-wrap: anywhere;
@@ -418,12 +420,17 @@ body,
 .artifact-preview-card-arrow {
   align-self: center;
   font-family: var(--font-mono);
-  font-size: 16px;
+  font-size: 18px;
   color: var(--coral);
+  transition: transform 120ms ease;
+}
+
+.artifact-preview-card:hover .artifact-preview-card-arrow {
+  transform: translateX(2px);
 }
 
 .artifact-preview-card-hint {
-  margin-top: 6px;
+  margin-top: 4px;
   color: var(--ink-4);
 }
 
