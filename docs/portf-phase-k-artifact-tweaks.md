@@ -101,3 +101,51 @@ Screenshots: `docs/portf-phase-k-smoke/`.
 None. All five direct-link MDX routes render with correct per-kind chrome (kicker / actions / chips). All six interactive behaviors pass on the chat shell. Drop-cap, 2fr/1fr resume grid, mobile single-column collapse, mobile ← BACK pill, kicker visibility, ×-vs-← mutual exclusion at the 600px breakpoint all match design intent. No CSS regressions, no layout overflow, no console errors observed during smoke.
 
 Note on test env: the portf api on :3010 was running but the portf database had been provisioned away in a prior session; provisioned + migrated + seeded (327 active pairs across 10 batches) to make chat-driven behavior smoke executable. Not a code issue — the dev script (`scripts/dev-portf.sh`) handles this chain automatically for fresh starts.
+
+## K-extension: artifacts gallery page
+
+Per operator hand-off (chat transcripts `docs/superpowers/artifacts/simlm2/chats/`), the gallery shipped:
+
+- new `/artifacts` route with sidebar + `<ArtifactsGallery />`
+- sidebar item "Artifacts" with item count, above thread list, below `+ NEW CHAT`
+- 4 filter pills: All / Projects / Writing / CV (matching design source; `misc` kind not surfaced on index)
+- catalog-driven: 3 projects + 3 essays + 1 resume = 7 items shown
+- CSS port from design source `styles.css:1525-1885` (sidebar nav-item icon + full `.artx-*` block)
+
+### CSS variable substitutions
+
+None required. All vars referenced by the design source's `.artx-*` rules (`--coral-tint`, `--cream-card`, `--line-strong`, `--label-tracking`, `--label-caps`) already exist in `portfolio.css` across every theme block (`cream`, `mono`, `riso`, `press` etc.) — verified via `grep -h '\-\-coral-tint\|\-\-cream-card\|\-\-line-strong'`. The port is therefore byte-faithful; no fallbacks added in `layout.css`.
+
+### Layout deltas vs design source
+
+- `.artifacts-shell` (new): mirrors `.chat-shell`'s `grid-template-columns: 240px 1fr` but anchored at `height: 100dvh` so the gallery fills the viewport when mounted outside `<ChatShell>` (which only wraps `/chat/*`).
+- `.artx-body` and `.artx-single`: switched from `overflow: hidden` to `overflow-y: auto` so long content scrolls within the gallery card; the design source assumed a frame-clamped canvas.
+- Mobile (`max-width: 768px`): `.artifacts-shell`, `.artx-body`, `.artx-card-grid`, `.artx-cv-detail-grid` all collapse to a single column. Sidebar drawer behavior is inherited from the existing `@media` block.
+
+### Files added
+
+- `apps/portf/src/features/artifacts-index/data.ts` — pure mapper from `getCatalog()` → gallery row shapes (`ProjectGalleryItem` etc.).
+- `apps/portf/src/features/artifacts-index/components/ArtifactsGallery.tsx` — top-level component with local `useState<Filter>`.
+- `apps/portf/src/features/artifacts-index/components/{ProjectRow,EssayRow,ProjectCard,EssayCard,CvSlab,CvDetail}.tsx` — row/card primitives, each ported from the matching component in `artifacts-page.jsx`.
+- `apps/portf/src/features/artifacts-index/__tests__/ArtifactsGallery.test.tsx` — 6 tests covering header count, default All view, and All → Projects / Writing / CV pill switches plus href assertion. Boundary-mocks `@/features/artifacts-index/data` so MDX glob doesn't need wiring in jsdom.
+- `apps/portf/src/features/sidebar/components/ArtifactsNavItem.tsx` — sidebar row at `/artifacts` with bordered mini-square icon (`.v1-nav-ico`) + zero-padded item count.
+- `apps/portf/src/routes/artifacts.tsx` — TanStack file-based route mounting `.artifacts-shell` → `<Sidebar />` + `<ArtifactsGallery />`.
+
+### Files modified
+
+- `apps/portf/src/styles/layout.css` — appended the `.v1-nav-ico`, `.v1-nav-item`, `.artifacts-shell`, and full `.artx-*` block.
+- `apps/portf/src/features/sidebar/components/Sidebar.tsx` — inserted `<ArtifactsNavItem />` between `<NewChatButton />` and `<ThreadList />`.
+- `apps/portf/src/features/sidebar/__tests__/Sidebar.test.tsx` — added `useRouterState` to the router mock and stubbed `@/features/artifacts-index/data` so the new nav item renders under jsdom.
+
+### CvDetail content provenance
+
+The `EXPERIENCE` array hard-codes the company/role list from `apps/portf/public/longnguyen-2026.pdf` page 2 (WegoPro 2022-2026, BlockDevs/Multiplier 2019-2022, Motorist.sg 2017-2019, Letterink 2016-2017, Freelance 2013-2016). The standalone `/artifact/resume/longnguyen-2026` route still owns the full MDX résumé; this slab is a quick read on the CV filter view.
+
+### Gates
+
+- typecheck: pass (all workspaces)
+- lint: pass (8 pre-existing warnings, 0 errors — none in new files)
+- format:check: pass (400 files)
+- tests: 224/224 passing in `@portf/web` (+6 vs Phase K's 218 baseline)
+- build: pass (`@portf/web` -> dist, new `artifacts-Shvmtirm.js` 7.48 kB chunk, gzip 2.09 kB; CSS 64.99 kB gzip 12.28 kB)
+
