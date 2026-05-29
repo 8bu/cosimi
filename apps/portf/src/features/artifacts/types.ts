@@ -64,5 +64,5 @@ export interface ArtifactDescriptor {
   order: number;
   url?: string;
   repo?: string;
-  Component: ComponentType;
+  Component: ComponentType<{ components?: Record<string, ComponentType<any>> }>;
 }
