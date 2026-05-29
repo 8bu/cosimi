@@ -480,7 +480,7 @@ body,
 
 /* Title block sits below the chrome row. */
 .artifact-panel-head {
-  padding: 14px 18px 10px;
+  padding: 18px 18px 14px;
   border-bottom: 1px solid var(--line);
 }
 .artifact-panel-title {
@@ -491,7 +491,7 @@ body,
   line-height: 1.05;
 }
 .artifact-panel-meta {
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 /* Scrollable body area. */
@@ -514,20 +514,30 @@ body,
   margin-right: auto;
 }
 
-/* Per-body preamble (stack row only; summary lives in panel meta). */
-.artifact-body-header {
-  margin: 0 0 4px;
-}
-.artifact-body-stack {
-  margin: 0;
-}
-
-/* MDX body wrapper — per-kind typography. */
+/* MDX body wrapper — per-kind typography.
+ * Flex column lets the per-body footer push to the bottom via
+ * `margin-top: auto`, matching the simlm2 design source
+ * (docs/superpowers/artifacts/simlm2/project/flow-and-pages.jsx:357-360). */
 .artifact-body {
   font-family: var(--font-body);
   font-size: 15px;
   line-height: 1.6;
   color: var(--ink-2);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+/* Per-body footer (stack row at bottom; design source footer pattern). */
+.artifact-body-footer {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.artifact-body-stack {
+  margin: 0;
+  font-family: var(--font-mono);
 }
 
 /* Project body: heading emphasis + footer balance.

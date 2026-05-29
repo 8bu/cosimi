@@ -10,15 +10,13 @@ const mdxComponents = { CvSection };
 export function CvBody({ descriptor }: Props) {
   const { stack, Component } = descriptor;
   return (
-    <>
+    <div className="artifact-body is-resume">
+      <Component components={mdxComponents} />
       {stack.length > 0 && (
-        <header className="artifact-body-header">
+        <footer className="artifact-body-footer">
           <p className="artifact-body-stack kbd">{stack.join(" · ")}</p>
-        </header>
+        </footer>
       )}
-      <div className="artifact-body is-resume">
-        <Component components={mdxComponents} />
-      </div>
-    </>
+    </div>
   );
 }

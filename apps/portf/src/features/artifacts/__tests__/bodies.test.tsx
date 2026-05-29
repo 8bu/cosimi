@@ -35,7 +35,7 @@ describe.each(["projects", "essays", "resume", "misc"] as const)(
       misc: "GenericBody",
     };
 
-    it(`renders stack preamble and mdx body with .is-${kind} modifier`, async () => {
+    it(`renders mdx body with .is-${kind} modifier and stack footer`, async () => {
       const Mod = await import(`@/features/artifacts/components/bodies/${fileByKind[kind]}`);
       const Component = Mod[fileByKind[kind]];
       const { container } = render(<Component descriptor={d({ kind })} />);
@@ -43,6 +43,8 @@ describe.each(["projects", "essays", "resume", "misc"] as const)(
       expect(screen.getByTestId("mdx-body")).toBeTruthy();
       const body = container.querySelector(`.artifact-body.is-${kind}`);
       expect(body).toBeTruthy();
+      const footer = container.querySelector(`.artifact-body.is-${kind} > .artifact-body-footer`);
+      expect(footer).toBeTruthy();
     });
 
     it("does NOT render summary inside the body (panel.meta owns it)", async () => {
