@@ -855,6 +855,20 @@ body,
   }
 }
 
+/* Wrapper around the right-hand column so the `.mobile-topbar` row
+ * can sit above the gallery/pane without disturbing the shell grid.
+ * Mirrors the ChatPane composition (mobile-topbar then main pane).
+ * Flex column so .artx / .artifact-pane (children with `flex: 1` or
+ * `height: 100%`) fill the cell on desktop, with the topbar a fixed
+ * row on mobile via its own @media rule. */
+.artifacts-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+
 /* ─── Artifacts page (library / index) ─────────────────────── */
 .artx {
   flex: 1;

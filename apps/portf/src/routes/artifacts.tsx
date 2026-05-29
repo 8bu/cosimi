@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { MobileBurger } from "@/features/sidebar/components/MobileBurger";
 import { Sidebar } from "@/features/sidebar/components/Sidebar";
 import { ArtifactsGallery } from "@/features/artifacts-index/components/ArtifactsGallery";
 
@@ -11,6 +12,13 @@ import { ArtifactsGallery } from "@/features/artifacts-index/components/Artifact
  * its own grid via `.artifacts-shell`, drops in the same `<Sidebar />`
  * so chat-thread navigation stays one click away, and mounts
  * `<ArtifactsGallery />` in place of the chat pane.
+ *
+ * Mobile drawer affordance: the `<MobileBurger />` lives in a
+ * `.mobile-topbar` row at the top of the gallery column. The shared
+ * `@media (max-width: 768px)` rule in layout.css hides it on desktop
+ * and shows it on mobile; without it the sidebar (offscreen via
+ * `translateX(-100%)`) has no way to open. Mirrors `<ChatPane>`'s
+ * composition.
  */
 export const Route = createFileRoute("/artifacts")({
   component: ArtifactsRoute,
@@ -20,7 +28,12 @@ function ArtifactsRoute() {
   return (
     <section className="artifacts-shell">
       <Sidebar />
-      <ArtifactsGallery />
+      <div className="artifacts-main">
+        <div className="mobile-topbar">
+          <MobileBurger />
+        </div>
+        <ArtifactsGallery />
+      </div>
     </section>
   );
 }
