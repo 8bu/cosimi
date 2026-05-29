@@ -504,6 +504,15 @@ body,
   flex-direction: column;
   gap: 12px;
 }
+/* Cap content reading width inside the pane; mirrors `.chat-pane > *`
+ * (760px column). Keeps scrollbar at the pane edge while line length
+ * stays sane on XL viewports. */
+.artifact-panel-body > * {
+  width: 100%;
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+}
 
 /* Per-body preamble (stack row only; summary lives in panel meta). */
 .artifact-body-header {
@@ -884,6 +893,10 @@ body,
   overflow: hidden;
   position: relative;
   min-width: 0;
+  width: 100%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 .artx-head {
   display: flex;
