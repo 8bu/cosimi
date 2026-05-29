@@ -43,3 +43,24 @@ file paths, the trap that would break it.
 No module-init `window` / `document` reads in the artifact stack. K-phase work is free to ship new bodies / actions provided new code keeps DOM reads inside effects + handlers.
 
 ## K2-K7 entries land here
+
+## K6 - SSG-readiness final guard
+
+Baseline (K1): 0 module-init blockers found. K1 catalogued three runtime patterns (`useCloseArtifact` window.history read, `ArtifactPanel` document.activeElement read, `catalog.ts` import.meta.glob) — all classified SAFE because they sit inside callbacks / handlers / build-time-resolved globs.
+
+After K2-K5 code work + K-CONTENT MDX authoring, the audit was re-run. New runtime patterns introduced:
+
+| File | Line | Pattern | Context | SSR-safe? | Reason |
+|---|---|---|---|---|---|
+| hooks/useArtifactScrollRestore.ts | 23 | sessionStorage.getItem | useEffect body | yes | runs only on client after hydration |
+| hooks/useArtifactScrollRestore.ts | 29 | sessionStorage.setItem | onScroll handler inside useEffect | yes | event handler, never SSR |
+| hooks/useOpenerFocusRestore.ts | 16 | document.activeElement | useEffect body | yes | runs only on client after hydration |
+| hooks/useOpenerFocusRestore.ts | 17 | document.body | useEffect body | yes | runs only on client after hydration |
+| hooks/useCloseArtifact.ts | 21 | window.history.length | close() callback | yes | event handler, never SSR (K1 baseline pattern, unchanged) |
+| components/ArtifactPanel.tsx | 32 | sectionRef.current?.focus | useEffect body | yes | runs only on client after hydration |
+| components/ArtifactPanel.tsx | 37 | document.activeElement | onKeyDown handler | yes | event handler, never SSR (K1 baseline pattern, line shifted) |
+| catalog.ts | 94 | import.meta.glob (eager) | inside ensureCatalog(), lazy | yes | Vite resolves at build time, not at runtime (K1 baseline pattern, line shifted) |
+
+**Result:** No new module-init DOM reads. No client-only dynamic imports in the artifact stack. Phase I (Vike SSG) can prerender the standalone `/artifact/$kind/$slug` routes as-is.
+
+K-CONTENT added 10 MDX descriptors but no runtime code; SSG audit unaffected.
