@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import type { ResumeGalleryItem } from "@/features/artifacts-index/data";
 
 /**
@@ -46,16 +47,25 @@ export function CvDetail({ resume }: CvDetailProps) {
             Web Developer · product-minded · 10+ yrs · hvanlong@pm.me
           </div>
         </div>
-        {resume.url && (
-          <a
-            href={resume.url}
-            download
-            className="artifact-action"
-            aria-label="Download résumé PDF"
+        <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+          <Link
+            to={resume.href}
+            className="artifact-action artifact-action-secondary"
+            aria-label="Open full résumé page"
           >
-            ↓ {resume.title}
-          </a>
-        )}
+            ↗ open full
+          </Link>
+          {resume.url && (
+            <a
+              href={resume.url}
+              download
+              className="artifact-action"
+              aria-label="Download résumé PDF"
+            >
+              ↓ {resume.title}
+            </a>
+          )}
+        </div>
       </div>
       <div className="artx-cv-detail-grid">
         <div>

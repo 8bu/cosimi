@@ -1130,6 +1130,13 @@ body,
   justify-content: space-between;
   align-items: center;
   gap: 10px;
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+  transition: padding-left 130ms ease;
+}
+.artx-cv-row:hover {
+  padding-left: 4px;
 }
 
 /* scroll-more fade */

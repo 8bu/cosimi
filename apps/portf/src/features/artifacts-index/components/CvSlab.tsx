@@ -1,10 +1,12 @@
+import { Link } from "@tanstack/react-router";
 import type { ResumeGalleryItem } from "@/features/artifacts-index/data";
 
 /**
  * Small CV slab in the right column of the "All" view. Ported from the
  * design source's CV block in `ArtifactsGallery` (artifacts-page.jsx:
- * 194-205). The download button is a real `<a download>` tag so the
- * browser handles the file save - no JS required.
+ * 194-205). The slab is a `<Link>` to the standalone resume route so
+ * clicking the body opens the full résumé; the .PDF anchor stops
+ * propagation so it triggers a download instead of navigating.
  */
 interface CvSlabProps {
   resume: ResumeGalleryItem;
@@ -17,7 +19,7 @@ export function CvSlab({ resume }: CvSlabProps) {
         <span>Curriculum Vitae</span>
         <span className="n">01</span>
       </div>
-      <div className="artx-cv-row">
+      <Link to={resume.href} className="artx-cv-row" aria-label={`Open résumé ${resume.title}`}>
         <div style={{ minWidth: 0 }}>
           <div style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 13 }}>
             Long NGUYỄN - 2026
@@ -32,11 +34,12 @@ export function CvSlab({ resume }: CvSlabProps) {
             download
             className="artifact-action"
             aria-label="Download résumé PDF"
+            onClick={(e) => e.stopPropagation()}
           >
             ↓ .PDF
           </a>
         )}
-      </div>
+      </Link>
     </div>
   );
 }
