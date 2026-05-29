@@ -4,9 +4,17 @@ import { fireEvent, render } from "@testing-library/react";
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
   useParams: () => ({}),
+  useRouterState: (arg?: { select?: (s: { location: { pathname: string } }) => unknown }) =>
+    arg?.select ? arg.select({ location: { pathname: "/" } }) : "/",
   Link: ({ children, ...rest }: { children: React.ReactNode; [k: string]: unknown }) => (
     <a {...rest}>{children}</a>
   ),
+}));
+
+// ArtifactsNavItem reads the catalog through this helper; mock it so
+// the sidebar test doesn't need MDX modules wired up.
+vi.mock("@/features/artifacts-index/data", () => ({
+  totalGalleryItems: () => 7,
 }));
 
 vi.mock("@/store/threads", () => {
