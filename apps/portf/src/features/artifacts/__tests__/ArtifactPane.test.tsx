@@ -52,14 +52,15 @@ describe("<ArtifactPane>", () => {
     expect(screen.getByTestId("mdx-body")).toBeTruthy();
   });
 
-  it("renders essay kicker + essay body + essay action", async () => {
+  it("renders essay kicker + essay body + empty essay action slot", async () => {
     const { ArtifactPane } = await import("@/features/artifacts/components/ArtifactPane");
     const { container } = render(
       <ArtifactPane descriptor={d({ kind: "essays", title: "Migration", period: "04 · 2026" })} />,
     );
     expect(screen.getByText("↗ ESSAY · 04 · 2026")).toBeTruthy();
     expect(container.querySelector(".artifact-body.is-essays")).toBeTruthy();
-    expect(container.querySelector("a.artifact-action")?.getAttribute("href")).toBe("/rss.xml");
+    // EssayAction returns null - RSS dropped, no per-item CTA for essays.
+    expect(container.querySelector("a.artifact-action")).toBeNull();
   });
 
   it("renders cv kicker + cv body + cv action when url set", async () => {

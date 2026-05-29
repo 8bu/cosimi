@@ -45,13 +45,11 @@ describe("<ProjectAction>", () => {
 });
 
 describe("<EssayAction>", () => {
-  it("always renders an RSS link", async () => {
+  it("renders nothing (essays have no per-item CTA)", async () => {
     const { EssayAction } = await import("@/features/artifacts/components/actions/EssayAction");
     const { container } = render(<EssayAction />);
-    const link = container.querySelector("a.artifact-action") as HTMLAnchorElement;
-    expect(link).toBeTruthy();
-    expect(link.getAttribute("href")).toBe("/rss.xml");
-    expect(link.textContent).toContain("subscribe via RSS");
+    expect(container.querySelector("a.artifact-action")).toBeNull();
+    expect(container.firstChild).toBeNull();
   });
 });
 
