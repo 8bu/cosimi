@@ -218,3 +218,36 @@ describe("optional url field", () => {
     expect(catalog.get("essay-1")?.url).toBeUndefined();
   });
 });
+
+describe("FrontmatterSchema.repo", () => {
+  it("accepts optional repo URL", async () => {
+    const v = await import("valibot");
+    const { FrontmatterSchema } = await import("@/features/artifacts/types");
+    const parsed = v.parse(FrontmatterSchema, {
+      slug: "test",
+      kind: "projects",
+      title: "T",
+      period: "2025",
+      stack: [],
+      summary: "s",
+      matchPatterns: ["test"],
+      repo: "https://github.com/8bu/test",
+    });
+    expect(parsed.repo).toBe("https://github.com/8bu/test");
+  });
+
+  it("omitting repo leaves it undefined", async () => {
+    const v = await import("valibot");
+    const { FrontmatterSchema } = await import("@/features/artifacts/types");
+    const parsed = v.parse(FrontmatterSchema, {
+      slug: "test",
+      kind: "projects",
+      title: "T",
+      period: "2025",
+      stack: [],
+      summary: "s",
+      matchPatterns: ["test"],
+    });
+    expect(parsed.repo).toBeUndefined();
+  });
+});
