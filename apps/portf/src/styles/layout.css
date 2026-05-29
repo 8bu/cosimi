@@ -571,11 +571,18 @@ body,
 }
 .artifact-body.is-essays p:first-of-type::first-letter {
   font-family: var(--font-display);
-  font-size: 64px;
   font-weight: 700;
-  line-height: 0.82;
-  padding-right: 8px;
   color: var(--coral);
+  /* Modern path: 3-line drop, 1-line sink. Chrome 110+, Safari 9+. */
+  initial-letter: 3 1;
+  -webkit-initial-letter: 3 1;
+  margin-right: 10px;
+  /* Fallback for browsers without initial-letter: float + tuned metrics
+   * to span ~3 body lines (body line-height 1.6 × 16px ≈ 25.6px, so cap
+   * ≈ 80px). */
+  font-size: 80px;
+  line-height: 0.85;
+  padding-top: 6px;
   float: left;
 }
 .artifact-body.is-essays h2 {
