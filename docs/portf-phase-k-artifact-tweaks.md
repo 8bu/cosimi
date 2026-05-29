@@ -64,3 +64,40 @@ After K2-K5 code work + K-CONTENT MDX authoring, the audit was re-run. New runti
 **Result:** No new module-init DOM reads. No client-only dynamic imports in the artifact stack. Phase I (Vike SSG) can prerender the standalone `/artifact/$kind/$slug` routes as-is.
 
 K-CONTENT added 10 MDX descriptors but no runtime code; SSG audit unaffected.
+
+## K7 - Gates + smoke
+
+### Standing gates
+
+- typecheck: pass (all 11 workspaces)
+- lint: pass (8 warnings, 0 errors)
+- format:check: pass (389 files, no drift)
+- tests: 492/492 passing across 9 packages (matcher 17, web 33, template 14, normalizer 8, db 2, admin 103, api 53, admin-api 44, portf 218)
+- build: pass (`@portf/web` -> dist, 369 kB JS / 58 kB CSS gzipped 116 / 11)
+
+### Visual smoke matrix
+
+| Kind | Slug | Desktop | Mobile |
+|---|---|---|---|
+| projects | wegopro | ok (kicker WEGOPRO.COM, × close, chrome top-left chips visible) | ok (← BACK pill left, × hidden, kicker right) |
+| projects | multiplier-finance | ok (kicker MULTIPLIER.FINANCE, different content set) | n/a |
+| essays | nuxt-migration | ok (drop-cap T, SUBSCRIBE VIA RSS kicker, essay typography) | ok (drop-cap survives narrow viewport) |
+| resume | longnguyen-2026 | ok (2fr/1fr grid: EXPERIENCE + SELECTED PROJECTS left, STACK/AI WORKFLOW/EDUCATION/LANGUAGES right) | ok (single-column collapse, sections stack in correct order) |
+| misc | simlm-explainer | ok (clean misc body, ABOUT THIS CHAT kicker, no .com action) | n/a |
+
+Screenshots: `docs/portf-phase-k-smoke/`.
+
+### Behavior verifications
+
+1. open via inline preview card: pass ("🚀 Best project" chip -> bot reply with `Open artifact: WegoPro` button -> click opens split-pane, URL gains `?artifact=wegopro`)
+2. close via ×: pass (URL drops `?artifact=...`, pane unmounts)
+3. close via Esc (no manual tab): pass (re-opened wegopro, pressed Esc immediately, URL stripped — confirms pane auto-focused on mount)
+4. close via ← BACK mobile: pass (at 375x812 the × is hidden and ← BACK pill closes the pane back to /chat)
+5. scroll restore: pass (essay pane scrolled to 226 — clamped from 300 because viewport-limited body had max scroll of 226 — closed, reopened same slug, scrollTop restored to 226)
+6. XL viewport 50/50 split: pass (at 1800 wide: sidebar 240 + chat 778 + artifact 778; 778 == 778, equal split confirmed)
+
+### Issues found during smoke
+
+None. All five direct-link MDX routes render with correct per-kind chrome (kicker / actions / chips). All six interactive behaviors pass on the chat shell. Drop-cap, 2fr/1fr resume grid, mobile single-column collapse, mobile ← BACK pill, kicker visibility, ×-vs-← mutual exclusion at the 600px breakpoint all match design intent. No CSS regressions, no layout overflow, no console errors observed during smoke.
+
+Note on test env: the portf api on :3010 was running but the portf database had been provisioned away in a prior session; provisioned + migrated + seeded (327 active pairs across 10 batches) to make chat-driven behavior smoke executable. Not a code issue — the dev script (`scripts/dev-portf.sh`) handles this chain automatically for fresh starts.
