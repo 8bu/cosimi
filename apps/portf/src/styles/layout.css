@@ -182,8 +182,14 @@
  * second line and the row grows vertically. Match the design (single
  * line, ellipsis on overflow). Targeted via `:not(.v1-dot):not(.v1-thread-meta)`
  * so the meta + dot keep their sizing; the footer / empty-state spans
- * also inherit the ellipsis behavior naturally. */
-.v1-thread > span:not(.v1-dot):not(.v1-thread-meta) {
+ * also inherit the ellipsis behavior naturally.
+ *
+ * `.v1-nav-ico` and `.v1-nav-count` are also `<span>` children of
+ * `.v1-thread` (ArtifactsNavItem row) but must NOT flex-grow - the icon
+ * is a fixed 11px square, the count is a right-aligned mono chip. Without
+ * the explicit exclusion the icon stretched to ~62px wide and read as a
+ * red-bordered rect next to "Artifacts". */
+.v1-thread > span:not(.v1-dot):not(.v1-thread-meta):not(.v1-nav-ico):not(.v1-nav-count) {
   flex: 1 1 0;
   min-width: 0;
   white-space: nowrap;
