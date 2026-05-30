@@ -10,6 +10,7 @@
     "prebuild": "pnpm og:generate",
     "build": "vite build",
     "preview": "vite preview",
+    "serve:prod": "tsx scripts/serve-prod.ts",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint .",
     "test": "vitest run",
