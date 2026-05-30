@@ -20,6 +20,18 @@
       "dependsOn": ["^build"],
       "outputs": ["coverage/**"]
     },
+    "test:ssg": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**",
+        "test/**",
+        "scripts/**",
+        "public/og/**",
+        "vite.config.ts",
+        "vitest.ssg.config.ts"
+      ],
+      "outputs": ["dist/**"]
+    },
     "clean": {
       "cache": false
     }
