@@ -1,6 +1,7 @@
 {
   "name": "simlm",
   "private": true,
+  "license": "SEE LICENSE IN LICENSE.md",
   "scripts": {
     "dev": "pnpm dev:simlm",
     "dev:simlm": "bash scripts/dev-simlm.sh",
