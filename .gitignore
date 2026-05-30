@@ -18,3 +18,6 @@ skills-lock.json
 
 # TanStack Router auto-generated route tree (portf).
 apps/portf/src/routeTree.gen.ts
+
+# TanStack Start scratch dir (portf).
+apps/portf/.tanstack/
