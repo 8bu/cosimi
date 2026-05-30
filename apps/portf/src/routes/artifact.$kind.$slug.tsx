@@ -2,7 +2,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 
 import { getDescriptor } from "@/features/artifacts/catalog";
 import { ArtifactPane } from "@/features/artifacts/components/ArtifactPane";
-import type { ArtifactKind } from "@/features/artifacts/types";
+import type { ArtifactDescriptor, ArtifactKind } from "@/features/artifacts/types";
 import { MobileBurger } from "@/features/sidebar/components/MobileBurger";
 import { Sidebar } from "@/features/sidebar/components/Sidebar";
 
@@ -19,6 +19,27 @@ export const Route = createFileRoute("/artifact/$kind/$slug")({
     if (!descriptor) throw notFound();
     if (descriptor.kind !== params.kind) throw notFound();
     return { descriptor };
+  },
+  head: ({ loaderData }: { loaderData?: { descriptor: ArtifactDescriptor } }) => {
+    if (!loaderData) return {};
+    const d = loaderData.descriptor;
+    const titleStr = `${d.title} - ${d.kind} | Long NGUYỄN`;
+    return {
+      meta: [
+        { title: titleStr },
+        { name: "description", content: d.summary },
+        { property: "og:title", content: titleStr },
+        { property: "og:description", content: d.summary },
+        { property: "og:image", content: `/og/${d.slug}.png` },
+        { property: "og:type", content: "article" },
+      ],
+      links: [
+        {
+          rel: "canonical",
+          href: `https://8bu.dev/artifact/${d.kind}/${d.slug}`,
+        },
+      ],
+    };
   },
   component: ArtifactStandalone,
 });
