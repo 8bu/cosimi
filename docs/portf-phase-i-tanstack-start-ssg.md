@@ -39,4 +39,13 @@ Discovery log. Appended as I1-I9 execute.
 - `loaderData` typed as optional (`loaderData?: { descriptor }`) — head() bails out with empty object when descriptor undefined (pre-loader resolution).
 - New test `src/routes/__tests__/artifact.head.test.tsx` (1 assertion); 226 portf tests total.
 
-## I5 — Prerender + sitemap enable
+## I5 — Prerender + sitemap enable done
+
+- `pnpm build` emits **13 prerendered HTML files** + `sitemap.xml` (14 `<loc>` entries) under `dist/client/`.
+- TanStack Start build output layout: `dist/client/` (static assets to serve) + `dist/server/` (SSR runtime). I8 test gate paths reference `dist/client/`.
+- **Seroval crash fixed** (`fix(portf): drop component from artifact loader for ssr serialization`): loader returned `{ descriptor }` with a React `Component` (MDX body) → Start's seroval serializer can't transfer functions client-side. Loader now returns lookup keys only (`{ kind, slug }`); both `head()` and `ArtifactStandalone` re-resolve via `getDescriptor()` (Vite eager glob is build-time-resolved — zero runtime cost).
+- **Explicit misc pages + PDF filter** (`feat(portf): explicit misc pages + pdf filter for prerender`): misc descriptors aren't linked from /artifacts gallery (chat-only by design), so `crawlLinks` skips them. Listed under `tanstackStart({ pages: [...] })`. Resume PDF (`/longnguyen-2026.pdf`) reached via descriptor `url` → filtered with `filter: ({ path }) => !path.endsWith(".pdf")`.
+- Spot-checked `wegopro/index.html`: title `WegoPro - projects | Long NGUYỄN`, og:image `/og/wegopro.png`, canonical `https://8bu.dev/artifact/projects/wegopro` — all present in static HTML BEFORE hydration.
+- Stub `og:generate` script + placeholder `default.png` already in place (I5.1, I5.2); real satori pipeline lands in I7.
+
+## I6 — Chat SPA mode
