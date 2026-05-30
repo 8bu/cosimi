@@ -1,4 +1,4 @@
-# @simlm/ui-tokens
+# @cosimi/ui-tokens
 
 Pure-CSS design tokens shared by `apps/web` and (later) `apps/admin`.
 
@@ -9,7 +9,7 @@ consumers `@import` the file from their own `globals.css`:
 
 ```css
 @import "tailwindcss";
-@import "@simlm/ui-tokens/theme.css";
+@import "@cosimi/ui-tokens/theme.css";
 ```
 
 ## Why CSS-only?

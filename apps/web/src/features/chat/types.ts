@@ -1,6 +1,6 @@
-import type { MatchTier } from "@simlm/types";
+import type { MatchTier } from "@cosimi/types";
 
-// UI message types — intentionally distinct from @simlm/types' ChatStreamEvent.
+// UI message types — intentionally distinct from @cosimi/types' ChatStreamEvent.
 // SSE events drive transitions; these are the settled state the view renders.
 // A BotMsg accumulates text across many `token` events and carries metadata
 // derived from the `metadata` / `no_match` events — derived state that no

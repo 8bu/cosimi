@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { match } from "@simlm/matcher";
-import { closeDb } from "@simlm/db";
-import { normalize } from "@simlm/normalizer";
+import { match } from "@cosimi/matcher";
+import { closeDb } from "@cosimi/db";
+import { normalize } from "@cosimi/normalizer";
 
 import {
   type FixtureIds,

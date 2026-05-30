@@ -1,4 +1,4 @@
-import { withBrand } from "@simlm/branding";
+import { withBrand } from "@cosimi/branding";
 import { useState } from "react";
 import { MatchBadge } from "@/features/chat/components/MatchBadge";
 import { TeachComposer } from "@/features/chat/components/TeachComposer";

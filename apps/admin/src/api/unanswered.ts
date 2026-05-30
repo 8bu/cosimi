@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { AdminUnanswered } from "@simlm/types";
+import type { AdminUnanswered } from "@cosimi/types";
 import { apiJson } from "@/api/client";
 
 export type UnansweredSource = "all" | "chat" | "llm";

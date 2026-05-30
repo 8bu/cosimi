@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import * as v from "valibot";
 
-import { createBatch, insertManyPairs, setBatchCount, sql } from "@simlm/db";
-import { normalize } from "@simlm/normalizer";
+import { createBatch, insertManyPairs, setBatchCount, sql } from "@cosimi/db";
+import { normalize } from "@cosimi/normalizer";
 
 const ImportQuerySchema = v.object({
   source: v.picklist(["seed", "llm"] as const),
@@ -47,7 +47,7 @@ importRoute.post("/", async (c) => {
   // — which calls insertManyPairs directly through `pnpm seed:vi` — is
   // unaffected (seeds run before any user traffic, so there's nothing to
   // clean). If a future caller wants the cleanup, push it down into
-  // `@simlm/db` then; two call sites isn't the threshold.
+  // `@cosimi/db` then; two call sites isn't the threshold.
   const normalizedSeen = new Set<string>();
   const ct = c.req.header("content-type") ?? "";
 

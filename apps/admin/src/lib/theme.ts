@@ -4,14 +4,14 @@
  * (e.g. via a reverse proxy under different paths) doesn't get a
  * mismatched theme between the two.
  *
- * The actual CSS tokens live in @simlm/ui-tokens/theme.css and respond
+ * The actual CSS tokens live in @cosimi/ui-tokens/theme.css and respond
  * to `[data-theme="dark"]` on <html>. This module is the JS half: read
  * the persisted choice, apply to the DOM, persist write-through.
  */
 
 export type Theme = "light" | "dark";
 
-const STORAGE_KEY = "simlm.theme";
+const STORAGE_KEY = "cosimi.theme";
 
 export function getStoredTheme(): Theme | null {
   try {

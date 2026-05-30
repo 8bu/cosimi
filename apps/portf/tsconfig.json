@@ -1,5 +1,5 @@
 {
-  "extends": "@simlm/tsconfig/react.json",
+  "extends": "@cosimi/tsconfig/react.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {

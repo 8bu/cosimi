@@ -1,5 +1,5 @@
-import type { MatchResult } from "@simlm/types";
-import { sql } from "@simlm/db";
+import type { MatchResult } from "@cosimi/types";
+import { sql } from "@cosimi/db";
 
 // session_teaches has no GENERATED unaccented column, so f_unaccent runs on
 // both sides at query time. Acceptable: 10-min TTL keeps the table small.

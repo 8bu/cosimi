@@ -18,7 +18,7 @@ interface PreferencesState {
  *
  * Persisted under `portf.preferences` in localStorage. The `portf.*`
  * key prefix is the convention for all apps/portf stores; do not use
- * `simlm.*` keys here (those belong to apps/web).
+ * `cosimi.*` keys here (those belong to apps/web).
  */
 export const usePreferencesStore = create<PreferencesState>()(
   persist(

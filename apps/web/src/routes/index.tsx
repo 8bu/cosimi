@@ -5,7 +5,7 @@ import { MessageList } from "@/features/chat/components/MessageList";
 // h-[100dvh] (dynamic viewport height) handles iOS Safari's address-bar
 // resize correctly — the composer doesn't visually clip when the bar
 // retracts/expands. Tailwind v4 supports `dvh` arbitrarily; the
-// single-use-site makes adding a custom utility to @simlm/ui-tokens
+// single-use-site makes adding a custom utility to @cosimi/ui-tokens
 // premature.
 //
 // The `-mx-4 sm:-mx-8 px-4 sm:px-8` on the scroll container lets long

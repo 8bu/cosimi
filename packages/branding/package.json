@@ -1,5 +1,5 @@
 {
-  "name": "@simlm/branding",
+  "name": "@cosimi/branding",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -15,10 +15,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@simlm/template": "workspace:*"
+    "@cosimi/template": "workspace:*"
   },
   "devDependencies": {
-    "@simlm/tsconfig": "workspace:*",
+    "@cosimi/tsconfig": "workspace:*",
     "typescript": "^5.7.0"
   }
 }

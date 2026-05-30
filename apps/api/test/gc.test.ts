@@ -1,12 +1,12 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 
-import { closeDb, sql } from "@simlm/db";
+import { closeDb, sql } from "@cosimi/db";
 
 import { sweepOnce } from "../src/lib/gc";
 import { newSessionId, resetDb } from "./helpers";
 
 /**
- * GC sweeper integration test. Real Postgres via the shared `simlm_test`
+ * GC sweeper integration test. Real Postgres via the shared `cosimi_test`
  * database (see test/global-setup.ts). We seed expired and live rows
  * across both target tables, run sweepOnce, and assert the affected counts
  * + the surviving set.

@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import * as v from "valibot";
 
-import { sql } from "@simlm/db";
-import type { AdminUnanswered } from "@simlm/types";
+import { sql } from "@cosimi/db";
+import type { AdminUnanswered } from "@cosimi/types";
 
 import { PaginationSchema } from "../lib/pagination";
 

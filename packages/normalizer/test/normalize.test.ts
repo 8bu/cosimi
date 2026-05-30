@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { normalize } from "@simlm/normalizer";
+import { normalize } from "@cosimi/normalizer";
 
 describe("normalize", () => {
   it("lowercases while preserving diacritics (Vietnamese)", () => {

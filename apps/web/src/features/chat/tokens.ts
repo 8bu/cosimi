@@ -1,4 +1,4 @@
-import type { MatchTier } from "@simlm/types";
+import type { MatchTier } from "@cosimi/types";
 
 // Friendly UI labels for the four matcher tiers. Server-side terms
 // (exact/fts/trigram/session_teach) stay internal — the user sees these.

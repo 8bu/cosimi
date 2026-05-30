@@ -99,7 +99,7 @@
   response: "Yes."
   topic: portfolio/stack-be
 - input: "do you know hono"
-  response: "Yes - using Hono in SimLM."
+  response: "Yes - using Hono in Cosimi."
   topic: portfolio/stack-be
 - input: "hono?"
   response: "Yes."

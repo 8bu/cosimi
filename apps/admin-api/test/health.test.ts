@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, it } from "vitest";
 
-import { closeDb } from "@simlm/db";
+import { closeDb } from "@cosimi/db";
 
 import { app } from "../src/app";
 import { getJson } from "./helpers";

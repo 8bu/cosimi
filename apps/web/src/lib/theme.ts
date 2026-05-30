@@ -1,7 +1,7 @@
 /**
  * Theme management.
  *
- * Tokens in @simlm/ui-tokens cascade through three precedence levels (see
+ * Tokens in @cosimi/ui-tokens cascade through three precedence levels (see
  * theme.css). This module owns level 1: the explicit user choice,
  * persisted to localStorage and reflected as the `data-theme` attribute
  * on <html>. Reading the attribute is the canonical way to check the
@@ -16,7 +16,7 @@
 
 export type Theme = "light" | "dark";
 
-const STORAGE_KEY = "simlm.theme";
+const STORAGE_KEY = "cosimi.theme";
 
 /**
  * Read the persisted choice from localStorage. Returns null on first

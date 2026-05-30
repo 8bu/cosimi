@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "@simlm/ui-tokens/theme.css";
+@import "@cosimi/ui-tokens/theme.css";
 
 /* App-local additions — none yet. The admin shell stays minimal in
    Phase 12; Phase 13+ feature styles go alongside their components,

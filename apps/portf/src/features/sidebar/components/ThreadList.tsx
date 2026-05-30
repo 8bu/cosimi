@@ -3,7 +3,7 @@ import { ThreadRow } from "@/features/sidebar/components/ThreadRow";
 
 /**
  * Sidebar thread list. Shape ported from the design source's `V1Sidebar`
- * (`docs/superpowers/artifacts/simlm2/project/variations-1-2.jsx`):
+ * (`docs/superpowers/artifacts/cosimi2/project/variations-1-2.jsx`):
  * threads grouped under `<div class="v1-section-label">Today</div>` /
  * `Earlier` headings, then `<ThreadRow>` per entry within each section.
  *

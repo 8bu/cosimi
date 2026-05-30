@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ChatStreamEvent } from "@simlm/types";
+import type { ChatStreamEvent } from "@cosimi/types";
 
 const { streamMock } = vi.hoisted(() => ({ streamMock: vi.fn() }));
 

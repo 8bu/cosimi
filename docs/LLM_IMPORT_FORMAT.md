@@ -1,6 +1,6 @@
 # LLM Bulk Import — Format & Prompt Guide
 
-Doc describes file format **simlm** server accepts for bulk-import of input/response pairs from external LLM. Format also valid for hand-curated batches — LLM angle scale easy.
+Doc describes file format **cosimi** server accepts for bulk-import of input/response pairs from external LLM. Format also valid for hand-curated batches — LLM angle scale easy.
 
 Imported rows tagged `source = 'llm'`, grouped under `import_batches` row so whole import rollback in one call.
 

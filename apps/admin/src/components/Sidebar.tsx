@@ -1,6 +1,6 @@
 import { NavLink } from "react-router";
 import { Inbox, ListChecks, MessagesSquare, Settings, Undo2, Upload } from "lucide-react";
-import { BRAND } from "@simlm/branding";
+import { BRAND } from "@cosimi/branding";
 import { PresetSwitcher } from "@/components/PresetSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";

@@ -1,5 +1,5 @@
 import postgres from "postgres";
-import { loadEnv } from "@simlm/config";
+import { loadEnv } from "@cosimi/config";
 
 let instance: ReturnType<typeof postgres> | null = null;
 

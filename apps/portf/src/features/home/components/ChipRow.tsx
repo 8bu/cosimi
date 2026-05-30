@@ -14,7 +14,7 @@ interface ChipRowProps {
  * semantics.
  *
  * Faithful to design source classes
- * (docs/superpowers/artifacts/simlm2/project/primitives.jsx:143-155).
+ * (docs/superpowers/artifacts/cosimi2/project/primitives.jsx:143-155).
  */
 export function ChipRow({ chips, onPick }: ChipRowProps) {
   return (

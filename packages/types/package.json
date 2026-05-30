@@ -1,5 +1,5 @@
 {
-  "name": "@simlm/types",
+  "name": "@cosimi/types",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@simlm/tsconfig": "workspace:*",
+    "@cosimi/tsconfig": "workspace:*",
     "typescript": "^5.7.0"
   }
 }

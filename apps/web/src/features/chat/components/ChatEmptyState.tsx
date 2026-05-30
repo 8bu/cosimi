@@ -1,4 +1,4 @@
-import { withBrand } from "@simlm/branding";
+import { withBrand } from "@cosimi/branding";
 import { MessageCircle } from "lucide-react";
 import { useTranslate } from "@/lib/i18n";
 

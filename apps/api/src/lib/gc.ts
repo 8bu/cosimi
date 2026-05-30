@@ -1,5 +1,5 @@
-import { loadEnv } from "@simlm/config";
-import { sql } from "@simlm/db";
+import { loadEnv } from "@cosimi/config";
+import { sql } from "@cosimi/db";
 
 import { log } from "./logger";
 

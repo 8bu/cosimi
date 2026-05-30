@@ -1,9 +1,9 @@
-import { match } from "@simlm/matcher";
-import { normalize } from "@simlm/normalizer";
-import { getAppConfig, sql } from "@simlm/db";
-import { loadEnv, type Env } from "@simlm/config";
+import { match } from "@cosimi/matcher";
+import { normalize } from "@cosimi/normalizer";
+import { getAppConfig, sql } from "@cosimi/db";
+import { loadEnv, type Env } from "@cosimi/config";
 
-import { renderTemplate } from "@simlm/template";
+import { renderTemplate } from "@cosimi/template";
 
 import type { Emitter } from "../lib/sse";
 import { tokenize, jitterMs, sleep } from "../lib/tokenizer";

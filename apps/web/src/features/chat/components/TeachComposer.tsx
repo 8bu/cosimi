@@ -1,4 +1,4 @@
-import { renderTemplate } from "@simlm/template";
+import { renderTemplate } from "@cosimi/template";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useChat } from "@/features/chat/store";

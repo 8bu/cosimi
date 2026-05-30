@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import type { FeedbackRequest, FeedbackResponse } from "@simlm/types";
+import type { FeedbackRequest, FeedbackResponse } from "@cosimi/types";
 
 import { translate } from "@/lib/i18n";
 import { preferencesStore } from "@/store/preferences";

@@ -21,7 +21,7 @@
 
 /* ChatPane shape - header / scrollable messages / footer.
  * Ported from the design source's `V1Conversation`
- * (docs/superpowers/artifacts/simlm2/project/variations-1-2.jsx). Each
+ * (docs/superpowers/artifacts/cosimi2/project/variations-1-2.jsx). Each
  * direct child is capped to a 760px column and centered so the
  * conversation reads like a real chat product (Claude / ChatGPT
  * standard), not a full-bleed terminal log. */
@@ -344,7 +344,7 @@ body,
 /* ─────────────────────────────────────────────────────────────
    Artifact preview card (Phase F)
    Ported from the V1FirstChat shape in
-   docs/superpowers/artifacts/simlm2/project/flow-and-pages.jsx:144-164
+   docs/superpowers/artifacts/cosimi2/project/flow-and-pages.jsx:144-164
    ──────────────────────────────────────────────────────────── */
 
 .artifact-preview-card {
@@ -516,8 +516,8 @@ body,
 
 /* MDX body wrapper — per-kind typography.
  * Flex column lets the per-body footer push to the bottom via
- * `margin-top: auto`, matching the simlm2 design source
- * (docs/superpowers/artifacts/simlm2/project/flow-and-pages.jsx:357-360). */
+ * `margin-top: auto`, matching the cosimi2 design source
+ * (docs/superpowers/artifacts/cosimi2/project/flow-and-pages.jsx:357-360). */
 .artifact-body {
   font-family: var(--font-body);
   font-size: 15px;
@@ -837,7 +837,7 @@ body,
    Artifacts gallery (/artifacts route - Phase K extension)
 
    Ported verbatim from the design source
-   (`docs/superpowers/artifacts/simlm2/project/styles.css:1525-1885`)
+   (`docs/superpowers/artifacts/cosimi2/project/styles.css:1525-1885`)
    so the gallery matches the handed-off mock pixel-for-pixel. The CSS
    variables (--coral-tint, --cream-card, --line-strong, --label-tracking,
    --label-caps) all already exist in portfolio.css across every theme, so

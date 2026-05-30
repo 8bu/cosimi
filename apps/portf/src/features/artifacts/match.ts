@@ -1,4 +1,4 @@
-import type { MatchTier } from "@simlm/types";
+import type { MatchTier } from "@cosimi/types";
 
 import { getCatalog } from "@/features/artifacts/catalog";
 import type { ArtifactDescriptor } from "@/features/artifacts/types";

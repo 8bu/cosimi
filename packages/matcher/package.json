@@ -1,5 +1,5 @@
 {
-  "name": "@simlm/matcher",
+  "name": "@cosimi/matcher",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -16,13 +16,13 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@simlm/config": "workspace:*",
-    "@simlm/db": "workspace:*",
-    "@simlm/types": "workspace:*"
+    "@cosimi/config": "workspace:*",
+    "@cosimi/db": "workspace:*",
+    "@cosimi/types": "workspace:*"
   },
   "devDependencies": {
-    "@simlm/normalizer": "workspace:*",
-    "@simlm/tsconfig": "workspace:*",
+    "@cosimi/normalizer": "workspace:*",
+    "@cosimi/tsconfig": "workspace:*",
     "@types/node": "^22.0.0",
     "postgres": "^3.4.0",
     "typescript": "^5.7.0",

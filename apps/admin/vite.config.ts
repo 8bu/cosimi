@@ -21,7 +21,7 @@ import tailwindcss from "@tailwindcss/vite";
  * production reverse proxy must do the same rewrite.
  *
  * To manage the **portf** product's admin-api instead, launch with:
- *   VITE_ADMIN_API_TARGET=http://127.0.0.1:3011 pnpm --filter @simlm/admin dev
+ *   VITE_ADMIN_API_TARGET=http://127.0.0.1:3011 pnpm --filter @cosimi/admin dev
  * Both products are operator-trusted via loopback; same admin SPA, two targets.
  */
 const ADMIN_API_TARGET = process.env.VITE_ADMIN_API_TARGET ?? "http://127.0.0.1:3001";

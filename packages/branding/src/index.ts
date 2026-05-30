@@ -1,4 +1,4 @@
-import { renderTemplate } from "@simlm/template";
+import { renderTemplate } from "@cosimi/template";
 
 // Single source of truth for the product/bot brand name as it appears in
 // user-facing chrome. Importers should reference `BRAND.name` or use the
@@ -10,7 +10,7 @@ import { renderTemplate } from "@simlm/template";
 //   - bot identity in UI chrome (role labels, composer placeholder)
 //
 // What's NOT in scope (deliberately):
-//   - the localStorage key prefix `simlm.*` — that's a stable storage
+//   - the localStorage key prefix `cosimi.*` — that's a stable storage
 //     contract, not chrome. Renaming it breaks every existing session.
 //   - the server's `app_config.name` template substitution — server-
 //     owned data, lives in a DB migration. If you want the bot's
@@ -29,7 +29,7 @@ export const BRAND = {
 
 /**
  * Substitute `{{ brand }}` placeholders in a translated string. Uses the
- * shared `@simlm/template` engine — the same Mustache-ish syntax the
+ * shared `@cosimi/template` engine — the same Mustache-ish syntax the
  * server uses for `{{ name }}` substitution in chat replies, so
  * contributors learn one interpolation convention.
  *

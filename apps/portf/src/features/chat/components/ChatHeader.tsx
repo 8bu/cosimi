@@ -8,7 +8,7 @@ interface ChatHeaderProps {
 
 /**
  * Chat-pane header. Shape ported from the design source's
- * `V1Conversation` (`docs/superpowers/artifacts/simlm2/project/
+ * `V1Conversation` (`docs/superpowers/artifacts/cosimi2/project/
  * variations-1-2.jsx` line 52–57): big serif title on the left,
  * mono-caps status (`.kbd`) on the right.
  *

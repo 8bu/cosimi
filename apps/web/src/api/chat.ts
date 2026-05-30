@@ -1,4 +1,4 @@
-import type { ChatRequest, ChatStreamEvent } from "@simlm/types";
+import type { ChatRequest, ChatStreamEvent } from "@cosimi/types";
 
 import { parseSseStream } from "@/lib/sse-parser";
 import { preferencesStore } from "@/store/preferences";

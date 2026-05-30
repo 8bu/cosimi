@@ -3,7 +3,7 @@
 #
 # Chain:
 #   1. docker daemon guard
-#   2. db:up --wait (shared postgres container with simlm)
+#   2. db:up --wait (shared postgres container with cosimi)
 #   3. provision:portf (idempotent CREATE DATABASE portf on the postgres
 #      maintenance DB if the portf DB doesn't exist yet — covers the
 #      upgrade-in-place case where db/init/01_portf.sql didn't run because
@@ -26,9 +26,9 @@ if ! docker info > /dev/null 2>&1; then
   exit 1
 fi
 
-# See dev-simlm.sh for the worktree-vs-main project-name conflict that
+# See dev-cosimi.sh for the worktree-vs-main project-name conflict that
 # makes a naked `pnpm db:up` fail when the container is already healthy.
-if docker ps --filter name=simlm-postgres --filter status=running --format '{{.Names}}' | grep -q '^simlm-postgres$'; then
+if docker ps --filter name=cosimi-postgres --filter status=running --format '{{.Names}}' | grep -q '^cosimi-postgres$'; then
   echo "postgres container already running — skipping db:up"
 else
   pnpm db:up

@@ -8,7 +8,7 @@ import { TypingIndicator } from "@/features/chat/components/TypingIndicator";
 
 /**
  * Renders one chat message bubble. Shape ported verbatim from the design
- * source (`docs/superpowers/artifacts/simlm2/project/primitives.jsx`
+ * source (`docs/superpowers/artifacts/cosimi2/project/primitives.jsx`
  * UserBubble / AssistantBubble): row wrapper carries `bubble-sender`
  * label above the bubble itself. User label = lowercase "you", bot label
  * = "8BU" wordmark in coral.

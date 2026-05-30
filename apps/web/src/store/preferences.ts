@@ -18,8 +18,8 @@ interface PreferencesState {
 
 /**
  * UI preferences (locale, future per-user settings). Persisted to
- * localStorage under 'simlm.preferences' — separate from useSession's
- * 'simlm.session' so resetting one doesn't nuke the other. The chat API
+ * localStorage under 'cosimi.preferences' — separate from useSession's
+ * 'cosimi.session' so resetting one doesn't nuke the other. The chat API
  * reads `primaryLocale` imperatively at call time (same pattern as
  * apiFetch's session-id read).
  */
@@ -29,7 +29,7 @@ export const usePreferences = create<PreferencesState>()(
       primaryLocale: DEFAULT_LOCALE,
       setPrimaryLocale: (l) => set({ primaryLocale: l }),
     }),
-    { name: "simlm.preferences" },
+    { name: "cosimi.preferences" },
   ),
 );
 

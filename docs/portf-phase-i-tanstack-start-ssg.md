@@ -82,7 +82,7 @@ Discovery log. Appended as I1-I9 execute.
 | `/artifact/projects/wegopro` | 200 | `<title>WegoPro - projects \| Long NGUYỄN</title>` |
 | `/artifact/essays/nuxt-migration` | 200 | `<title>Migrating a 4-year Nuxt 2 codebase to Vue 3 - essays \| Long NGUYỄN</title>` |
 | `/artifact/resume/longnguyen-2026` | 200 | `<title>longnguyen-2026.pdf - resume \| Long NGUYỄN</title>` |
-| `/artifact/misc/simlm-explainer` | 200 | `<title>About this chat - misc \| Long NGUYỄN</title>` |
+| `/artifact/misc/cosimi-explainer` | 200 | `<title>About this chat - misc \| Long NGUYỄN</title>` |
 | `/chat` | 200 | `<title>Chat \| Long NGUYỄN</title>` |
 | `/og/wegopro.png` | 200 | PNG 1200×630 RGBA |
 

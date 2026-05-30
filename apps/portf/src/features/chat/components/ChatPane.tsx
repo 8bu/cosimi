@@ -18,7 +18,7 @@ const EMPTY: readonly ChatMessage[] = Object.freeze([]);
 
 /**
  * Composition root for `/chat/$threadId`. Shape ported from the design
- * source's `V1Conversation` (`docs/superpowers/artifacts/simlm2/project/
+ * source's `V1Conversation` (`docs/superpowers/artifacts/cosimi2/project/
  * variations-1-2.jsx` line 49–85): header (title + status), middle
  * messages slot, footer = chips + composer.
  *

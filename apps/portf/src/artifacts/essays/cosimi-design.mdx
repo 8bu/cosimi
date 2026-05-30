@@ -1,7 +1,7 @@
 ---
-slug: simlm-design
+slug: cosimi-design
 kind: essays
-title: SimLM - a chatbot without an LLM
+title: Cosimi - a chatbot without an LLM
 kicker: essay
 period: 2026-05
 stack:
@@ -13,7 +13,7 @@ stack:
 summary: How the chat you are using right now works. Three-tier matcher, no LLM at runtime, curated pair store.
 thumb: null
 matchPatterns:
-  - simlm design
+  - cosimi design
   - how does this work
   - chatbot architecture
   - pattern matcher essay
@@ -21,7 +21,7 @@ locale: en
 order: 2
 ---
 
-This chat is powered by SimLM. There is no LLM in the request path. Replies come from a curated pair store, scored by a three-tier matching engine that runs entirely against Postgres and a small TypeScript matcher. The corpus is hand-written. The voice is mine. The system either has an answer I wrote, or it tells you it does not.
+This chat is powered by Cosimi. There is no LLM in the request path. Replies come from a curated pair store, scored by a three-tier matching engine that runs entirely against Postgres and a small TypeScript matcher. The corpus is hand-written. The voice is mine. The system either has an answer I wrote, or it tells you it does not.
 
 This essay is a design write-up of why the chatbot is shaped that way and what the trade-offs cost.
 
@@ -61,7 +61,7 @@ The system cannot reply to inputs it has not seen patterns for. That is the poin
 
 The cost is real. A recruiter asking about my experience with, say, a niche library I have never worked with will get a fallback response. The fallback says something like "I do not have a pattern for that yet" and links a contact path. That is honest but it is also a worse experience than an LLM that would have improvised a plausible answer.
 
-The trade is depth-for-honesty: every reply is a reply I wrote. I would rather be slow than fluent in someone else's voice. For a portfolio chat that is the right trade. For a customer-support bot, it probably is not. SimLM is not a general-purpose chatbot engine - it is a stance about what the chatbot's voice should be, with code attached.
+The trade is depth-for-honesty: every reply is a reply I wrote. I would rather be slow than fluent in someone else's voice. For a portfolio chat that is the right trade. For a customer-support bot, it probably is not. Cosimi is not a general-purpose chatbot engine - it is a stance about what the chatbot's voice should be, with code attached.
 
 ## Implementation notes (monorepo shape, postgres FTS + trigram, no LLM at runtime)
 

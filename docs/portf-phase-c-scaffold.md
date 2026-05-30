@@ -1,8 +1,8 @@
 # Phase C — apps/portf scaffold (landed 2026-05-26)
 
-- **Portfolio design source lives at `docs/superpowers/artifacts/simlm2/` and is operator-owned.**
-  The full portfolio CSS + Wordmark variants live in `docs/superpowers/artifacts/simlm2/project/styles.css`
-  and `docs/superpowers/artifacts/simlm2/project/primitives.jsx`. The parent
+- **Portfolio design source lives at `docs/superpowers/artifacts/cosimi2/` and is operator-owned.**
+  The full portfolio CSS + Wordmark variants live in `docs/superpowers/artifacts/cosimi2/project/styles.css`
+  and `docs/superpowers/artifacts/cosimi2/project/primitives.jsx`. The parent
   path `docs/superpowers/*` is already gitignored, so the design source rides
   along for free - no extra `.gitignore` entry needed. Both files are read by
   `apps/portf` build-time ports (Task 5 + Task 6 of the Phase C plan). If a
@@ -67,9 +67,9 @@
   transforms. Reversing the order makes the React plugin see stale or missing
   generated output on the first vite run.
 
-- **`apps/portf` does not import `@simlm/ui-tokens`.** Per spec §2 the
+- **`apps/portf` does not import `@cosimi/ui-tokens`.** Per spec §2 the
   portfolio's design system is app-local (`apps/portf/src/styles/portfolio.css`).
-  `@simlm/ui-tokens` is simlm's warm-neutral palette and would conflict with
+  `@cosimi/ui-tokens` is cosimi's warm-neutral palette and would conflict with
   the press theme tokens. Keep them separate even if duplication of common
   primitives (radii, etc.) appears later - extracting a shared lower-level
   primitive layer is its own future RFC, not a side-effect of feature work.

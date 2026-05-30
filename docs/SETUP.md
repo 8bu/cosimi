@@ -8,7 +8,7 @@ Node 22, Docker (Postgres), corepack.
 
 ```bash
 git clone <repo>
-cd simlm
+cd cosimi
 nvm use                 # or: nvm install 22 && nvm use 22
 corepack enable         # pnpm version is pinned via packageManager
 
@@ -20,7 +20,7 @@ cp .env.example .env    # defaults are good for local dev
 pnpm dev:all
 
 # Then in a second terminal, start the admin SPA:
-pnpm --filter @simlm/admin dev
+pnpm --filter @cosimi/admin dev
 ```
 
 First boot: matcher empty. Seed:
@@ -43,7 +43,7 @@ pnpm db:reset && pnpm migrate && pnpm seed
 ```bash
 pnpm dev:all       # one-shot: guards Docker, then db:up (waits for healthy) → migrate → dev
 pnpm dev           # turbo: api + admin-api + web
-pnpm --filter @simlm/admin dev   # start the admin SPA (port 5174)
+pnpm --filter @cosimi/admin dev   # start the admin SPA (port 5174)
 
 pnpm typecheck     # tsc --noEmit across the workspace
 pnpm lint          # oxlint
@@ -62,4 +62,4 @@ pnpm seed:vi
 pnpm seed:chatterbot
 ```
 
-> ⚠️ Matcher, api, admin-api test suites share `simlm_test` db. Run `pnpm -r --workspace-concurrency=1 test` to avoid parallel setups stomping each other (see [`../CLAUDE.md`](../CLAUDE.md)).
+> ⚠️ Matcher, api, admin-api test suites share `cosimi_test` db. Run `pnpm -r --workspace-concurrency=1 test` to avoid parallel setups stomping each other (see [`../CLAUDE.md`](../CLAUDE.md)).

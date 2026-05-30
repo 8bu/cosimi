@@ -1,5 +1,5 @@
 {
-  "name": "@simlm/db",
+  "name": "@cosimi/db",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -23,14 +23,14 @@
     "seed": "tsx --env-file=../../.env src/scripts/seed.ts"
   },
   "dependencies": {
-    "@simlm/config": "workspace:*",
-    "@simlm/normalizer": "workspace:*",
-    "@simlm/types": "workspace:*",
+    "@cosimi/config": "workspace:*",
+    "@cosimi/normalizer": "workspace:*",
+    "@cosimi/types": "workspace:*",
     "postgres": "^3.4.0",
     "yaml": "^2.0.0"
   },
   "devDependencies": {
-    "@simlm/tsconfig": "workspace:*",
+    "@cosimi/tsconfig": "workspace:*",
     "@types/node": "^22.0.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",

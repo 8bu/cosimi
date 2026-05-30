@@ -105,7 +105,7 @@ Skip anything you don't want answered. Once filled, the corpus gets new pairs gr
 
 29. **English fluency level**: Want bot to say "fluent", "professional working", "conversational"? Currently says "for work" / "daily" — neutral.
 
-30. **SimLM "this is the chat replying to you"**: I removed that claim. Is SimLM actually powering this portfolio chat? If yes, want it back?
+30. **Cosimi "this is the chat replying to you"**: I removed that claim. Is Cosimi actually powering this portfolio chat? If yes, want it back?
 
 ---
 

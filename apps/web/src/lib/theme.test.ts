@@ -16,29 +16,29 @@ describe("theme helper", () => {
   });
 
   it("getStoredTheme returns null for invalid stored values", () => {
-    localStorage.setItem("simlm.theme", "neon");
+    localStorage.setItem("cosimi.theme", "neon");
     expect(getStoredTheme()).toBeNull();
   });
 
   it("applyTheme writes the data-theme attribute and persists to localStorage", () => {
     applyTheme("dark");
     expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
-    expect(localStorage.getItem("simlm.theme")).toBe("dark");
+    expect(localStorage.getItem("cosimi.theme")).toBe("dark");
 
     applyTheme("light");
     expect(document.documentElement.getAttribute("data-theme")).toBe("light");
-    expect(localStorage.getItem("simlm.theme")).toBe("light");
+    expect(localStorage.getItem("cosimi.theme")).toBe("light");
   });
 
   it("resolveInitialTheme honors a stored choice over OS preference", () => {
-    localStorage.setItem("simlm.theme", "dark");
+    localStorage.setItem("cosimi.theme", "dark");
     expect(resolveInitialTheme()).toBe("dark");
-    localStorage.setItem("simlm.theme", "light");
+    localStorage.setItem("cosimi.theme", "light");
     expect(resolveInitialTheme()).toBe("light");
   });
 
   it("bootstrapTheme sets the attribute and returns the resolved theme", () => {
-    localStorage.setItem("simlm.theme", "dark");
+    localStorage.setItem("cosimi.theme", "dark");
     const t = bootstrapTheme();
     expect(t).toBe("dark");
     expect(document.documentElement.getAttribute("data-theme")).toBe("dark");

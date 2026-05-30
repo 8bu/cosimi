@@ -7,7 +7,7 @@ interface ChatComposerProps {
 
 /**
  * Single-line composer for an active chat thread. Shape ported from the
- * design source's `InputRow` (`docs/superpowers/artifacts/simlm2/project/
+ * design source's `InputRow` (`docs/superpowers/artifacts/cosimi2/project/
  * primitives.jsx`): `.input-row` wrapper holding a transparent `<input
  * class="input-row-mono">` (mono font, ink-4 placeholder), a `.kbd ⏎`
  * affordance, and a circular `.send-btn` in coral.

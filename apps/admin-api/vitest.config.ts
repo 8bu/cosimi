@@ -1,7 +1,7 @@
 import { defineConfig } from "vitest/config";
 
 // admin-api tests are DB-backed end-to-end against the in-process Hono app.
-// Reuse the same `simlm_test` database as @simlm/matcher and @simlm/api;
+// Reuse the same `cosimi_test` database as @cosimi/matcher and @cosimi/api;
 // run serially because fixtures stomp on each other (one DB, one schema).
 export default defineConfig({
   test: {

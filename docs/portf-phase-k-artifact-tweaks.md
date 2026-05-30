@@ -8,14 +8,14 @@ file paths, the trap that would break it.
 
 ### Visual deltas
 
-- ArtifactPanel kicker: renders `{kicker}` verbatim; design source prefixes a `↗ ` glyph (`ARTIFACT · WEGOPRO …` -> `↗ ARTIFACT · WEGOPRO …`). `apps/portf/src/features/artifacts/components/ArtifactPanel.tsx:65` vs `docs/superpowers/artifacts/simlm2/project/flow-and-pages.jsx:285`.
-- Panel title font-size: 22px in current CSS; design source inline-styles 24px. `apps/portf/src/styles/layout.css:475` vs `docs/superpowers/artifacts/simlm2/project/flow-and-pages.jsx:294`.
-- Panel body padding: `14px 18px 24px` current; design source `16px 18px` (no extra bottom). `apps/portf/src/styles/layout.css:489` vs `docs/superpowers/artifacts/simlm2/project/flow-and-pages.jsx:291`.
-- ProjectBody is bare-bones: renders only the stack header + `<Component />`. Design source has live-preview placeholder + a 2-up thumbnail grid + a paragraph + a footer row (`stack · ↗ url`) pinned to bottom with `margin-top: auto`. `apps/portf/src/features/artifacts/components/bodies/ProjectBody.tsx:7-21` vs `docs/superpowers/artifacts/simlm2/project/flow-and-pages.jsx:340-362`.
-- CvBody is single-column; design source uses a `display: grid; grid-template-columns: 2fr 1fr; gap: 16px` two-column layout (experience+projects on the left, stack/AI workflow/education/languages on the right). `apps/portf/src/features/artifacts/components/bodies/CvBody.tsx:7-21` vs `docs/superpowers/artifacts/simlm2/project/flow-and-pages.jsx:531`.
-- EssayBody renders only stack header + `<Component />`. Design source adds a footer row with `border-top: 1px solid var(--line)` containing left kbd (`Posts archive · in progress`) and right coral mono CTA (`↗ subscribe via RSS`). `apps/portf/src/features/artifacts/components/bodies/EssayBody.tsx:7-21` vs `docs/superpowers/artifacts/simlm2/project/flow-and-pages.jsx:457-463`.
+- ArtifactPanel kicker: renders `{kicker}` verbatim; design source prefixes a `↗ ` glyph (`ARTIFACT · WEGOPRO …` -> `↗ ARTIFACT · WEGOPRO …`). `apps/portf/src/features/artifacts/components/ArtifactPanel.tsx:65` vs `docs/superpowers/artifacts/cosimi2/project/flow-and-pages.jsx:285`.
+- Panel title font-size: 22px in current CSS; design source inline-styles 24px. `apps/portf/src/styles/layout.css:475` vs `docs/superpowers/artifacts/cosimi2/project/flow-and-pages.jsx:294`.
+- Panel body padding: `14px 18px 24px` current; design source `16px 18px` (no extra bottom). `apps/portf/src/styles/layout.css:489` vs `docs/superpowers/artifacts/cosimi2/project/flow-and-pages.jsx:291`.
+- ProjectBody is bare-bones: renders only the stack header + `<Component />`. Design source has live-preview placeholder + a 2-up thumbnail grid + a paragraph + a footer row (`stack · ↗ url`) pinned to bottom with `margin-top: auto`. `apps/portf/src/features/artifacts/components/bodies/ProjectBody.tsx:7-21` vs `docs/superpowers/artifacts/cosimi2/project/flow-and-pages.jsx:340-362`.
+- CvBody is single-column; design source uses a `display: grid; grid-template-columns: 2fr 1fr; gap: 16px` two-column layout (experience+projects on the left, stack/AI workflow/education/languages on the right). `apps/portf/src/features/artifacts/components/bodies/CvBody.tsx:7-21` vs `docs/superpowers/artifacts/cosimi2/project/flow-and-pages.jsx:531`.
+- EssayBody renders only stack header + `<Component />`. Design source adds a footer row with `border-top: 1px solid var(--line)` containing left kbd (`Posts archive · in progress`) and right coral mono CTA (`↗ subscribe via RSS`). `apps/portf/src/features/artifacts/components/bodies/EssayBody.tsx:7-21` vs `docs/superpowers/artifacts/cosimi2/project/flow-and-pages.jsx:457-463`.
 - Inline preview card: `border: 2px solid var(--ink)` matches design. Thumbnail fallback path uses uppercased mono 9px / `--ink-4` chip; not exercised in current callsites — verify when ProjectBody re-render lands. `apps/portf/src/styles/layout.css:344-385`.
-- Per-kind body typography (existing): essays first-letter drop-cap (56px coral display) at `apps/portf/src/styles/layout.css:510-518` already mirrors `docs/superpowers/artifacts/simlm2/project/flow-and-pages.jsx:436-449`. CV `is-resume` reduces base font to 11px (`layout.css:519-521`); design source uses 10.5px (`flow-and-pages.jsx:531`).
+- Per-kind body typography (existing): essays first-letter drop-cap (56px coral display) at `apps/portf/src/styles/layout.css:510-518` already mirrors `docs/superpowers/artifacts/cosimi2/project/flow-and-pages.jsx:436-449`. CV `is-resume` reduces base font to 11px (`layout.css:519-521`); design source uses 10.5px (`flow-and-pages.jsx:531`).
 - CvAction button label is `↓ .PDF` (matches `flow-and-pages.jsx:528`) but currently anchors against `descriptor.url` and skips rendering when missing — design source unconditionally shows the button. `apps/portf/src/features/artifacts/components/actions/CvAction.tsx:7-14`.
 
 ### MDX descriptor inventory
@@ -26,9 +26,9 @@ file paths, the trap that would break it.
 | projects | multiplier-finance | NEW | resume PDF p.2 (BlockDevs era) |
 | projects | superlauncher | NEW | resume PDF p.2 (Feb 2020 - Jan 2022) |
 | essays | nuxt-migration | NEW | projects-deep.yaml `portfolio/migration-nuxt` |
-| essays | simlm-design | NEW | projects-deep.yaml `portfolio/simlm` + CLAUDE.md |
+| essays | cosimi-design | NEW | projects-deep.yaml `portfolio/cosimi` + CLAUDE.md |
 | essays | vue3-web-components-bridge | NEW | nuxt-migration subset |
-| misc | simlm-explainer | NEW | projects-deep.yaml `portfolio/simlm` |
+| misc | cosimi-explainer | NEW | projects-deep.yaml `portfolio/cosimi` |
 | misc | tools-ai-workflow | NEW | stack.yaml + identity.yaml AI rows |
 | misc | contact-coffee-chat | NEW | resume PDF header (email/github/linkedin) |
 | resume | longnguyen-2026 | exists; needs CvSection wrap | resume PDF |
@@ -83,7 +83,7 @@ K-CONTENT added 10 MDX descriptors but no runtime code; SSG audit unaffected.
 | projects | multiplier-finance | ok (kicker MULTIPLIER.FINANCE, different content set) | n/a |
 | essays | nuxt-migration | ok (drop-cap T, SUBSCRIBE VIA RSS kicker, essay typography) | ok (drop-cap survives narrow viewport) |
 | resume | longnguyen-2026 | ok (2fr/1fr grid: EXPERIENCE + SELECTED PROJECTS left, STACK/AI WORKFLOW/EDUCATION/LANGUAGES right) | ok (single-column collapse, sections stack in correct order) |
-| misc | simlm-explainer | ok (clean misc body, ABOUT THIS CHAT kicker, no .com action) | n/a |
+| misc | cosimi-explainer | ok (clean misc body, ABOUT THIS CHAT kicker, no .com action) | n/a |
 
 Screenshots: `docs/portf-phase-k-smoke/`.
 
@@ -104,7 +104,7 @@ Note on test env: the portf api on :3010 was running but the portf database had 
 
 ## K-extension: artifacts gallery page
 
-Per operator hand-off (chat transcripts `docs/superpowers/artifacts/simlm2/chats/`), the gallery shipped:
+Per operator hand-off (chat transcripts `docs/superpowers/artifacts/cosimi2/chats/`), the gallery shipped:
 
 - new `/artifacts` route with sidebar + `<ArtifactsGallery />`
 - sidebar item "Artifacts" with item count, above thread list, below `+ NEW CHAT`
@@ -152,4 +152,4 @@ The `EXPERIENCE` array hard-codes the company/role list from `apps/portf/public/
 
 ### Phase K-extension: artifacts gallery polish (2026-05-29)
 
-Five follow-on UI fixes after the gallery shipped. (1) The sidebar Artifacts row had a stretched 11x11 nav-ico rendering as a ~62px-wide red rect; root cause was the inherited `.v1-thread > span:not(.v1-dot):not(.v1-thread-meta)` ellipsis rule applying `flex: 1 1 0` to the icon span - fix excludes `.v1-nav-ico` and `.v1-nav-count` from that selector. (2) Added a `<div className="v1-section-label">Resources</div>` above `<ArtifactsNavItem />` (no symmetric Threads label - Today/Earlier already structure that section per `variations-1-2.jsx`). (3) Dropped the `url:` frontmatter field from `multiplier-finance.mdx` and `superlauncher.mdx` so only WegoPro now renders the LIVE badge in the gallery. (4) Bumped `.artx-*` typography by 1-2px across title, sub, col-label, proj-name, proj-tags, essay-title (row + card override in `EssayCard.tsx` 15→17), essay-meta, essay-dek, card-name, card-desc, card-tags, card-open. Filter pills and `.kbd` micro-mono labels untouched. (5) `EssayAction.tsx` now returns null (RSS dropped, operator does not support RSS, slot kept for future essay CTAs); expanded `nuxt-migration.mdx` to ~1200 words, `simlm-design.mdx` to ~1300 words, `vue3-web-components-bridge.mdx` to ~480 words anchored in CV facts plus this repo's CLAUDE.md architecture notes (no fabricated anecdotes).
+Five follow-on UI fixes after the gallery shipped. (1) The sidebar Artifacts row had a stretched 11x11 nav-ico rendering as a ~62px-wide red rect; root cause was the inherited `.v1-thread > span:not(.v1-dot):not(.v1-thread-meta)` ellipsis rule applying `flex: 1 1 0` to the icon span - fix excludes `.v1-nav-ico` and `.v1-nav-count` from that selector. (2) Added a `<div className="v1-section-label">Resources</div>` above `<ArtifactsNavItem />` (no symmetric Threads label - Today/Earlier already structure that section per `variations-1-2.jsx`). (3) Dropped the `url:` frontmatter field from `multiplier-finance.mdx` and `superlauncher.mdx` so only WegoPro now renders the LIVE badge in the gallery. (4) Bumped `.artx-*` typography by 1-2px across title, sub, col-label, proj-name, proj-tags, essay-title (row + card override in `EssayCard.tsx` 15→17), essay-meta, essay-dek, card-name, card-desc, card-tags, card-open. Filter pills and `.kbd` micro-mono labels untouched. (5) `EssayAction.tsx` now returns null (RSS dropped, operator does not support RSS, slot kept for future essay CTAs); expanded `nuxt-migration.mdx` to ~1200 words, `cosimi-design.mdx` to ~1300 words, `vue3-web-components-bridge.mdx` to ~480 words anchored in CV facts plus this repo's CLAUDE.md architecture notes (no fabricated anecdotes).

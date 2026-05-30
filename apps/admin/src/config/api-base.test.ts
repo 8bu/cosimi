@@ -144,7 +144,7 @@ describe("bootstrapApiBase()", () => {
     const handler = storageCall![1] as (e: StorageEvent) => void;
 
     // Wrong key — no reload.
-    handler(new StorageEvent("storage", { key: "simlm.theme", newValue: "dark" }));
+    handler(new StorageEvent("storage", { key: "cosimi.theme", newValue: "dark" }));
     expect(reload).not.toHaveBeenCalled();
 
     // Right key — reload.

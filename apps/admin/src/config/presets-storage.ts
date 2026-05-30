@@ -16,8 +16,8 @@ import {
   type ConfigPreset,
 } from "@/config/presets-schema";
 
-const PRESETS_KEY = "simlm.config.presets";
-const ACTIVE_KEY = "simlm.config.activePresetId";
+const PRESETS_KEY = "cosimi.config.presets";
+const ACTIVE_KEY = "cosimi.config.activePresetId";
 
 /**
  * Read the stored presets list. Returns [] on:
@@ -49,7 +49,7 @@ export function loadPresets(): ConfigPreset[] {
         parsed !== null &&
         (parsed as Record<string, unknown>).version !== PRESETS_VERSION
       ) {
-        console.warn(`[simlm] simlm.config.presets has unsupported version; resetting to empty.`);
+        console.warn(`[cosimi] cosimi.config.presets has unsupported version; resetting to empty.`);
       }
       return [];
     }

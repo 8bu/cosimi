@@ -72,7 +72,7 @@
  *
  * Two activation paths, in precedence order:
  *   1. `[data-theme="dark"]` on <html> — explicit user choice, persisted
- *      to localStorage.simlm.theme by the apps' ThemeToggle. Wins over
+ *      to localStorage.cosimi.theme by the apps' ThemeToggle. Wins over
  *      everything below.
  *   2. `[data-theme="light"]` — explicit user choice of light, even if
  *      the OS prefers dark. Re-applies the light defaults by NOT applying

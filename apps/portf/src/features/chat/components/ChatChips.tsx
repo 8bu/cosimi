@@ -9,7 +9,7 @@ interface ChatChipsProps {
  * Suggestion chips row rendered above the composer inside ChatPane.
  *
  * Shape ported from the design source's `V1Conversation` chip block
- * (`docs/superpowers/artifacts/simlm2/project/variations-1-2.jsx:80`,
+ * (`docs/superpowers/artifacts/cosimi2/project/variations-1-2.jsx:80`,
  * `<Chips items={SUGGESTION_CHIPS}>`). Same SUGGESTION_CHIPS constant
  * the V2 spotlight HomePane uses, so the recruiter sees a consistent
  * "menu" both at landing and in-thread.

@@ -9,7 +9,7 @@
  * and tests can reset by clearing storage. Mutations write through
  * synchronously before returning.
  *
- * After every mutation we dispatch a `simlm:presets-changed` DOM event
+ * After every mutation we dispatch a `cosimi:presets-changed` DOM event
  * — `storage` events do NOT fire in the same tab that wrote the value,
  * so any non-React subscribers (none today, but the contract is open)
  * can listen here.
@@ -42,7 +42,7 @@ interface PresetsStore {
 }
 
 const DEFAULT_NAME_LOWER = "default";
-const PRESETS_CHANGED_EVENT = "simlm:presets-changed";
+const PRESETS_CHANGED_EVENT = "cosimi:presets-changed";
 
 function validateName(name: string, presets: ConfigPreset[], ignoreId?: string): string | null {
   const trimmed = name.trim();

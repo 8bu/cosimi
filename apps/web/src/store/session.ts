@@ -11,7 +11,7 @@ interface SessionState {
  * Session id is server-canonical: apps/api's withSession middleware mints
  * one on first contact and echoes it on every response. The client adopts
  * whatever comes back — no client-side crypto.randomUUID(). The persist
- * middleware writes to localStorage under the key 'simlm.session' so the
+ * middleware writes to localStorage under the key 'cosimi.session' so the
  * id survives reloads; a thumbs-vote or /teach made in one tab still
  * belongs to the same session in the next.
  */
@@ -22,7 +22,7 @@ export const useSession = create<SessionState>()(
       setSessionId: (id) => set({ sessionId: id }),
       reset: () => set({ sessionId: null }),
     }),
-    { name: "simlm.session" },
+    { name: "cosimi.session" },
   ),
 );
 

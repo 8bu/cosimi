@@ -3,11 +3,11 @@ import { cn } from "@/lib/utils";
 
 /**
  * Loading placeholder block. Per the shadcn-style customization model,
- * this is a per-app copy (not extracted to @simlm/ui-tokens) so each
+ * this is a per-app copy (not extracted to @cosimi/ui-tokens) so each
  * SPA can tweak it without affecting the other. The implementation is
  * intentionally tiny — a muted background + Tailwind's animate-pulse.
  * Reduced-motion users get a static block via the global override in
- * @simlm/ui-tokens (clamps animation duration to ~0).
+ * @cosimi/ui-tokens (clamps animation duration to ~0).
  */
 export function Skeleton({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return <div className={cn("animate-pulse rounded-md bg-muted/60", className)} {...props} />;

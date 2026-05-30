@@ -1,5 +1,5 @@
 {
-  "name": "@simlm/admin",
+  "name": "@cosimi/admin",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -12,11 +12,11 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@cosimi/branding": "workspace:*",
+    "@cosimi/types": "workspace:*",
+    "@cosimi/ui-tokens": "workspace:*",
     "@radix-ui/react-dialog": "^1.1.0",
     "@radix-ui/react-tabs": "^1.1.0",
-    "@simlm/branding": "workspace:*",
-    "@simlm/types": "workspace:*",
-    "@simlm/ui-tokens": "workspace:*",
     "@tanstack/react-query": "^5.60.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
@@ -29,7 +29,7 @@
     "zustand": "^5.0.0"
   },
   "devDependencies": {
-    "@simlm/tsconfig": "workspace:*",
+    "@cosimi/tsconfig": "workspace:*",
     "@tailwindcss/vite": "^4.0.0",
     "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/react": "^16.1.0",

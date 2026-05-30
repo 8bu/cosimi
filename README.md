@@ -1,4 +1,4 @@
-# simlm: SimSimi-style chatbot
+# cosimi: SimSimi-style chatbot
 
 Pattern-matching chatbot in spirit of SimSimi. **No LLM at runtime.**
 Replies from curated/learned pattern store, scored by four-tier
@@ -33,7 +33,7 @@ match step** change.
 
 ### Tier 1 — pure SQL cascade (current)
 
-![Tier 1 architecture](./docs/assets/simlm_tier1_with_doc_processing.svg)
+![Tier 1 architecture](./docs/assets/cosimi_tier1_with_doc_processing.svg)
 
 Offline: LLM processes source docs into Q&A pairs → admin review →
 Postgres pattern store. Runtime falls through four tiers in order:
@@ -46,7 +46,7 @@ cross paraphrase gaps — `"forgot my login"` won't reach a
 
 ### Tier 2 — pgvector nearest-neighbor (planned)
 
-![Tier 2 architecture](./docs/assets/simlm_tier2_with_doc_processing.svg)
+![Tier 2 architecture](./docs/assets/cosimi_tier2_with_doc_processing.svg)
 
 Same offline pair generation, but store becomes pgvector. Each
 approved question is embedded by a sentence model; runtime embeds the
@@ -58,7 +58,7 @@ auditability and threshold tuning.
 
 ### Tier 3 — pairs + semantic chunks (planned)
 
-![Tier 3 architecture](./docs/assets/simlm_tier3_docs_pairs_and_chunks.svg)
+![Tier 3 architecture](./docs/assets/cosimi_tier3_docs_pairs_and_chunks.svg)
 
 Extends Tier 2's offline step. LLM reads docs and produces both Q&A
 pairs **and** semantic chunks; both are embedded into pgvector.
@@ -86,7 +86,7 @@ nvm use && corepack enable
 pnpm install
 cp .env.example .env
 pnpm dev:all                       # postgres → migrate → api + admin-api + web
-pnpm --filter @simlm/admin dev     # admin SPA on :5174
+pnpm --filter @cosimi/admin dev     # admin SPA on :5174
 pnpm seed                          # vi + chatterbot corpus
 ```
 

@@ -1,10 +1,10 @@
 {
-  "name": "simlm",
+  "name": "cosimi",
   "private": true,
   "license": "SEE LICENSE IN LICENSE.md",
   "scripts": {
-    "dev": "pnpm dev:simlm",
-    "dev:simlm": "bash scripts/dev-simlm.sh",
+    "dev": "pnpm dev:cosimi",
+    "dev:cosimi": "bash scripts/dev-cosimi.sh",
     "dev:portf": "bash scripts/dev-portf.sh",
     "build": "turbo run build",
     "lint": "oxlint",
@@ -25,7 +25,7 @@
     "provision:portf": "tsx --env-file=.env.portf packages/db/src/scripts/provision-portf-db.ts"
   },
   "devDependencies": {
-    "@simlm/oxlint-config": "workspace:*",
+    "@cosimi/oxlint-config": "workspace:*",
     "oxfmt": "^0.47.0",
     "oxlint": "^1.0.0",
     "tsx": "^4.19.0",

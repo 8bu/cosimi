@@ -1,5 +1,5 @@
 {
-  "name": "@simlm/admin-api",
+  "name": "@cosimi/admin-api",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -12,18 +12,18 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@cosimi/config": "workspace:*",
+    "@cosimi/db": "workspace:*",
+    "@cosimi/logger": "workspace:*",
+    "@cosimi/normalizer": "workspace:*",
+    "@cosimi/types": "workspace:*",
     "@hono/node-server": "^1.19.0",
-    "@simlm/config": "workspace:*",
-    "@simlm/db": "workspace:*",
-    "@simlm/logger": "workspace:*",
-    "@simlm/normalizer": "workspace:*",
-    "@simlm/types": "workspace:*",
     "hono": "^4.10.0",
     "pino": "^10.0.0",
     "valibot": "^1.0.0"
   },
   "devDependencies": {
-    "@simlm/tsconfig": "workspace:*",
+    "@cosimi/tsconfig": "workspace:*",
     "@types/node": "^22.0.0",
     "postgres": "^3.4.0",
     "tsx": "^4.19.0",

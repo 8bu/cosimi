@@ -1,4 +1,4 @@
-import type { ChatStreamEvent } from "@simlm/types";
+import type { ChatStreamEvent } from "@cosimi/types";
 import { create } from "zustand";
 
 import { matchArtifact } from "@/features/artifacts/match";

@@ -102,7 +102,7 @@ call out the trap that would break it.
   to add a Vite plugin-level glob exclude to skip compilation entirely.
 
 - **`valibot` is now a runtime dep of `apps/portf`.** It was already in
-  the workspace via `@simlm/config` (root). Phase F adds it as a direct
+  the workspace via `@cosimi/config` (root). Phase F adds it as a direct
   dep of `apps/portf` (`^1.0.0` resolves to 1.4.0; 1.4.1 was inside the
   7-day embargo on 2026-05-28). Used only for frontmatter validation in
   the catalog loader. Caret range; LTS-stable v1.

@@ -1,5 +1,5 @@
-import type { MatchResult } from "@simlm/types";
-import { sql } from "@simlm/db";
+import type { MatchResult } from "@cosimi/types";
+import { sql } from "@cosimi/db";
 
 // Hits pairs_trgm_idx (GIST + gist_trgm_ops). The `%` operator short-circuits
 // via the index; the explicit similarity(...) >= minSim filter applies the

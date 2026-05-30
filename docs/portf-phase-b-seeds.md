@@ -56,6 +56,6 @@
   brainstorm session. The smoke seed does not use `{{ name }}`
   substitution, so this is a no-op for Phase B. When the override
   lands, it will not be via a migration - `ON CONFLICT DO UPDATE`
-  would stomp the simlm-side value, violating migration discipline.
+  would stomp the cosimi-side value, violating migration discipline.
   The chosen path is a per-DB one-shot SQL or a CLI script invoked
   only against the portf URL.

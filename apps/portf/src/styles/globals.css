@@ -6,6 +6,6 @@
  * Tailwind v4 first → portfolio.css design tokens → Phase E layout.css.
  * The import order is load-bearing: layout.css overrides on selector tie.
  *
- * No @simlm/ui-tokens import: per spec §2, portf does NOT reuse apps/web's
+ * No @cosimi/ui-tokens import: per spec §2, portf does NOT reuse apps/web's
  * warm-neutral palette. The design system is app-local.
  */

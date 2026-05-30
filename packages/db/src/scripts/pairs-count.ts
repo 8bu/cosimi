@@ -5,10 +5,10 @@ import postgres from "postgres";
  * to stdout. Exit non-zero only on DB connection / query failure.
  *
  * Usage (env-file selects which DB):
- *   tsx --env-file=.env       packages/db/src/scripts/pairs-count.ts   # simlm
+ *   tsx --env-file=.env       packages/db/src/scripts/pairs-count.ts   # cosimi
  *   tsx --env-file=.env.portf packages/db/src/scripts/pairs-count.ts   # portf
  *
- * Used by `scripts/dev-simlm.sh` / `scripts/dev-portf.sh` to decide
+ * Used by `scripts/dev-cosimi.sh` / `scripts/dev-portf.sh` to decide
  * whether to prompt the operator about seeding before launching the
  * stack. Counts active rows so a soft-deleted corpus still triggers
  * the prompt (a re-seed on top of soft-deletes is the recovery path

@@ -20,7 +20,7 @@ Per-phase discovery doc (Phase E pattern). Append rules as learned.
 | 03 | STACK (facts) | stack, stack-{vue,react,ts,css,ui,be}, ai-tools, dev-env, ops, infra | ~79 | DENSE on facts |
 | 03 | STACK (opinions) | — | 0 | **MISSING** — hot takes, would-never-touch, preferences (operator self-flagged "CV bare facts — no opinions" in section comments) |
 | 04 | PROCESS | testing, ops (collab tools) | ~16 | **SPARSE** — code review, docs, async/sync, meetings missing (interview-todo.md A-section) |
-| 05 | PROJECTS DEEP (facts) | wegopro, blockdevs, multiplier, superlauncher, motorist, letterink, freelance, migration-nuxt, oss, simlm, web3 | ~91 | DENSE on facts |
+| 05 | PROJECTS DEEP (facts) | wegopro, blockdevs, multiplier, superlauncher, motorist, letterink, freelance, migration-nuxt, oss, cosimi, web3 | ~91 | DENSE on facts |
 | 05 | PROJECTS DEEP (narrative) | — | ~3 (only migration-nuxt) | **SPARSE** — most projects = "what is X" only, no shipped-what/wall/fix arc |
 | 06 | LIFE OFFLINE | hobbies, style, personal | ~27 | MEDIUM — music/food/reading depth TBD |
 | 07 | HIRING SIGNALS | whats-next, availability | ~12 | **SPARSE** — comp, visa, dealbreakers, team shape missing (interview-todo.md F/G) |
@@ -59,7 +59,7 @@ To resolve via TUI this session:
 - 27: Motorist.sg country (Singapore vs HCMC role)
 - 28: Letterink description (agency removed)
 - 29: English fluency level (currently "for work")
-- 30: SimLM identity claim (currently removed — is SimLM actually powering this chat?)
+- 30: Cosimi identity claim (currently removed — is Cosimi actually powering this chat?)
 
 ### Topic naming audit
 
@@ -107,7 +107,7 @@ Operator's authored corpus was already voice-tight on every dimension EXCEPT em-
 - **Em-dash mechanical sweep safe pattern.** Confirmed via `grep -hoE "[^ ]?—[^ ]?"` — 100% of 149 em-dashes were ` — ` with surrounding spaces. `sed -i '' 's/ — / - /g'` covers all cases without false positives. Future operators can apply same sweep on new corpus batches.
 - **Operator voice has two registers**, not one. Chat-INPUT register (lowercase, "u", "wat", no apostrophes, fragments) ≠ corpus-RESPONSE register (proper capitalization, terse but full sentences, hyphen always). Both must mirror Long's actual style. Voice guide documents both.
 - **Existing topics use legacy single-level `portfolio/<sub>`.** Phase G locked NEW pairs into `portfolio/artifact/<slug>`, `portfolio/experience/<slug>`, `portfolio/<theme>/<sub>`. Deflections file followed new convention (`portfolio/deflection/<sub>`). Migration of legacy topics to new convention NOT done this phase — operator can decide whether to rename during future J3 batches.
-- **CV inconsistencies (interview-todo items 26-30) resolution:** Motorist Singapore + remote HCMC, Letterink agency/studio claim, SimLM identity restored. Multiplier dates only in PDF (separate ticket per Phase B note). English level kept neutral.
+- **CV inconsistencies (interview-todo items 26-30) resolution:** Motorist Singapore + remote HCMC, Letterink agency/studio claim, Cosimi identity restored. Multiplier dates only in PDF (separate ticket per Phase B note). English level kept neutral.
 - **Phase J is data-only — gates only protect against accidental code touch.** All 473 tests across 9 packages pass after the corpus split + em-dash sweep + CV-fix MDX edits. No new tests required.
 
 ## Final corpus state

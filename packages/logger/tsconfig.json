@@ -1,4 +1,4 @@
 {
-  "extends": "@simlm/tsconfig/node.json",
+  "extends": "@cosimi/tsconfig/node.json",
   "include": ["src"]
 }

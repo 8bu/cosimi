@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { renderTemplate } from "@simlm/template";
+import { renderTemplate } from "@cosimi/template";
 
 describe("renderTemplate", () => {
   it("replaces a single placeholder", () => {

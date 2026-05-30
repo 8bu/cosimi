@@ -90,7 +90,7 @@
   follow the same guard.
 
 - **DO NOT pre-implement portf components from spec text - port the
-  prebuilt JSX from `docs/superpowers/artifacts/simlm2/project/`.** The
+  prebuilt JSX from `docs/superpowers/artifacts/cosimi2/project/`.** The
   design artifact IS the source of truth: `primitives.jsx`
   (`UserBubble` / `AssistantBubble` / `InputRow` / `Chips` / `Wordmark`
   / `Anno`), `variations-1-2.jsx` (`V1Sidebar` / `V1Conversation` chat
@@ -114,8 +114,8 @@
 - **Subagents working in a git worktree MUST anchor cwd before any
   file write.** Phase E Task 5 (sessions store) created
   `apps/portf/src/store/__tests__/sessions.test.ts` in the MAIN
-  worktree at `/Users/8bu/Projects/simlm/` instead of the active
-  worktree at `/Users/8bu/Projects/simlm/.claude/worktrees/zazzy-
+  worktree at `/Users/8bu/Projects/cosimi/` instead of the active
+  worktree at `/Users/8bu/Projects/cosimi/.claude/worktrees/zazzy-
   munching-dragon/`. Cause: a Write tool call resolved against an
   ambient cwd that was not the intended worktree (subagent did not
   explicitly `cd` first OR a follow-up tool call lost the cd).

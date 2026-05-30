@@ -39,7 +39,7 @@ describe("<ThemeToggle>", () => {
     const user = userEvent.setup();
     render(<ThemeToggle />);
     await user.click(screen.getByRole("button", { name: /switch to dark theme/i }));
-    expect(localStorage.getItem("simlm.theme")).toBe("dark");
+    expect(localStorage.getItem("cosimi.theme")).toBe("dark");
   });
 
   it("round-trips light → dark → light", async () => {

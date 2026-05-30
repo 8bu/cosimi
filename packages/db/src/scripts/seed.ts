@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { extname } from "node:path";
 import { parseArgs } from "node:util";
-import type { Source } from "@simlm/types";
+import type { Source } from "@cosimi/types";
 import { parse as parseYaml } from "yaml";
 import { closeDb } from "#client";
 import { createBatch, setBatchCount } from "#repositories/import_batches";

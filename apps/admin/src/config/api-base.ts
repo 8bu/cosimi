@@ -42,7 +42,7 @@ let attached = false;
  *      stale-fallback symmetric and avoids a wrong-backend request on
  *      the first paint after a foreign delete.
  *   2. Attaches a cross-tab `storage` listener: when another tab
- *      changes `simlm.config.activePresetId`, this tab reloads. No
+ *      changes `cosimi.config.activePresetId`, this tab reloads. No
  *      toast — Toaster mounts later in the render path, and the reload
  *      is the operator's expected reaction to a foreign-tab switch.
  *

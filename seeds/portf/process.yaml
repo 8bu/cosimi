@@ -8,7 +8,7 @@
 # TESTING (CV grounded)
 # ============================================================
 - input: "testing experience"
-  response: "Jest and Cypress at WegoPro. Vitest in SimLM."
+  response: "Jest and Cypress at WegoPro. Vitest in Cosimi."
   topic: portfolio/testing
 - input: "test framework"
   response: "Jest, Cypress, Vitest. ESLint."
@@ -23,7 +23,7 @@
   response: "Yes - at WegoPro."
   topic: portfolio/testing
 - input: "vitest"
-  response: "Yes - in SimLM."
+  response: "Yes - in Cosimi."
   topic: portfolio/testing
 - input: "eslint"
   response: "Yes - every project."

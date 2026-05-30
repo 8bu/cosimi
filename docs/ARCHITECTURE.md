@@ -22,7 +22,7 @@ Two backend processes, two SPAs, one database:
 
 - **`apps/api`** owns chat, `/teach` (inline command), feedback, public stats, health, runs GC sweeper. Binds `0.0.0.0:PORT` — public.
 - **`apps/admin-api`** owns admin surface: pairs CRUD, teach-queue review, bulk LLM import, batch rollback. **Binds `127.0.0.1:ADMIN_PORT` by default.** No `/admin/*` prefix server-side — whole process is admin surface.
-- Both share `@simlm/{db, types, config, normalizer, logger}`.
+- Both share `@cosimi/{db, types, config, normalizer, logger}`.
 
 ## How matching works
 

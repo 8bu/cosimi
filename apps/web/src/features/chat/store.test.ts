@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ChatStreamEvent } from "@simlm/types";
+import type { ChatStreamEvent } from "@cosimi/types";
 
 // Hoisted holder for the mocked streamChat — assigned per-test to return
 // a controllable async iterable. vi.mock factories run before imports, so

@@ -24,7 +24,7 @@ export function ThemeToggle() {
   // theme on syncing back via storage events).
   useEffect(() => {
     const handler = (e: StorageEvent) => {
-      if (e.key !== "simlm.theme") return;
+      if (e.key !== "cosimi.theme") return;
       const next = e.newValue === "dark" ? "dark" : "light";
       setTheme(next);
       applyTheme(next);

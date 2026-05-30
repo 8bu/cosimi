@@ -9,7 +9,7 @@ export interface ArtifactPreviewCardProps {
 
 /**
  * Verbatim port of the V1FirstChat card shape from
- * docs/superpowers/artifacts/simlm2/project/flow-and-pages.jsx:144-164.
+ * docs/superpowers/artifacts/cosimi2/project/flow-and-pages.jsx:144-164.
  *
  * Renders the bordered card (thumb + kicker + title + stack + arrow) followed
  * by the below-card kbd hint, both inside a fragment so the parent bubble flow

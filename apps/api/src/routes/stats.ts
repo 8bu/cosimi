@@ -1,6 +1,6 @@
 import { Hono } from "hono";
-import { sql } from "@simlm/db";
-import type { StatsResponse } from "@simlm/types";
+import { sql } from "@cosimi/db";
+import type { StatsResponse } from "@cosimi/types";
 
 /**
  * Public, no-auth. Drives the chat header's "pairs learned" counter.

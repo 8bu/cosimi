@@ -1,6 +1,6 @@
 import type postgres from "postgres";
-import { normalize } from "@simlm/normalizer";
-import type { Source } from "@simlm/types";
+import { normalize } from "@cosimi/normalizer";
+import type { Source } from "@cosimi/types";
 import { sql } from "#client";
 
 export interface InsertPairInput {

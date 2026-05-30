@@ -1,5 +1,5 @@
 {
-  "name": "@simlm/normalizer",
+  "name": "@cosimi/normalizer",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -16,7 +16,7 @@
     "test": "vitest run"
   },
   "devDependencies": {
-    "@simlm/tsconfig": "workspace:*",
+    "@cosimi/tsconfig": "workspace:*",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
   }

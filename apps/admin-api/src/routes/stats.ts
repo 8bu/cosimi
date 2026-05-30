@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { sql } from "@simlm/db";
+import { sql } from "@cosimi/db";
 
 /**
  * Extended admin counters for the dashboard. All four totals come back in

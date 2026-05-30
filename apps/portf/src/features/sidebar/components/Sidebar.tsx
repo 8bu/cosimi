@@ -7,7 +7,7 @@ import { ThreadList } from "@/features/sidebar/components/ThreadList";
 
 /**
  * Sidebar composition root. Shape ported from the design source's
- * `V1Sidebar` (`docs/superpowers/artifacts/simlm2/project/
+ * `V1Sidebar` (`docs/superpowers/artifacts/cosimi2/project/
  * variations-1-2.jsx`): Wordmark header, `+ NEW CHAT` button,
  * `<ThreadList>` (Today / Earlier bucketed), avatar + email footer
  * pinned to the bottom via `margin-top: auto`.

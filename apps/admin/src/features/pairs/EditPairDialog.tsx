@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { AdminPair } from "@simlm/types";
+import type { AdminPair } from "@cosimi/types";
 import {
   Dialog,
   DialogContent,

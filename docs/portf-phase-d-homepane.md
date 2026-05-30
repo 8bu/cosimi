@@ -38,7 +38,7 @@
 - **Phase D ships two zustand persist stores under `portf.*` keys**:
   `portf.preferences` (`primaryLocale`) and `portf.threads`
   (`{id, ts}[]` + `create()`). The naming convention is `portf.<store>`
-  - do NOT reuse `simlm.*` keys (those belong to apps/web and could
+  - do NOT reuse `cosimi.*` keys (those belong to apps/web and could
   silently collide on the same origin if both apps were ever served from
   the same host). Phase E grows `threads` with title/lastSnippet/pinned
   and adds rename/remove/touch/setTitle/revisit; the persisted shape

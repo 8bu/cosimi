@@ -1,4 +1,4 @@
-import { insertManyPairs, sql, type InsertPairInput } from "@simlm/db";
+import { insertManyPairs, sql, type InsertPairInput } from "@cosimi/db";
 
 /**
  * Truncate all admin-touched tables. CASCADE walks the FKs so we don't

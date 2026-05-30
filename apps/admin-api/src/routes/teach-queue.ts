@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import * as v from "valibot";
 
-import { insertPair, sql } from "@simlm/db";
-import type { AdminTeachQueueItem } from "@simlm/types";
+import { insertPair, sql } from "@cosimi/db";
+import type { AdminTeachQueueItem } from "@cosimi/types";
 
 import { PaginationSchema } from "../lib/pagination";
 

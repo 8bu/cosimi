@@ -1,4 +1,4 @@
-import type { Source } from "@simlm/types";
+import type { Source } from "@cosimi/types";
 import { sql } from "#client";
 
 export async function createBatch(source: Source, topic?: string, note?: string): Promise<number> {

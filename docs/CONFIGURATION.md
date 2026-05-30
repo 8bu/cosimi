@@ -1,6 +1,6 @@
 # Configuration
 
-All env vars parsed by `@simlm/config` (valibot). Defaults in
+All env vars parsed by `@cosimi/config` (valibot). Defaults in
 parentheses; see [`../packages/config/src/index.ts`](../packages/config/src/index.ts)
 for schema.
 
@@ -38,9 +38,9 @@ edit migration 010 in place.
 
 - `LOG_LEVEL=info` (default) never writes raw `input` / `response` /
   `message` / `reply` fields. Pino path-based redact strips as
-  `[REDACTED]`; `redactInput()` (in `@simlm/logger`) = explicit
+  `[REDACTED]`; `redactInput()` (in `@cosimi/logger`) = explicit
   way to log non-reversible reference: `{ length, hash }`.
 - `LOG_LEVEL=debug` lets handlers emit raw values, by convention under
   `*_dbg`-suffixed field names so redact list skips them.
-- Both backend processes import same `@simlm/logger` — no divergence
+- Both backend processes import same `@cosimi/logger` — no divergence
   in PII policy between api and admin-api.

@@ -59,7 +59,7 @@ export type ChatStreamEvent =
   | {
       // tier/confidence/score are nullable on the wire when the server is
       // configured to hide match insights (EXPOSE_MATCH_INSIGHTS=false in
-      // @simlm/config — the production default). pairId and lowConfidence
+      // @cosimi/config — the production default). pairId and lowConfidence
       // always ship because voting and the "low confidence" / "no match"
       // CTAs depend on them.
       type: "metadata";

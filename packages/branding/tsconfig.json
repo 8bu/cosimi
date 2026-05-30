@@ -1,5 +1,5 @@
 {
-  "extends": "@simlm/tsconfig/base.json",
+  "extends": "@cosimi/tsconfig/base.json",
   "compilerOptions": {
     "lib": ["ES2023"]
   },

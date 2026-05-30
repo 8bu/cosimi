@@ -225,9 +225,9 @@ describe("optional repo field", () => {
     const mod = {
       default: () => null,
       frontmatter: {
-        slug: "simlm",
+        slug: "cosimi",
         kind: "projects",
-        title: "simlm",
+        title: "cosimi",
         period: "2026",
         stack: ["TypeScript"],
         summary: "x",
@@ -235,8 +235,8 @@ describe("optional repo field", () => {
         repo: "https://github.com/8bu/x",
       },
     };
-    const catalog = _buildCatalog({ "/p/artifacts/projects/simlm.mdx": mod });
-    expect(catalog.get("simlm")?.repo).toBe("https://github.com/8bu/x");
+    const catalog = _buildCatalog({ "/p/artifacts/projects/cosimi.mdx": mod });
+    expect(catalog.get("cosimi")?.repo).toBe("https://github.com/8bu/x");
   });
 
   it("descriptor.repo is undefined when frontmatter omits it", async () => {

@@ -1,4 +1,4 @@
-# simlm — Codebase Map for AI Agents
+# cosimi — Codebase Map for AI Agents
 
 ## What this is
 
@@ -44,7 +44,7 @@ docs/             # phased specs SPEC_PHASE_0.md … SPEC_PHASE_16.md
 - `pnpm dev:all` — Docker guard → `db:up --wait` → `migrate` → `dev`.
 - `pnpm dev` — assumes Postgres up + migrated.
 - `pnpm db:up` / `db:down` / `db:reset` — Postgres dev container.
-- `pnpm migrate` / `seed` / `seed:chatterbot`. Root `migrate` runs `up`; for `status`/`reset` use `pnpm --filter @simlm/db migrate <sub>`.
+- `pnpm migrate` / `seed` / `seed:chatterbot`. Root `migrate` runs `up`; for `status`/`reset` use `pnpm --filter @cosimi/db migrate <sub>`.
 - `pnpm typecheck` / `lint` / `test` / `build` — turbo fan-out.
 - DB tests race when parallel: `pnpm -r --workspace-concurrency=1 test`.
 
@@ -52,23 +52,23 @@ docs/             # phased specs SPEC_PHASE_0.md … SPEC_PHASE_16.md
 
 ### Workspace & supply chain
 
-- Workspace packages `@simlm/<name>`, `private: true`. Import via `@simlm/...`; never relative across packages. `link-workspace-packages=true` makes self-imports work.
-- `@simlm/db` internal subpath imports use `#client`, `#repositories/*`, `#scripts/*`. Outside package, always `@simlm/db`.
+- Workspace packages `@cosimi/<name>`, `private: true`. Import via `@cosimi/...`; never relative across packages. `link-workspace-packages=true` makes self-imports work.
+- `@cosimi/db` internal subpath imports use `#client`, `#repositories/*`, `#scripts/*`. Outside package, always `@cosimi/db`.
 - `pnpm-workspace.yaml` has `minimumReleaseAge: 10080` (7-day embargo). Force-include via `minimumReleaseAgeExclude` only with comment.
 - `allowBuilds` = postinstall permission list. Each entry runs arbitrary install-time code; add deliberately with `# why` comment. Current: `esbuild`, `@swc/core`. No wildcards.
 
 ### Architecture & security
 
 - `apps/api` and `apps/admin-api` are **separate processes**. admin-api binds `127.0.0.1`; process split + network-layer gate IS auth contract — don't add app-layer auth to admin routes. No `/admin/*` route prefix.
-- **No LLM at runtime** in `apps/api`. `@simlm/matcher` only reply source.
-- Env via `loadEnv()` from `@simlm/config` — called once at startup, never at import time. Never `export const env = loadEnv()` (breaks test env injection).
+- **No LLM at runtime** in `apps/api`. `@cosimi/matcher` only reply source.
+- Env via `loadEnv()` from `@cosimi/config` — called once at startup, never at import time. Never `export const env = loadEnv()` (breaks test env injection).
 
 ### Database & migrations
 
 - Migrations in `packages/db/migrations/` numbered, additive, **never rewritten after merge**. New changes → new file. `pnpm migrate reset` dev-only (`NODE_ENV !== 'production'`).
-- **Canonical write path for `pairs`**: `insertPair` / `insertManyPairs` from `@simlm/db`. Never raw `INSERT INTO pairs`. Both omit `normalized_unaccented` (Postgres rejects explicit values) and accept optional `tx`; inside `.begin()` MUST pass `tx`.
+- **Canonical write path for `pairs`**: `insertPair` / `insertManyPairs` from `@cosimi/db`. Never raw `INSERT INTO pairs`. Both omit `normalized_unaccented` (Postgres rejects explicit values) and accept optional `tx`; inside `.begin()` MUST pass `tx`.
 - `pairs.normalized_unaccented` is `GENERATED ALWAYS AS (f_unaccent(normalized_input)) STORED`. Never INSERT/UPDATE directly.
-- **Diacritics split**: `@simlm/normalizer` does NFC + lowercase + whitespace, **preserves diacritics**. `f_unaccent(text)` (migration 001) strips server-side. All pair tiers compare `pairs.normalized_unaccented` against `f_unaccent(${normalizedInput})`. Never strip in JS. `session_teaches` `f_unaccent`s both sides at query time (no generated column; 10-min TTL keeps small).
+- **Diacritics split**: `@cosimi/normalizer` does NFC + lowercase + whitespace, **preserves diacritics**. `f_unaccent(text)` (migration 001) strips server-side. All pair tiers compare `pairs.normalized_unaccented` against `f_unaccent(${normalizedInput})`. Never strip in JS. `session_teaches` `f_unaccent`s both sides at query time (no generated column; 10-min TTL keeps small).
 - **BIGSERIAL ids round-trip as strings via postgres.js.** Cast at write boundary: `RETURNING id::int AS id`.
 - Interval arithmetic in SQL: `${n} * INTERVAL '1 unit'`. Never `(n || ' unit')::interval` (postgres.js types JS numbers as int).
 - `app_config` is key/value; templated responses use `{{ key }}` via `renderTemplate(text, vars)` (case-insensitive, unknown keys left literal). Tests exclude `app_config` from TRUNCATE. New placeholder = new migration with `INSERT … ON CONFLICT DO NOTHING`.
@@ -82,7 +82,7 @@ docs/             # phased specs SPEC_PHASE_0.md … SPEC_PHASE_16.md
 
 ### Matcher
 
-- Cascade: `session_teach → exact → FTS → trigram`, short-circuit on first non-null. Caller normalizes input (matcher doesn't call `@simlm/normalizer`). Skip `session_teach` when `sessionId` null.
+- Cascade: `session_teach → exact → FTS → trigram`, short-circuit on first non-null. Caller normalizes input (matcher doesn't call `@cosimi/normalizer`). Skip `session_teach` when `sessionId` null.
 - All match queries filter `(locale = $1 OR locale = 'und') ORDER BY (locale = $1) DESC`. OR = inclusion (locale-tagged + universal both eligible); ORDER BY = locale-tagged wins ties. Remove either → silent corpus split.
 - Trigram tier double-filters: `%` index op **AND** explicit `similarity(...) >= MATCH_TRGM_MIN`. `%` GUC is process-global and mutable; explicit threshold pins behavior. Never replace with `set_limit()`.
 - `lowConfidence` ⇔ `tier === 'trigram'`. FTS `ts_rank` clamped to `[0, 1]`. Top-K random pick (`MATCH_TOP_K`, default 5) in JS after SQL ordering — don't push into SQL.
@@ -114,12 +114,12 @@ docs/             # phased specs SPEC_PHASE_0.md … SPEC_PHASE_16.md
 
 ### Logging
 
-- PII redaction is belt-and-suspenders. `@simlm/logger.createLogger()` ships a `redact.paths` list (`input`, `response`, `reply`, `message`, `body.message`, `body.reply`, `body.input`); `redactInput(text)` → `{ length, hash: sha256[..8] }`. INFO+: use `redactInput()` if logging text. DEBUG raw values go under `*_dbg` suffixes (escape the redact list).
+- PII redaction is belt-and-suspenders. `@cosimi/logger.createLogger()` ships a `redact.paths` list (`input`, `response`, `reply`, `message`, `body.message`, `body.reply`, `body.input`); `redactInput(text)` → `{ length, hash: sha256[..8] }`. INFO+: use `redactInput()` if logging text. DEBUG raw values go under `*_dbg` suffixes (escape the redact list).
 - App logger files are thin `createLogger('<app>')` re-exports — never construct pino directly.
 
 ### Tests
 
-- `simlm_test` is shared by `packages/matcher`, `apps/api`, `apps/admin-api`. Each has its own `vitest globalSetup` that drops `public` and applies every migration. The migration loop is inlined in three places — extract `applyMigrations()` from `migrate.ts` on the fourth.
+- `cosimi_test` is shared by `packages/matcher`, `apps/api`, `apps/admin-api`. Each has its own `vitest globalSetup` that drops `public` and applies every migration. The migration loop is inlined in three places — extract `applyMigrations()` from `migrate.ts` on the fourth.
 - DB-touching vitest config: `pool: 'threads'`, `singleThread: true`, `fileParallelism: false`. `pnpm -r --workspace-concurrency=1 test` — otherwise they race. `apps/web` + `apps/admin` are DB-free (jsdom) and parallel-safe.
 - `MATCH_FTS_MIN` is `0.01` in matcher tests vs `0.1` in production (short fixtures give sub-0.1 `ts_rank`).
 - Fixtures go through `insertManyPairs`, never raw INSERT. Soft-deletion is post-insert `UPDATE … SET deleted_at = NOW()`. `session_teaches` test inserts still use raw SQL (no repo helper yet).
@@ -130,7 +130,7 @@ docs/             # phased specs SPEC_PHASE_0.md … SPEC_PHASE_16.md
 
 ### Shared types
 
-- Public-API DTOs live in `@simlm/types`. Handlers declare `const payload: <T> = …; return c.json(payload)`; clients re-import the same `T` via `apiJson<T>`. Never re-declare client-side.
+- Public-API DTOs live in `@cosimi/types`. Handlers declare `const payload: <T> = …; return c.json(payload)`; clients re-import the same `T` via `apiJson<T>`. Never re-declare client-side.
 - LLM bulk-import doc: `docs/LLM_IMPORT_FORMAT.md`. URLs are `http://127.0.0.1:3001/<route>` (no `/admin/*` prefix). Update in lockstep if admin routes reshape. 200-char input/response cap in the doc is advisory; server's valibot cap is 2000.
 
 ### apps/web
@@ -139,7 +139,7 @@ docs/             # phased specs SPEC_PHASE_0.md … SPEC_PHASE_16.md
 - `apiFetch`'s `raw: true` is load-bearing for streaming endpoints (keeps body un-consumed for `parseSseStream`). JSON endpoints use `apiJson`.
 - SSE consumer in `lib/sse-parser.ts`: async generator over `ReadableStream<Uint8Array>` (EventSource is GET-only; we POST). Frames split on `\n\n`; `finally` releases the reader lock. `[DONE]` is the stream-end sentinel.
 - `API_BASE = import.meta.env.VITE_API_BASE ?? '/api'`. Default pairs with the Vite proxy strip (`/api/foo` → `:3000/foo`). Override only for cross-origin SPA.
-- **Session id is server-canonical.** Client adopts `X-Session-Id` from response. Persisted under `localStorage.simlm.session` via zustand `persist`. **Never `crypto.randomUUID()` for session ids** — split-brain risk. Local UI ids (React keys) fine to mint client-side.
+- **Session id is server-canonical.** Client adopts `X-Session-Id` from response. Persisted under `localStorage.cosimi.session` via zustand `persist`. **Never `crypto.randomUUID()` for session ids** — split-brain risk. Local UI ids (React keys) fine to mint client-side.
 - Locale read imperatively per turn: `streamChat()` calls `preferencesStore.getState().primaryLocale` and sends `locales: [primary, 'und']`. Mirror for any future per-request server-bound preference (no React reactivity needed off the render tree).
 - **Teach detection regex is duplicated server + client; server is canonical.** Server: `PREFIX_RE = /^\/teach\b\s*/i` (`apps/api/src/services/teach-parser.ts`). Client: `TEACH_PREFIX_RE = /^\/teach\b/i` (`apps/web/src/features/chat/tokens.ts`). Change both in the same commit.
 - UI message types ≠ API event types. The chat-store reducer bridges SSE events → `ChatMessage` (settled-state union). Components consume `ChatMessage` only.
@@ -152,14 +152,14 @@ docs/             # phased specs SPEC_PHASE_0.md … SPEC_PHASE_16.md
 - TanStack Query keys: `['admin', <feature>, <params?>]`; `<feature>` ∈ `'unanswered' | 'pairs' | 'teach-queue' | 'stats'`. Mutations invalidate by prefix.
 - `useImport` uses plain `fetch`, **not** `apiJson` — `File` body must stream raw and content-type discriminates server-side (`application/x-ndjson` vs `application/json`). Same carve-out for any future multipart/form-data hook.
 - Free-text search inputs debounced 250ms via `lib/use-debounced.ts`. Enum-pick controls refetch immediately.
-- **Runtime `apiBase`** (Phase 16): `apps/admin/src/config/api-base.ts`'s `getApiBase()` is called fresh on every `fetch`, never snapshotted. Active preset persists under `simlm.config.activePresetId`; presets list under `simlm.config.presets` as `{ version: 1, presets: ConfigPreset[] }`. Synthetic Default (id `"__default__"`) is NEVER stored — materialized from `import.meta.env.VITE_API_BASE` at boot, so rebuilds update it without a storage wipe. Version mismatches reset to empty. Any new outgoing-fetch site MUST call `getApiBase()`; importing `API_BASE` from `lib/env.ts` for outgoing requests is a regression (that constant only seeds the Default).
-- **`bootstrapApiBase()`** runs from `main.tsx` after `bootstrapTheme()`, before render. Self-heals a stale `activeId` and attaches a cross-tab `storage` listener that calls `window.location.reload()` on `simlm.config.activePresetId` change. Idempotent (module-level `attached` flag). Switching backends is a full reload by design — TanStack Query keys don't include apiBase, so without the reload, backend X's cached rows would render as backend Y's. Don't replace with `queryClient.clear()`. The 500ms toast lead-in is the operator's signal.
+- **Runtime `apiBase`** (Phase 16): `apps/admin/src/config/api-base.ts`'s `getApiBase()` is called fresh on every `fetch`, never snapshotted. Active preset persists under `cosimi.config.activePresetId`; presets list under `cosimi.config.presets` as `{ version: 1, presets: ConfigPreset[] }`. Synthetic Default (id `"__default__"`) is NEVER stored — materialized from `import.meta.env.VITE_API_BASE` at boot, so rebuilds update it without a storage wipe. Version mismatches reset to empty. Any new outgoing-fetch site MUST call `getApiBase()`; importing `API_BASE` from `lib/env.ts` for outgoing requests is a regression (that constant only seeds the Default).
+- **`bootstrapApiBase()`** runs from `main.tsx` after `bootstrapTheme()`, before render. Self-heals a stale `activeId` and attaches a cross-tab `storage` listener that calls `window.location.reload()` on `cosimi.config.activePresetId` change. Idempotent (module-level `attached` flag). Switching backends is a full reload by design — TanStack Query keys don't include apiBase, so without the reload, backend X's cached rows would render as backend Y's. Don't replace with `queryClient.clear()`. The 500ms toast lead-in is the operator's signal.
 
 ### UI primitives & styling
 
-- Tokens shared via `@simlm/ui-tokens` (Tailwind v4 `@theme`); shadcn primitives are NOT shared — copied per-app under `apps/<name>/src/components/ui/*`. Don't "DRY up" primitives into a workspace package.
-- Tailwind v4 is CSS-first. No `tailwind.config.{ts,js}`. Config in `apps/<app>/src/styles/globals.css`: `@import "tailwindcss"` then `@import "@simlm/ui-tokens/theme.css"`. Vite plugin: `@tailwindcss/vite`.
-- **Theme**: `[data-theme="dark"|"light"]` on `<html>` wins unconditionally; `@media (prefers-color-scheme: dark)` matches only when `:root:not([data-theme])`. Key `localStorage.simlm.theme` — shared between apps. `bootstrapTheme()` runs from `main.tsx` before render. Don't `window.matchMedia` after an explicit choice — read `data-theme` from the DOM.
+- Tokens shared via `@cosimi/ui-tokens` (Tailwind v4 `@theme`); shadcn primitives are NOT shared — copied per-app under `apps/<name>/src/components/ui/*`. Don't "DRY up" primitives into a workspace package.
+- Tailwind v4 is CSS-first. No `tailwind.config.{ts,js}`. Config in `apps/<app>/src/styles/globals.css`: `@import "tailwindcss"` then `@import "@cosimi/ui-tokens/theme.css"`. Vite plugin: `@tailwindcss/vite`.
+- **Theme**: `[data-theme="dark"|"light"]` on `<html>` wins unconditionally; `@media (prefers-color-scheme: dark)` matches only when `:root:not([data-theme])`. Key `localStorage.cosimi.theme` — shared between apps. `bootstrapTheme()` runs from `main.tsx` before render. Don't `window.matchMedia` after an explicit choice — read `data-theme` from the DOM.
 - Reduced-motion is a token-layer concern. Global `@media (prefers-reduced-motion: reduce)` in `theme.css` clamps `animation-duration` / `transition-duration` / `scroll-behavior` on `*`. No per-component rules.
 - Enum-pick UI: native `<select>` with token styling. Multiselect: native checkboxes + `aria-label`. Don't reach for Radix Select/Checkbox unless design needs floating UI / indeterminate state.
 - `<ConfirmDialog>` is the workspace destructive-action gate. **Children must be inline-only** (`DialogDescription` renders `<p>`). For block descriptions, promote with a `descriptionAsChild` slot.

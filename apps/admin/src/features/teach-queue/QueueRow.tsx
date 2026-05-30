@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { AdminTeachQueueItem } from "@simlm/types";
+import type { AdminTeachQueueItem } from "@cosimi/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RelativeTime } from "@/components/RelativeTime";

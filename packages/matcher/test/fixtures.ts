@@ -1,4 +1,4 @@
-import { sql, insertManyPairs, type InsertPairInput } from "@simlm/db";
+import { sql, insertManyPairs, type InsertPairInput } from "@cosimi/db";
 
 export const SESSION_ID = "11111111-1111-1111-1111-111111111111";
 
@@ -20,7 +20,7 @@ export async function loadFixtures(): Promise<FixtureIds> {
     RESTART IDENTITY CASCADE
   `;
 
-  // All writes go through @simlm/db's canonical insertManyPairs path; that
+  // All writes go through @cosimi/db's canonical insertManyPairs path; that
   // keeps the test honest about the production code path (no direct
   // INSERT INTO pairs that bypasses normalization / generated columns).
   // Pre-Phase-11.1 rows are untagged (default 'und' at the column); the

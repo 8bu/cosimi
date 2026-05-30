@@ -169,10 +169,10 @@
   response: "Open to work - after a short break following WegoPro."
   topic: portfolio/whats-next
 - input: "whats next for u"
-  response: "2-month break. Working on SimLM. Then back to work."
+  response: "2-month break. Working on Cosimi. Then back to work."
   topic: portfolio/whats-next
 - input: "what are your plans after wegopro"
-  response: "2-month break, build SimLM during it, then look for the next role."
+  response: "2-month break, build Cosimi during it, then look for the next role."
   topic: portfolio/whats-next
 - input: "Are you currently available?"
   response: "I'm finishing at WegoPro in April 2026 and planning a brief two-month break before my next role. Open to early conversations."

@@ -1,9 +1,9 @@
 @import "tailwindcss";
-@import "@simlm/ui-tokens/theme.css";
+@import "@cosimi/ui-tokens/theme.css";
 
 /* Streaming-caret fade — softer than Tailwind's built-in pulse. Used by
  * BotMessage during the streaming state; `motion-safe:` on the utility
- * means the prefers-reduced-motion override in @simlm/ui-tokens already
+ * means the prefers-reduced-motion override in @cosimi/ui-tokens already
  * kills the animation cleanly. Defined here (app-local) rather than in
  * the shared token package because it's a chat-specific affordance —
  * the admin SPA has no streaming UI. */

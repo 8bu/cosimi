@@ -2,16 +2,16 @@ import { readdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import postgres from "postgres";
 
-// Reuse the same `simlm_test` database that @simlm/matcher's tests use.
+// Reuse the same `cosimi_test` database that @cosimi/matcher's tests use.
 // The migration loop is inlined here (mirrors packages/matcher/test/global-setup.ts)
-// because @simlm/db doesn't export an `applyMigrations()` function — migrate.ts
+// because @cosimi/db doesn't export an `applyMigrations()` function — migrate.ts
 // is a CLI. Five duplicated lines beats coupling the CLI to a test helper.
 const MIGRATIONS_DIR = fileURLToPath(new URL("../../../packages/db/migrations", import.meta.url));
 
 function deriveUrls(): { test: string; admin: string } {
-  const base = process.env.DATABASE_URL ?? "postgres://postgres:postgres@localhost:5432/simlm";
+  const base = process.env.DATABASE_URL ?? "postgres://postgres:postgres@localhost:5432/cosimi";
   const test = new URL(base);
-  test.pathname = "/simlm_test";
+  test.pathname = "/cosimi_test";
   const admin = new URL(base);
   admin.pathname = "/postgres";
   return { test: test.toString(), admin: admin.toString() };
@@ -23,10 +23,10 @@ export default async function setup(): Promise<void> {
   const admin = postgres(adminUrl, { max: 1, onnotice: () => {} });
   try {
     const rows = await admin<{ exists: number }[]>`
-      SELECT 1 AS exists FROM pg_database WHERE datname = 'simlm_test'
+      SELECT 1 AS exists FROM pg_database WHERE datname = 'cosimi_test'
     `;
     if (!rows.length) {
-      await admin.unsafe("CREATE DATABASE simlm_test");
+      await admin.unsafe("CREATE DATABASE cosimi_test");
     }
   } finally {
     await admin.end();

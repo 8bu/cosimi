@@ -18,38 +18,38 @@
   topic: portfolio/migration-nuxt
 
 # ============================================================
-# SIDE PROJECT - SimLM
+# SIDE PROJECT - Cosimi
 # ============================================================
-- input: "what is simlm"
-  response: "Pattern-matching chatbot. No LLM at runtime - replies from a curated pair store scored by a three-tier engine: exact match → Postgres FTS → trigram. This chat is powered by SimLM."
-  topic: portfolio/simlm
-- input: "tell me about simlm"
-  response: "pnpm + Turbo monorepo. Hono API. Vite/React UIs. Postgres with pg_trgm. The matcher does the work, no LLM in the request path. This chat you're using right now - that's SimLM."
-  topic: portfolio/simlm
-- input: "simlm?"
+- input: "what is cosimi"
+  response: "Pattern-matching chatbot. No LLM at runtime - replies from a curated pair store scored by a three-tier engine: exact match → Postgres FTS → trigram. This chat is powered by Cosimi."
+  topic: portfolio/cosimi
+- input: "tell me about cosimi"
+  response: "pnpm + Turbo monorepo. Hono API. Vite/React UIs. Postgres with pg_trgm. The matcher does the work, no LLM in the request path. This chat you're using right now - that's Cosimi."
+  topic: portfolio/cosimi
+- input: "cosimi?"
   response: "My side project. SimSimi-style pattern-matching chatbot. It's what's replying to you right now."
-  topic: portfolio/simlm
+  topic: portfolio/cosimi
 - input: "side project"
-  response: "SimLM - pattern-matching chatbot. Powering this chat."
-  topic: portfolio/simlm
+  response: "Cosimi - pattern-matching chatbot. Powering this chat."
+  topic: portfolio/cosimi
 - input: "current pet project"
-  response: "SimLM."
-  topic: portfolio/simlm
+  response: "Cosimi."
+  topic: portfolio/cosimi
 - input: "What are you working on currently?"
-  response: "SimLM - a pattern-matching chatbot using curated Q&A pairs and a three-tier scoring engine (exact match, Postgres full-text search, trigram similarity) instead of invoking an LLM at runtime. This portfolio chat is powered by it."
-  topic: portfolio/simlm
-- input: "is this simlm"
-  response: "Yes - this chat is powered by SimLM."
-  topic: portfolio/simlm
+  response: "Cosimi - a pattern-matching chatbot using curated Q&A pairs and a three-tier scoring engine (exact match, Postgres full-text search, trigram similarity) instead of invoking an LLM at runtime. This portfolio chat is powered by it."
+  topic: portfolio/cosimi
+- input: "is this cosimi"
+  response: "Yes - this chat is powered by Cosimi."
+  topic: portfolio/cosimi
 - input: "what powers this chat"
-  response: "SimLM - my pattern-matching chatbot. No LLM at runtime, just curated pairs + trigram + FTS scoring."
-  topic: portfolio/simlm
+  response: "Cosimi - my pattern-matching chatbot. No LLM at runtime, just curated pairs + trigram + FTS scoring."
+  topic: portfolio/cosimi
 - input: "is this chat ai"
-  response: "Not an LLM. It's SimLM - pattern matcher over curated Q&A pairs. Closer to SimSimi than ChatGPT."
-  topic: portfolio/simlm
+  response: "Not an LLM. It's Cosimi - pattern matcher over curated Q&A pairs. Closer to SimSimi than ChatGPT."
+  topic: portfolio/cosimi
 - input: "is this an llm"
-  response: "No. SimLM - pattern matcher. No LLM in the request path."
-  topic: portfolio/simlm
+  response: "No. Cosimi - pattern matcher. No LLM in the request path."
+  topic: portfolio/cosimi
 
 # ============================================================
 # PAST JOBS (CV grounded)

@@ -2,7 +2,7 @@
  * V2 spotlight headline + sub-line.
  *
  * Stateless. Faithful to design source
- * (docs/superpowers/artifacts/simlm2/project/variations-1-2.jsx:152-160).
+ * (docs/superpowers/artifacts/cosimi2/project/variations-1-2.jsx:152-160).
  * Copy is hardcoded English; Phase H will replace with i18n lookups.
  */
 export function SpotlightHeadline() {

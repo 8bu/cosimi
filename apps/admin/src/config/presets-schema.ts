@@ -1,6 +1,6 @@
 /**
  * Persisted shape of a `ConfigPreset` and the wrapper that lives under
- * `simlm.config.presets`. Pure types + a runtime validator — no React,
+ * `cosimi.config.presets`. Pure types + a runtime validator — no React,
  * no DOM, no zustand. The store/storage layers compose on top.
  *
  * The synthetic Default preset is NEVER persisted under this shape; it

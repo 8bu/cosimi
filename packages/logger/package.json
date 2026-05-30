@@ -1,5 +1,5 @@
 {
-  "name": "@simlm/logger",
+  "name": "@cosimi/logger",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -15,11 +15,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@simlm/config": "workspace:*",
+    "@cosimi/config": "workspace:*",
     "pino": "^10.0.0"
   },
   "devDependencies": {
-    "@simlm/tsconfig": "workspace:*",
+    "@cosimi/tsconfig": "workspace:*",
     "@types/node": "^22.0.0",
     "typescript": "^5.7.0"
   }

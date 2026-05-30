@@ -1,6 +1,6 @@
-import { sql } from "@simlm/db";
-import { normalize } from "@simlm/normalizer";
-import { loadEnv } from "@simlm/config";
+import { sql } from "@cosimi/db";
+import { normalize } from "@cosimi/normalizer";
+import { loadEnv } from "@cosimi/config";
 
 import { checkTeachRateLimit } from "./rate-limit";
 

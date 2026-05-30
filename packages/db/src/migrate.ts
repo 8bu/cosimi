@@ -1,6 +1,6 @@
 import { readdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { loadEnv } from "@simlm/config";
+import { loadEnv } from "@cosimi/config";
 import { sql, closeDb } from "#client";
 
 const MIGRATIONS_DIR = fileURLToPath(new URL("../migrations", import.meta.url));

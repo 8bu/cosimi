@@ -9,7 +9,7 @@ import { SUGGESTION_CHIPS } from "../data";
  * V2 spotlight composition root.
  *
  * Shape ported from the design source's `V2Desktop`
- * (`docs/superpowers/artifacts/simlm2/project/variations-1-2.jsx`
+ * (`docs/superpowers/artifacts/cosimi2/project/variations-1-2.jsx`
  * line 140–189): full-height flex column, top bar (Wordmark + status
  * pill, space-between), centered headline block in a 560px column
  * (Composer + Chips + hint line) inside a `flex: 1` middle.

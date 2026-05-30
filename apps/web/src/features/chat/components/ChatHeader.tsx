@@ -1,5 +1,5 @@
-import { BRAND } from "@simlm/branding";
-import { renderTemplate } from "@simlm/template";
+import { BRAND } from "@cosimi/branding";
+import { renderTemplate } from "@cosimi/template";
 import { useStats } from "@/api/stats";
 import { useSession } from "@/store/session";
 import { useTranslate } from "@/lib/i18n";

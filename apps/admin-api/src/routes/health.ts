@@ -1,4 +1,4 @@
-import { sql } from "@simlm/db";
+import { sql } from "@cosimi/db";
 import { Hono } from "hono";
 
 const startedAt = Date.now();

@@ -1,6 +1,6 @@
 import type { Context } from "hono";
 import { streamSSE } from "hono/streaming";
-import type { ChatStreamEvent } from "@simlm/types";
+import type { ChatStreamEvent } from "@cosimi/types";
 
 import { log } from "./logger";
 

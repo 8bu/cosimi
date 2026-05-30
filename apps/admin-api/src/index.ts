@@ -1,5 +1,5 @@
 import { serve } from "@hono/node-server";
-import { loadEnv } from "@simlm/config";
+import { loadEnv } from "@cosimi/config";
 
 import { app } from "./app";
 import { log } from "./lib/logger";
