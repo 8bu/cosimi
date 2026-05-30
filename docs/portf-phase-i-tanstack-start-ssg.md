@@ -48,4 +48,10 @@ Discovery log. Appended as I1-I9 execute.
 - Spot-checked `wegopro/index.html`: title `WegoPro - projects | Long NGUYỄN`, og:image `/og/wegopro.png`, canonical `https://8bu.dev/artifact/projects/wegopro` — all present in static HTML BEFORE hydration.
 - Stub `og:generate` script + placeholder `default.png` already in place (I5.1, I5.2); real satori pipeline lands in I7.
 
-## I6 — Chat SPA mode
+## I6 — Chat SPA mode done
+
+- `/chat/$threadId` declares `ssr: false` — Start skips server execution of `beforeLoad` / `loader` / `component` for this route.
+- **No separate `_shell.html` in 1.168** (spec assumed there would be). The SPA fallback target is `dist/client/chat/index.html` (5.6 KB; prerendered by the `/chat` route's own SSR with full chrome + head meta).
+- Static host rewrite: `/chat/<any-thread-id>` → `/chat/index.html`. Nginx: `try_files $uri /chat/index.html =404;` for `/chat/*`. Cloudflare Pages: `_redirects` line `/chat/* /chat/index.html 200`. Documented in spec §10 (future deployment phase).
+
+## I7 — og:image satori pipeline
