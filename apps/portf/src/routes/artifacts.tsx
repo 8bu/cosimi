@@ -21,6 +21,24 @@ import { ArtifactsGallery } from "@/features/artifacts-index/components/Artifact
  * composition.
  */
 export const Route = createFileRoute("/artifacts")({
+  head: () => ({
+    meta: [
+      { title: "Artifacts | Long NGUYỄN" },
+      {
+        name: "description",
+        content:
+          "Gallery of artifacts: projects, essays, resume, and other artifacts curated by Long NGUYỄN (8bu).",
+      },
+      { property: "og:title", content: "Artifacts | Long NGUYỄN" },
+      {
+        property: "og:description",
+        content: "Projects, essays, resume, and other artifacts.",
+      },
+      { property: "og:image", content: "/og/default.png" },
+      { property: "og:type", content: "website" },
+    ],
+    links: [{ rel: "canonical", href: "https://8bu.dev/artifacts" }],
+  }),
   component: ArtifactsRoute,
 });
 
