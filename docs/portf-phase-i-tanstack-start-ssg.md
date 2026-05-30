@@ -33,4 +33,10 @@ Discovery log. Appended as I1-I9 execute.
 - Title pattern: `Long NGUYỄN - portfolio` (home), `Artifacts | Long NGUYỄN`, `Chat | Long NGUYỄN`. `og:image` defaults to `/og/default.png` (rendered in I7).
 - 225 portf tests stay green (224 baseline + 1 router factory).
 
-## I4 — Artifact head (catalog-driven)
+## I4 — Artifact head done
+
+- `/artifact/$kind/$slug` head() reads `loaderData.descriptor` and emits title (pattern `{title} - {kind} | Long NGUYỄN`), og:title/og:description from `summary`, og:image `/og/{slug}.png`, og:type=article, canonical.
+- `loaderData` typed as optional (`loaderData?: { descriptor }`) — head() bails out with empty object when descriptor undefined (pre-loader resolution).
+- New test `src/routes/__tests__/artifact.head.test.tsx` (1 assertion); 226 portf tests total.
+
+## I5 — Prerender + sitemap enable
