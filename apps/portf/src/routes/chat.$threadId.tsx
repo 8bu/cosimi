@@ -16,6 +16,16 @@ import { useMessagesStore } from "@/store/messages";
  * synchronously in the effect body.
  */
 export const Route = createFileRoute("/chat/$threadId")({
+  head: () => ({
+    meta: [
+      { title: "Chat | Long NGUYỄN" },
+      { name: "description", content: "Ask me anything." },
+      { property: "og:title", content: "Chat | Long NGUYỄN" },
+      { property: "og:description", content: "Ask me anything." },
+      { property: "og:image", content: "/og/default.png" },
+      { property: "og:type", content: "website" },
+    ],
+  }),
   validateSearch: (search: Record<string, unknown>) => ({
     artifact: typeof search.artifact === "string" ? search.artifact : undefined,
   }),
