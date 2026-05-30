@@ -17,6 +17,17 @@ import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
  * would type-check but silently not redirect at runtime.
  */
 export const Route = createFileRoute("/chat")({
+  head: () => ({
+    meta: [
+      { title: "Chat | Long NGUYỄN" },
+      { name: "description", content: "Ask me anything." },
+      { property: "og:title", content: "Chat | Long NGUYỄN" },
+      { property: "og:description", content: "Ask me anything." },
+      { property: "og:image", content: "/og/default.png" },
+      { property: "og:type", content: "website" },
+    ],
+    links: [{ rel: "canonical", href: "https://8bu.dev/chat" }],
+  }),
   beforeLoad: ({ location }) => {
     if (location.pathname === "/chat" || location.pathname === "/chat/") {
       throw redirect({
