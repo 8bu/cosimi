@@ -48,6 +48,7 @@ describe("useChat.send — regular message flow", () => {
           score: 0,
           lowConfidence: false,
           locale: null,
+          topic: null,
         },
         { type: "token", content: "hello" },
         { type: "token", content: " world" },
@@ -149,6 +150,7 @@ describe("useChat.send — finally-settle (no structured done event)", () => {
           score: 0,
           lowConfidence: false,
           locale: null,
+          topic: null,
         },
         { type: "token", content: "hi" },
       ]),
@@ -173,6 +175,7 @@ describe("useChat.send — error handling", () => {
           score: 0,
           lowConfidence: false,
           locale: null,
+          topic: null,
         },
         { type: "error", message: "internal error" },
       ]),
@@ -202,6 +205,7 @@ describe("useChat.send — error handling", () => {
         score: 0,
         lowConfidence: false,
         locale: null,
+        topic: null,
       };
       throw new Error("connection reset");
     });
@@ -231,6 +235,7 @@ describe("useChat.send — concurrency guard", () => {
         score: 0,
         lowConfidence: false,
         locale: null,
+        topic: null,
       };
       await gate;
     });
@@ -268,6 +273,7 @@ describe("useChat.setVote — optimistic + revert", () => {
           score: 0,
           lowConfidence: false,
           locale: null,
+          topic: null,
         },
         { type: "token", content: "hi" },
       ]),

@@ -1,0 +1,42 @@
+---
+slug: vue3-web-components-bridge
+kind: essays
+title: Vue 3 web components as a migration bridge
+kicker: essay · deep dive
+period: 2026-04
+stack:
+  - Vue 3
+  - Web Components
+  - Nuxt 2
+summary: Technical deep-dive on the bridge layer that unlocked the WegoPro Nuxt migration.
+thumb: null
+matchPatterns:
+  - vue 3 web components
+  - migration bridge
+  - web components essay
+  - nuxt bridge layer
+locale: en
+order: 3
+---
+
+The "incremental migration" promise of any framework version-bump only works if the new and the old can share a page. For Nuxt 2 to Vue 3, the bridge is Vue 3 web components: ship Vue 3 surfaces as native custom elements, mounted inside the Nuxt 2 host, so the runtime cost of a rewrite gets paid one component at a time.
+
+## The shape
+
+Author the new feature as a normal Vue 3 component. Run it through `defineCustomElement` and register the resulting class with `customElements.define('wp-foo', WpFoo)`. The result is a real HTMLElement. Mount it inside any Nuxt 2 template like a normal tag: `<wp-foo :data="payload" />`. Vue 3 boots its own reactive runtime inside the element's shadow root. Vue 2's runtime keeps owning the host. Both heaps coexist on the same page, talking through DOM attributes and `CustomEvent` objects.
+
+## What you give up
+
+Slots cross the boundary as plain DOM. They are not Vue slots once they exit the custom element - they are slotted children, with the loss of scoped-slot semantics that implies. Provide/inject does not cross either. Vue 2 host components cannot pass reactive props directly into a Vue 3 custom element; the props arrive as attribute strings unless you reach the element through a `ref` and assign properties imperatively. Most state in practice lives inside the Vue 3 island and is fed by the URL, a shared store, or a one-shot init payload.
+
+## What you keep
+
+The Nuxt 2 router stays the source of truth. SSR keeps working for the host (the custom element renders as an opaque tag server-side and hydrates on the client). Build pipelines stay separate; the Vue 3 bundle is published as a static asset the Nuxt 2 host loads on demand. You ship one feature at a time, with no flag-flip cutover. The day you finish migrating, the bridge becomes garbage to collect.
+
+## When it fails
+
+Tightly-coupled UI that crosses the boundary every render. Drag-and-drop targets that span host and island. Forms whose validation lives outside the island. If you cannot draw a clean line around the island, the bridge is more expensive than the cleanup it was meant to defer. Pick boundaries that match data ownership: an island owns its state and its DOM, the host owns layout and navigation.
+
+## What about reactive props
+
+The honest answer: there is no good direct path. Attribute values are always strings, so anything richer than a primitive has to be JSON-encoded by the host and parsed by the island - or assigned as a JS property via a template `ref`, which works but breaks declarative templates. Outbound goes the other way: `dispatchEvent(new CustomEvent('change', { detail }))` from the island, `@change="..."` on the host. Treat the API surface like a network boundary. Once you accept the serialization tax, the bridge stops feeling clever and starts feeling correct.

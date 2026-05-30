@@ -19,7 +19,13 @@ import tailwindcss from "@tailwindcss/vite";
  * (/unanswered, /pairs, /teach-queue, /import, /rollback) — no /admin
  * prefix server-side. The SPA uses /api/* as a stable namespace; the
  * production reverse proxy must do the same rewrite.
+ *
+ * To manage the **portf** product's admin-api instead, launch with:
+ *   VITE_ADMIN_API_TARGET=http://127.0.0.1:3011 pnpm --filter @simlm/admin dev
+ * Both products are operator-trusted via loopback; same admin SPA, two targets.
  */
+const ADMIN_API_TARGET = process.env.VITE_ADMIN_API_TARGET ?? "http://127.0.0.1:3001";
+
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
@@ -31,7 +37,7 @@ export default defineConfig({
     port: 5174,
     proxy: {
       "/api": {
-        target: "http://127.0.0.1:3001",
+        target: ADMIN_API_TARGET,
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ""),
       },

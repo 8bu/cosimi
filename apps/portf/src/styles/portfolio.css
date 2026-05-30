@@ -1,0 +1,2320 @@
+/* ─────────────────────────────────────────────────────────────
+   Wireframe tokens — themed via [data-theme="..."]
+   Layouts in V1–V4 are constant. Each theme overrides not just
+   palette but typography, border weight, shadow, label treatment,
+   density — so the design language genuinely shifts.
+   ──────────────────────────────────────────────────────────── */
+:root {
+  /* Font stacks (constant across themes — themes pick from these) */
+  --fr-display: "Fraunces", "Times New Roman", serif;
+  --fr-body:    "Inter", system-ui, sans-serif;
+  --fr-mono:    "JetBrains Mono", ui-monospace, monospace;
+  --fr-hand:    "Caveat", "Comic Sans MS", cursive;
+  --fr-pixel:   "Press Start 2P", "VT323", ui-monospace, monospace;
+
+  /* Defaults — overridden by every theme */
+  --font-display:     var(--fr-display);
+  --font-body:        var(--fr-body);
+  --font-mono:        var(--fr-mono);
+  --headline-weight:  500;
+  --headline-style:   normal;
+  --headline-tracking: -0.01em;
+  --label-caps:       uppercase;
+  --label-tracking:   0.12em;
+  --border-w:         1px;
+  --border-style:     solid;
+  --shadow:           none;
+  --shadow-card:      none;
+}
+
+/* ── 01 · Stone (warm gray + deep blue accent) ─────────── */
+[data-theme="cream"] {
+  --canvas:        #f3f1ec;
+  --ink:           #1a1816;
+  --ink-2:         #2a2826;
+  --ink-3:         #5e5a52;
+  --ink-4:         #8a857c;
+  --line:          #d2cdc2;
+  --line-strong:   #9a948a;
+  --cream-card:    #e6e1d5;
+  --cream-2:       #ece7db;
+  --coral:         #1f3a5e;
+  --coral-2:       #142844;
+  --coral-tint:    #d4dde8;
+  --navy:          #1a1816;
+  --navy-soft:     #2a2826;
+
+  --font-display:  var(--fr-display);
+  --font-body:     var(--fr-body);
+  --headline-weight: 500;
+  --headline-style:  normal;
+  --label-caps:    uppercase;
+  --label-tracking: 0.12em;
+  --radius:        14px;
+  --radius-sm:     8px;
+  --border-w:      1px;
+  --border-style:  solid;
+  --shadow:        none;
+  --shadow-card:   none;
+}
+
+/* ── 02 · Bone (warm bone paper + black ink, classic editorial) ─ */
+[data-theme="mono"] {
+  --canvas:        #f0ece1;
+  --ink:           #14110c;
+  --ink-2:         #24201a;
+  --ink-3:         #5a544a;
+  --ink-4:         #8a847a;
+  --line:          #c8c0ac;
+  --line-strong:   #14110c;
+  --cream-card:    #e2dcc8;
+  --cream-2:       #e8e2cf;
+  --coral:         #14110c;
+  --coral-2:       #000000;
+  --coral-tint:    #dcd4be;
+  --navy:          #14110c;
+  --navy-soft:     #24201a;
+
+  --font-display:  var(--fr-display);
+  --font-body:     var(--fr-body);
+  --headline-weight: 500;
+  --headline-style:  normal;
+  --headline-tracking: -0.012em;
+  --label-caps:    uppercase;
+  --label-tracking: 0.16em;
+  --radius:        4px;
+  --radius-sm:     2px;
+  --border-w:      1px;
+  --border-style:  solid;
+  --shadow:        none;
+  --shadow-card:   none;
+}
+
+/* ── 03 · Slate (cool slate gray + muted petrol blue) ──── */
+[data-theme="riso"] {
+  --canvas:        #dde2e4;
+  --ink:           #14181c;
+  --ink-2:         #24282e;
+  --ink-3:         #4e545c;
+  --ink-4:         #7e848c;
+  --line:          #bcc2c8;
+  --line-strong:   #4e545c;
+  --cream-card:    #ccd2d8;
+  --cream-2:       #d4d9dc;
+  --coral:         #2a4a5e;
+  --coral-2:       #1a3848;
+  --coral-tint:    #b8c4cc;
+  --navy:          #14181c;
+  --navy-soft:     #24282e;
+
+  --font-display:  var(--fr-display);
+  --font-body:     var(--fr-body);
+  --headline-weight: 500;
+  --headline-style:  normal;
+  --headline-tracking: -0.018em;
+  --label-caps:    uppercase;
+  --label-tracking: 0.14em;
+  --radius:        6px;
+  --radius-sm:     3px;
+  --border-w:      1px;
+  --border-style:  solid;
+  --shadow:        none;
+  --shadow-card:   none;
+}
+
+/* ── 04 · Ash (cool ash-gray paper + near-black, modern) ─ */
+[data-theme="salmon"] {
+  --canvas:        #e8e6e2;
+  --ink:           #16161a;
+  --ink-2:         #26262a;
+  --ink-3:         #56565c;
+  --ink-4:         #86868c;
+  --line:          #c4c2be;
+  --line-strong:   #16161a;
+  --cream-card:    #d8d6d2;
+  --cream-2:       #dedcd8;
+  --coral:         #1a1a1e;
+  --coral-2:       #000000;
+  --coral-tint:    #cecccc;
+  --navy:          #16161a;
+  --navy-soft:     #26262a;
+
+  --font-display:  var(--fr-display);
+  --font-body:     var(--fr-body);
+  --headline-weight: 500;
+  --headline-tracking: -0.022em;
+  --label-caps:    uppercase;
+  --label-tracking: 0.12em;
+  --radius:        8px;
+  --radius-sm:     4px;
+  --border-w:      1px;
+  --border-style:  solid;
+  --shadow:        none;
+  --shadow-card:   none;
+}
+
+/* ── 05 · Newsprint (drop caps, double rules, 0 radius) ── */
+[data-theme="newsprint"] {
+  --canvas:        #f4efe1;
+  --ink:           #1a1815;
+  --ink-2:         #2a2620;
+  --ink-3:         #4a463c;
+  --ink-4:         #807a6a;
+  --line:          #c5bca6;
+  --line-strong:   #1a1815;
+  --cream-card:    #ece5d3;
+  --cream-2:       #ede6d2;
+  --coral:         #8a3018;
+  --coral-2:       #6a2510;
+  --coral-tint:    #ecd5c8;
+  --navy:          #1a1815;
+  --navy-soft:     #2a2620;
+
+  --font-display:  var(--fr-display);
+  --font-body:     var(--fr-display);
+  --headline-weight: 600;
+  --headline-tracking: -0.005em;
+  --label-caps:    uppercase;
+  --label-tracking: 0.18em;
+  --radius:        0px;
+  --radius-sm:     0px;
+  --border-w:      1px;
+  --border-style:  solid;
+  --shadow:        none;
+  --shadow-card:   none;
+}
+
+/* ── 06 · Camel (warm tan + dark espresso, soft drop) ──── */
+[data-theme="sage"] {
+  --canvas:        #ebe2d0;
+  --ink:           #2a1e14;
+  --ink-2:         #3a2a1c;
+  --ink-3:         #5e4c38;
+  --ink-4:         #8c7a60;
+  --line:          #c8baa0;
+  --line-strong:   #6a5a44;
+  --cream-card:    #ddd0b8;
+  --cream-2:       #e2d6bf;
+  --coral:         #5a3a20;
+  --coral-2:       #422810;
+  --coral-tint:    #d0c0a4;
+  --navy:          #2a1e14;
+  --navy-soft:     #3a2a1c;
+
+  --font-display:  var(--fr-display);
+  --font-body:     var(--fr-body);
+  --headline-weight: 400;
+  --headline-style:  italic;
+  --headline-tracking: -0.005em;
+  --label-caps:    none;
+  --label-tracking: 0;
+  --radius:        14px;
+  --radius-sm:     8px;
+  --border-w:      1px;
+  --border-style:  solid;
+  --shadow:        0 2px 0 rgba(50, 35, 20, 0.06);
+  --shadow-card:   0 4px 18px rgba(50, 35, 20, 0.10), 0 1px 3px rgba(50, 35, 20, 0.06);
+}
+
+/* ── 07 · Dove (pale dove gray + near-black, pillow radii) ─ */
+[data-theme="plum"] {
+  --canvas:        #ececea;
+  --ink:           #18181a;
+  --ink-2:         #28282a;
+  --ink-3:         #56565a;
+  --ink-4:         #8a8a90;
+  --line:          #dadada;
+  --line-strong:   #a0a0a4;
+  --cream-card:    #dededc;
+  --cream-2:       #e4e4e2;
+  --coral:         #18181a;
+  --coral-2:       #000000;
+  --coral-tint:    #e0e0e2;
+  --navy:          #18181a;
+  --navy-soft:     #28282a;
+
+  --font-display:  var(--fr-display);
+  --font-body:     var(--fr-body);
+  --headline-weight: 400;
+  --headline-style:  normal;
+  --headline-tracking: -0.02em;
+  --label-caps:    none;
+  --label-tracking: 0;
+  --radius:        12px;
+  --radius-sm:     8px;
+  --border-w:      1px;
+  --border-style:  solid;
+  --shadow:        0 1px 0 rgba(0, 0, 0, 0.04);
+  --shadow-card:   0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+/* ── 09 · Burgundy (bone paper + deep wine, classical) ──── */
+[data-theme="burgundy"] {
+  --canvas:        #ece4d2;
+  --ink:           #20100a;
+  --ink-2:         #2e1c14;
+  --ink-3:         #5a4438;
+  --ink-4:         #8a7464;
+  --line:          #c8baa0;
+  --line-strong:   #5a1a24;
+  --cream-card:    #e0d4be;
+  --cream-2:       #e6dcc4;
+  --coral:         #6a1c2c;
+  --coral-2:       #4a0e1c;
+  --coral-tint:    #e0c8c8;
+  --navy:          #20100a;
+  --navy-soft:     #2e1c14;
+
+  --font-display:  var(--fr-display);
+  --font-body:     var(--fr-display);
+  --headline-weight: 500;
+  --headline-style:  italic;
+  --headline-tracking: -0.012em;
+  --label-caps:    uppercase;
+  --label-tracking: 0.18em;
+  --radius:        4px;
+  --radius-sm:     2px;
+  --border-w:      1px;
+  --border-style:  solid;
+  --shadow:        none;
+  --shadow-card:   none;
+}
+
+/* ── 10 · Steel (cool steel + dark slate, modern minimal) ─ */
+[data-theme="steel"] {
+  --canvas:        #d8dde2;
+  --ink:           #14181c;
+  --ink-2:         #24282e;
+  --ink-3:         #4e545c;
+  --ink-4:         #7e848c;
+  --line:          #b8bec4;
+  --line-strong:   #14181c;
+  --cream-card:    #c8ced4;
+  --cream-2:       #d0d5da;
+  --coral:         #14181c;
+  --coral-2:       #000000;
+  --coral-tint:    #b8bec4;
+  --navy:          #14181c;
+  --navy-soft:     #24282e;
+
+  --font-display:  var(--fr-body);
+  --font-body:     var(--fr-body);
+  --headline-weight: 600;
+  --headline-tracking: -0.025em;
+  --label-caps:    uppercase;
+  --label-tracking: 0.1em;
+  --radius:        6px;
+  --radius-sm:     3px;
+  --border-w:      1px;
+  --border-style:  solid;
+  --shadow:        none;
+  --shadow-card:   none;
+}
+
+/* ── 11 · Putty (warm putty + dark chocolate, soft drop) ─ */
+[data-theme="putty"] {
+  --canvas:        #e1d6c2;
+  --ink:           #1c140c;
+  --ink-2:         #2c2218;
+  --ink-3:         #5a4a3a;
+  --ink-4:         #8c7c6a;
+  --line:          #bdb09a;
+  --line-strong:   #5a4838;
+  --cream-card:    #d0c4ae;
+  --cream-2:       #d8ccb6;
+  --coral:         #3a2418;
+  --coral-2:       #221208;
+  --coral-tint:    #c4b69e;
+  --navy:          #1c140c;
+  --navy-soft:     #2c2218;
+
+  --font-display:  var(--fr-display);
+  --font-body:     var(--fr-body);
+  --headline-weight: 500;
+  --headline-style:  italic;
+  --headline-tracking: -0.008em;
+  --label-caps:    none;
+  --label-tracking: 0.02em;
+  --radius:        12px;
+  --radius-sm:     6px;
+  --border-w:      1px;
+  --border-style:  solid;
+  --shadow:        0 1px 0 rgba(50, 35, 20, 0.06);
+  --shadow-card:   0 3px 12px rgba(50, 35, 20, 0.08), 0 1px 2px rgba(50, 35, 20, 0.04);
+}
+
+/* ── 12 · Linen (clean linen + dark slate, hard minimalist) ─ */
+[data-theme="linen"] {
+  --canvas:        #f0ece3;
+  --ink:           #18181a;
+  --ink-2:         #28282a;
+  --ink-3:         #58585a;
+  --ink-4:         #8a8a8a;
+  --line:          #c8c4ba;
+  --line-strong:   #18181a;
+  --cream-card:    #e2ddd0;
+  --cream-2:       #e8e3d6;
+  --coral:         #18181a;
+  --coral-2:       #000000;
+  --coral-tint:    #d2cdc0;
+  --navy:          #18181a;
+  --navy-soft:     #28282a;
+
+  --font-display:  var(--fr-body);
+  --font-body:     var(--fr-body);
+  --headline-weight: 700;
+  --headline-style:  normal;
+  --headline-tracking: -0.03em;
+  --label-caps:    uppercase;
+  --label-tracking: 0.08em;
+  --radius:        2px;
+  --radius-sm:     2px;
+  --border-w:      1px;
+  --border-style:  solid;
+  --shadow:        none;
+  --shadow-card:   none;
+}
+
+/* ── 13 · Indigo (pale indigo wash + deep midnight) ─────── */
+[data-theme="indigo"] {
+  --canvas:        #dadce6;
+  --ink:           #14182e;
+  --ink-2:         #1e2440;
+  --ink-3:         #4a5074;
+  --ink-4:         #7a82a0;
+  --line:          #b8bcd0;
+  --line-strong:   #14182e;
+  --cream-card:    #cacee0;
+  --cream-2:       #d2d6e2;
+  --coral:         #2a3260;
+  --coral-2:       #1a2048;
+  --coral-tint:    #b8c0d8;
+  --navy:          #14182e;
+  --navy-soft:     #1e2440;
+
+  --font-display:  var(--fr-display);
+  --font-body:     var(--fr-body);
+  --headline-weight: 500;
+  --headline-style:  normal;
+  --headline-tracking: -0.018em;
+  --label-caps:    uppercase;
+  --label-tracking: 0.14em;
+  --radius:        8px;
+  --radius-sm:     4px;
+  --border-w:      1px;
+  --border-style:  solid;
+  --shadow:        none;
+  --shadow-card:   none;
+}
+
+/* ── 25 · Massimo (Vignelli modernist · scaled-up Helvetica + red) ─ */
+[data-theme="massimo"] {
+  --canvas:        #f5f4f0;
+  --ink:           #0a0a0a;
+  --ink-2:         #1a1a1a;
+  --ink-3:         #4a4a4a;
+  --ink-4:         #8a8a8a;
+  --line:          #0a0a0a;
+  --line-strong:   #0a0a0a;
+  --cream-card:    #ecebe6;
+  --cream-2:       #efeee9;
+  --coral:         #d22020;
+  --coral-2:       #a81818;
+  --coral-tint:    #f6d4d4;
+  --navy:          #0a0a0a;
+  --navy-soft:     #1a1a1a;
+
+  --font-display:  var(--fr-body);
+  --font-body:     var(--fr-body);
+  --headline-weight: 800;
+  --headline-style:  normal;
+  --headline-tracking: -0.045em;
+  --label-caps:    uppercase;
+  --label-tracking: 0.2em;
+  --radius:        0px;
+  --radius-sm:     0px;
+  --border-w:      0.5px;
+  --border-style:  solid;
+  --shadow:        none;
+  --shadow-card:   none;
+}
+
+/* ── 26 · Cover (magazine cover · gigantic headline + red kicker strip) ── */
+[data-theme="cover"] {
+  --canvas:        #f8f5ee;
+  --ink:           #0a0a0a;
+  --ink-2:         #1a1a1a;
+  --ink-3:         #4a4a4a;
+  --ink-4:         #8a8a8a;
+  --line:          #0a0a0a;
+  --line-strong:   #0a0a0a;
+  --cream-card:    #efebe0;
+  --cream-2:       #f3efe5;
+  --coral:         #e02818;
+  --coral-2:       #a81810;
+  --coral-tint:    #f5d2cc;
+  --navy:          #0a0a0a;
+  --navy-soft:     #1a1a1a;
+
+  --font-display:  var(--fr-display);
+  --font-body:     var(--fr-body);
+  --headline-weight: 700;
+  --headline-style:  normal;
+  --headline-tracking: -0.035em;
+  --label-caps:    uppercase;
+  --label-tracking: 0.22em;
+  --radius:        0px;
+  --radius-sm:     0px;
+  --border-w:      1px;
+  --border-style:  solid;
+  --shadow:        none;
+  --shadow-card:   none;
+}
+
+/* ── 27 · Engraver (classical print · double-rules + italic serif) ── */
+[data-theme="engraver"] {
+  --canvas:        #f0ebde;
+  --ink:           #14100a;
+  --ink-2:         #241c14;
+  --ink-3:         #4a3e34;
+  --ink-4:         #8a7c6c;
+  --line:          #14100a;
+  --line-strong:   #14100a;
+  --cream-card:    #e6e1d2;
+  --cream-2:       #ebe6d8;
+  --coral:         #6a1a18;
+  --coral-2:       #4a0e0e;
+  --coral-tint:    #d8b8b0;
+  --navy:          #14100a;
+  --navy-soft:     #241c14;
+
+  --font-display:  var(--fr-display);
+  --font-body:     var(--fr-display);
+  --headline-weight: 500;
+  --headline-style:  italic;
+  --headline-tracking: -0.012em;
+  --label-caps:    uppercase;
+  --label-tracking: 0.22em;
+  --radius:        2px;
+  --radius-sm:     2px;
+  --border-w:      1px;
+  --border-style:  solid;
+  --shadow:        none;
+  --shadow-card:   none;
+}
+
+/* ── 28 · Quartz (tech editorial · sharp 4px + 2px black + red) ─── */
+[data-theme="quartz"] {
+  --canvas:        #f4f4f2;
+  --ink:           #0a0a0a;
+  --ink-2:         #1a1a1a;
+  --ink-3:         #4a4a4a;
+  --ink-4:         #8a8a8a;
+  --line:          #0a0a0a;
+  --line-strong:   #0a0a0a;
+  --cream-card:    #ebebe6;
+  --cream-2:       #f0eeea;
+  --coral:         #e8281a;
+  --coral-2:       #a81810;
+  --coral-tint:    #f4d4d0;
+  --navy:          #0a0a0a;
+  --navy-soft:     #1a1a1a;
+
+  --font-display:  var(--fr-body);
+  --font-body:     var(--fr-body);
+  --headline-weight: 900;
+  --headline-style:  normal;
+  --headline-tracking: -0.045em;
+  --label-caps:    uppercase;
+  --label-tracking: 0.12em;
+  --radius:        4px;
+  --radius-sm:     2px;
+  --border-w:      2px;
+  --border-style:  solid;
+  --shadow:        none;
+  --shadow-card:   none;
+}
+
+/* ─── Massimo · Cover · Engraver · Quartz structural overrides ──── */
+
+/* Massimo — Vignelli modernist: HUGE Helvetica, single red accent  */
+[data-theme="massimo"] .v2-headline {
+  font-size: 84px;
+  letter-spacing: -0.05em;
+  line-height: 0.92;
+}
+[data-theme="massimo"] .v2-headline em {
+  color: var(--coral);
+  font-style: normal;
+}
+[data-theme="massimo"] .wm-text {
+  text-transform: uppercase;
+  font-weight: 800;
+  font-size: 13px;
+}
+[data-theme="massimo"] .notes-card h2 {
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+/* Cover — magazine cover: red kicker strip + gigantic headline */
+[data-theme="cover"] .v2-headline {
+  font-size: 96px;
+  letter-spacing: -0.045em;
+  line-height: 0.88;
+  font-weight: 800;
+}
+[data-theme="cover"] .v2-headline em {
+  display: inline-block;
+  background: var(--coral);
+  color: #fff;
+  font-style: normal;
+  padding: 0.04em 0.24em;
+  line-height: 1;
+}
+/* Top kicker strip on every desktop frame */
+[data-theme="cover"] .frame-desktop::before {
+  content: "✦ ISSUE 042 · BERLIN · MAY 2026 · LONG NGUYEN · SENIOR WEB DEVELOPER ✦";
+  position: absolute;
+  top: 37px; /* below win-chrome */
+  left: 0; right: 0;
+  background: var(--coral);
+  color: #fff;
+  padding: 6px 24px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-align: center;
+  z-index: 4;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: clip;
+}
+[data-theme="cover"] .frame-desktop > div:nth-of-type(2) {
+  padding-top: 28px;
+}
+[data-theme="cover"] .v1-sidebar {
+  background: var(--ink);
+  color: #fff;
+}
+[data-theme="cover"] .v1-sidebar .v1-thread,
+[data-theme="cover"] .v1-sidebar .v1-section-label,
+[data-theme="cover"] .v1-sidebar .v1-thread-meta,
+[data-theme="cover"] .v1-sidebar .wm-text { color: #fff; }
+[data-theme="cover"] .v1-sidebar .v1-thread.active {
+  background: var(--coral);
+  color: #fff;
+}
+[data-theme="cover"] .v1-sidebar .wm-mark {
+  background: var(--coral);
+  color: #fff;
+}
+
+/* Engraver — classical print: double-rule headlines, italic serif */
+[data-theme="engraver"] .v2-headline,
+[data-theme="engraver"] .notes-card h2 {
+  font-style: italic;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-decoration-style: double;
+  text-underline-offset: 12px;
+  font-weight: 500;
+}
+[data-theme="engraver"] .v2-headline em {
+  font-style: italic;
+  color: var(--coral);
+}
+[data-theme="engraver"] .v2-sub::before,
+[data-theme="engraver"] .v2-sub::after {
+  content: "✦";
+  display: inline-block;
+  color: var(--coral);
+  margin: 0 10px;
+}
+[data-theme="engraver"] .bubble {
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  border-left: 0;
+  border-right: 0;
+  border-radius: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+[data-theme="engraver"] .bubble-user {
+  background: transparent;
+  border-color: var(--coral);
+}
+[data-theme="engraver"] .hr-dashed,
+[data-theme="engraver"] .win-chrome {
+  border-bottom-style: double;
+  border-bottom-width: 3px;
+}
+
+/* Quartz — tech editorial: extreme 900 headlines, 2px borders */
+[data-theme="quartz"] .v2-headline {
+  font-size: 76px;
+  font-weight: 900;
+  line-height: 0.92;
+  letter-spacing: -0.05em;
+}
+[data-theme="quartz"] .v2-headline em {
+  background: var(--coral);
+  color: #fff;
+  font-style: normal;
+  padding: 0 10px;
+  display: inline-block;
+}
+[data-theme="quartz"] .notes-card h2 {
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+[data-theme="quartz"] .chip {
+  border-width: 2px;
+}
+[data-theme="quartz"] .v1-thread.active {
+  background: var(--coral);
+  color: #fff;
+  border: 2px solid var(--ink);
+}
+[data-theme="quartz"] .v1-thread.active .v1-dot {
+  background: #fff;
+}
+[data-theme="cocoa"] {
+  --canvas:        #e6dac4;
+  --ink:           #1a0e08;
+  --ink-2:         #2a1c14;
+  --ink-3:         #5a4030;
+  --ink-4:         #8a6e58;
+  --line:          #c8b69a;
+  --line-strong:   #5a3a24;
+  --cream-card:    #d8c8ac;
+  --cream-2:       #ddcfb4;
+  --coral:         #4a2a16;
+  --coral-2:       #2e1808;
+  --coral-tint:    #c8b08c;
+  --navy:          #1a0e08;
+  --navy-soft:     #2a1c14;
+
+  --font-display:  var(--fr-display);
+  --font-body:     var(--fr-body);
+  --headline-weight: 500;
+  --headline-style:  normal;
+  --headline-tracking: -0.01em;
+  --label-caps:    uppercase;
+  --label-tracking: 0.14em;
+  --radius:        10px;
+  --radius-sm:     6px;
+  --border-w:      1px;
+  --border-style:  solid;
+  --shadow:        0 2px 0 rgba(60, 30, 10, 0.05);
+  --shadow-card:   0 4px 12px rgba(60, 30, 10, 0.10);
+}
+
+/* ── 19 · Editorial (PURE WHITE + black ink + scarlet accent) ──── */
+[data-theme="editorial"] {
+  --canvas:        #ffffff;
+  --ink:           #000000;
+  --ink-2:         #0a0a0a;
+  --ink-3:         #4a4a4a;
+  --ink-4:         #8a8a8a;
+  --line:          #d8d8d8;
+  --line-strong:   #000000;
+  --cream-card:    #f4f4f4;
+  --cream-2:       #fafafa;
+  --coral:         #c8201a;
+  --coral-2:       #94100a;
+  --coral-tint:    #f5d5d5;
+  --navy:          #000000;
+  --navy-soft:     #0a0a0a;
+
+  --font-display:  var(--fr-display);
+  --font-body:     var(--fr-body);
+  --headline-weight: 600;
+  --headline-style:  normal;
+  --headline-tracking: -0.025em;
+  --label-caps:    uppercase;
+  --label-tracking: 0.18em;
+  --radius:        2px;
+  --radius-sm:     2px;
+  --border-w:      1px;
+  --border-style:  solid;
+  --shadow:        none;
+  --shadow-card:   none;
+}
+
+/* ── 20 · Pavilion (PURE WHITE + deep navy + crisp serif) ──────── */
+[data-theme="pavilion"] {
+  --canvas:        #f8f8f6;
+  --ink:           #0a0e1a;
+  --ink-2:         #14182a;
+  --ink-3:         #4a5070;
+  --ink-4:         #8a90a8;
+  --line:          #d4d6dc;
+  --line-strong:   #0a0e1a;
+  --cream-card:    #eef0f4;
+  --cream-2:       #f3f4f7;
+  --coral:         #0a1840;
+  --coral-2:       #050c2a;
+  --coral-tint:    #cad0e0;
+  --navy:          #0a0e1a;
+  --navy-soft:     #14182a;
+
+  --font-display:  var(--fr-display);
+  --font-body:     var(--fr-body);
+  --headline-weight: 500;
+  --headline-style:  normal;
+  --headline-tracking: -0.02em;
+  --label-caps:    uppercase;
+  --label-tracking: 0.14em;
+  --radius:        4px;
+  --radius-sm:     2px;
+  --border-w:      1px;
+  --border-style:  solid;
+  --shadow:        none;
+  --shadow-card:   none;
+}
+
+/* ── 21 · Carbon (PURE WHITE + pure black, severe minimal) ─────── */
+[data-theme="carbon"] {
+  --canvas:        #ffffff;
+  --ink:           #000000;
+  --ink-2:         #0a0a0a;
+  --ink-3:         #3a3a3a;
+  --ink-4:         #8a8a8a;
+  --line:          #c8c8c8;
+  --line-strong:   #000000;
+  --cream-card:    #f0f0f0;
+  --cream-2:       #f8f8f8;
+  --coral:         #000000;
+  --coral-2:       #000000;
+  --coral-tint:    #e4e4e4;
+  --navy:          #000000;
+  --navy-soft:     #0a0a0a;
+
+  --font-display:  var(--fr-body);
+  --font-body:     var(--fr-body);
+  --headline-weight: 700;
+  --headline-style:  normal;
+  --headline-tracking: -0.035em;
+  --label-caps:    uppercase;
+  --label-tracking: 0.16em;
+  --radius:        0px;
+  --radius-sm:     0px;
+  --border-w:      1px;
+  --border-style:  solid;
+  --shadow:        none;
+  --shadow-card:   none;
+}
+
+/* ── 22 · Vermillion (cream + vermillion red, classical) ──────── */
+[data-theme="vermillion"] {
+  --canvas:        #f3eee2;
+  --ink:           #1a0e08;
+  --ink-2:         #2a1812;
+  --ink-3:         #4a342a;
+  --ink-4:         #8a766a;
+  --line:          #d4cab2;
+  --line-strong:   #1a0e08;
+  --cream-card:    #e8e0cd;
+  --cream-2:       #ede5d2;
+  --coral:         #b8240e;
+  --coral-2:       #8a1808;
+  --coral-tint:    #ecc8be;
+  --navy:          #1a0e08;
+  --navy-soft:     #2a1812;
+
+  --font-display:  var(--fr-display);
+  --font-body:     var(--fr-display);
+  --headline-weight: 500;
+  --headline-style:  italic;
+  --headline-tracking: -0.008em;
+  --label-caps:    uppercase;
+  --label-tracking: 0.2em;
+  --radius:        2px;
+  --radius-sm:     2px;
+  --border-w:      1px;
+  --border-style:  solid;
+  --shadow:        none;
+  --shadow-card:   none;
+}
+
+/* ── 23 · Onyx-Light (pearl gray + onyx near-black, high luminance) ─ */
+[data-theme="onyx"] {
+  --canvas:        #e0e0e0;
+  --ink:           #050505;
+  --ink-2:         #0e0e0e;
+  --ink-3:         #3a3a3a;
+  --ink-4:         #6a6a6a;
+  --line:          #b8b8b8;
+  --line-strong:   #050505;
+  --cream-card:    #cccccc;
+  --cream-2:       #d4d4d4;
+  --coral:         #050505;
+  --coral-2:       #000000;
+  --coral-tint:    #c0c0c0;
+  --navy:          #050505;
+  --navy-soft:     #0e0e0e;
+
+  --font-display:  var(--fr-body);
+  --font-body:     var(--fr-body);
+  --headline-weight: 800;
+  --headline-style:  normal;
+  --headline-tracking: -0.04em;
+  --label-caps:    uppercase;
+  --label-tracking: 0.14em;
+  --radius:        6px;
+  --radius-sm:     3px;
+  --border-w:      1.5px;
+  --border-style:  solid;
+  --shadow:        none;
+  --shadow-card:   0 2px 0 #050505;
+}
+
+/* ── 24 · Press (bright white + black + saturated red kicker) ─── */
+[data-theme="press"] {
+  --canvas:        #fbfbf9;
+  --ink:           #0a0a0a;
+  --ink-2:         #1a1a1a;
+  --ink-3:         #4a4a4a;
+  --ink-4:         #8a8a8a;
+  --line:          #0a0a0a;
+  --line-strong:   #0a0a0a;
+  --cream-card:    #f0eee8;
+  --cream-2:       #f5f3ed;
+  --coral:         #d8200a;
+  --coral-2:       #a01408;
+  --coral-tint:    #f8d4d0;
+  --navy:          #0a0a0a;
+  --navy-soft:     #1a1a1a;
+
+  --font-display:  var(--fr-display);
+  --font-body:     var(--fr-display);
+  --headline-weight: 700;
+  --headline-style:  normal;
+  --headline-tracking: -0.018em;
+  --label-caps:    uppercase;
+  --label-tracking: 0.22em;
+  --radius:        0px;
+  --radius-sm:     0px;
+  --border-w:      2px;
+  --border-style:  solid;
+  --shadow:        none;
+  --shadow-card:   none;
+}
+
+/* ── 08 · Oxblood (bone paper + bold sans, layered hard card) ─ */
+[data-theme="mint"] {
+  --canvas:        #ede6d8;
+  --ink:           #181410;
+  --ink-2:         #28221c;
+  --ink-3:         #5a4e42;
+  --ink-4:         #8a7e6e;
+  --line:          #cabea8;
+  --line-strong:   #5a4438;
+  --cream-card:    #e0d5c0;
+  --cream-2:       #e6dcc6;
+  --coral:         #6a1a1a;
+  --coral-2:       #4c0e0e;
+  --coral-tint:    #e0c4c4;
+  --navy:          #181410;
+  --navy-soft:     #28221c;
+
+  --font-display:  var(--fr-body);
+  --font-body:     var(--fr-body);
+  --headline-weight: 700;
+  --headline-tracking: -0.025em;
+  --label-caps:    uppercase;
+  --label-tracking: 0.08em;
+  --radius:        10px;
+  --radius-sm:     5px;
+  --border-w:      1.5px;
+  --border-style:  solid;
+  --shadow:        0 2px 0 var(--cream-card);
+  --shadow-card:   0 3px 0 var(--cream-card), 0 4px 0 var(--line-strong);
+}
+
+html, body { margin: 0; padding: 0; background: #f4f1ea; color: var(--ink); }
+body { font-family: var(--font-body); }
+
+/* The theme wrapper owns the tokens — make sure descendant `color` inherits
+   from inside it, otherwise `body color: var(--ink)` resolves to black
+   (outside the wrapper, --ink is undefined). */
+[data-theme] { color: var(--ink); }
+
+* { box-sizing: border-box; }
+
+/* ─────────────────────────────────────────────────────────────
+   Device frames
+   ──────────────────────────────────────────────────────────── */
+.frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--canvas);
+  overflow: hidden;
+  border: var(--border-w) solid var(--line);
+  box-shadow: var(--shadow-card);
+}
+
+.frame-desktop {
+  border-radius: var(--radius-sm);
+}
+
+.frame-mobile {
+  border-radius: 22px;
+}
+
+/* Top bar dots for desktop window chrome — kept tiny + wireframe */
+.win-chrome {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-bottom: var(--border-w) var(--border-style) var(--line);
+  background: var(--cream-2);
+}
+.win-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+}
+.win-url {
+  margin-left: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-4);
+  letter-spacing: 0.02em;
+}
+
+/* Mobile notch + status */
+.mob-status {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-3);
+}
+.mob-notch {
+  position: absolute;
+  top: 6px; left: 50%; transform: translateX(-50%);
+  width: 84px; height: 18px;
+  border-radius: 99px;
+  background: var(--ink);
+  z-index: 5;
+}
+
+/* Mobile mode: hide window chrome */
+.frame-mobile .win-chrome { display: none; }
+
+/* ─────────────────────────────────────────────────────────────
+   Wordmark
+   ──────────────────────────────────────────────────────────── */
+.wm {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: var(--headline-weight);
+  font-style: var(--headline-style);
+  letter-spacing: var(--headline-tracking);
+}
+/* ── Wordmark logo variants ──────────────────────────────────
+   Wordmark renders all five marks; CSS shows only the active one
+   based on `[data-logo=…]` on the canvas wrapper. */
+.wm-mark { display: none; align-items: center; }
+
+/* badge — the original red rectangle */
+[data-logo="badge"] .wm-mark-badge {
+  display: inline-flex;
+  justify-content: center;
+  background: var(--coral);
+  color: #ffffff;
+  font-family: var(--font-body);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  padding: 0 4px;
+  line-height: 1;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+}
+
+/* mono — quiet typographic "8bu" in mono, no chrome */
+[data-logo="mono"] .wm-mark-mono {
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--coral);
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+/* bracket — like an HTML tag */
+[data-logo="bracket"] .wm-mark-bracket {
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--coral);
+  line-height: 1;
+}
+
+/* pixel — chunky 5×7 SVG 8 followed by mono "bu" */
+[data-logo="pixel"] .wm-mark-pixel {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--coral);
+  line-height: 1;
+}
+.wm-mark-pixel-text {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--coral);
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+/* blockcursor → "8BU_" inside a coral badge, white pixel text +
+   a blinking underscore caret after BU. */
+[data-logo="blockcursor"] .wm-mark-blockcursor {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+.wm-mark-blockcursor-badge {
+  display: inline-flex;
+  align-items: baseline;
+  background: var(--coral);
+  color: #ffffff;
+  font-family: var(--fr-pixel);
+  font-weight: 400;
+  padding: 4px 3px 3px 5px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  border-radius: var(--radius-sm);
+}
+.wm-blink-caret {
+  display: inline-block;
+  margin-left: 0;
+  margin-right: -0.04em; /* absorb trailing letter-spacing on the badge */
+  animation: wm-caret-blink 1s steps(2, end) infinite;
+}
+@keyframes wm-caret-blink {
+  0%, 50%      { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
+}
+.wm-mark-blockcursor-caret,
+.wm-mark-blockcursor-text { display: none; }
+.wm-text { font-size: 14px; color: var(--ink); }
+.wm-sub { font-family: var(--font-mono); font-size: 10px; color: var(--ink-4); margin-left: 4px; font-style: normal; font-weight: 400; letter-spacing: 0.04em; }
+
+/* ─────────────────────────────────────────────────────────────
+   Bubbles
+   ──────────────────────────────────────────────────────────── */
+/* Bubble row — wraps sender label + bubble for proper alignment. */
+.bubble-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 2px;
+}
+.bubble-row-user { align-items: flex-end; }
+.bubble-row-assistant { align-items: flex-start; }
+.bubble-sender {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+  margin-bottom: 3px;
+  line-height: 1;
+}
+.bubble-sender-assistant {
+  color: var(--coral);
+  font-weight: 600;
+  font-family: var(--fr-pixel);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+
+/* Mobile chrome icon buttons (burger menu, new-chat +).
+   Visible glyph 20px, tap target 40×40 via negative margins so the
+   layout doesn't shift around them. */
+.mob-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin: -10px -12px;
+  font-family: var(--font-mono);
+  font-size: 22px;
+  line-height: 1;
+  color: var(--ink);
+  cursor: pointer;
+  flex-shrink: 0;
+  user-select: none;
+  transition: color 120ms ease;
+}
+.mob-icon-btn:hover { color: var(--coral); }
+
+.bubble {
+  max-width: 78%;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  line-height: 1.5;
+  border: var(--border-w) var(--border-style) var(--line);
+  margin-bottom: 10px;
+  position: relative;
+  box-shadow: var(--shadow);
+}
+.bubble-user {
+  background: var(--cream-card);
+  color: var(--ink-2);
+  margin-left: auto;
+  border-bottom-right-radius: var(--radius-sm);
+}
+.bubble-assistant {
+  background: transparent;
+  color: var(--ink-2);
+  border: 1px dashed var(--line-strong);
+  border-bottom-left-radius: var(--radius-sm);
+}
+.bubble-essay {
+  max-width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--ink);
+  text-wrap: pretty;
+  font-weight: var(--headline-weight);
+  font-style: var(--headline-style);
+}
+.bubble-essay-q {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: var(--label-tracking);
+  text-transform: var(--label-caps);
+  color: var(--coral);
+  margin-bottom: 6px;
+}
+
+/* placeholder text lines inside a bubble or block */
+.ph-block {
+  box-shadow: var(--shadow);
+}
+.ph-line {
+  height: 6px;
+  border-radius: 3px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--line) 0 6px,
+    transparent 6px 10px
+  );
+  margin: 6px 0;
+}
+.ph-line.dark {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--ink-3) 0 8px,
+    transparent 8px 12px
+  );
+  opacity: 0.55;
+}
+
+/* hatched placeholder block (for "imagery") */
+.ph-block {
+  border: var(--border-w) solid var(--line-strong);
+  background:
+    repeating-linear-gradient(
+      135deg,
+      transparent 0 6px,
+      var(--line) 6px 7px
+    ),
+    var(--cream-2);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-4);
+}
+.ph-block.coral {
+  background:
+    repeating-linear-gradient(
+      135deg,
+      transparent 0 6px,
+      var(--coral-tint) 6px 7px
+    ),
+    var(--cream-card);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Chips + input row
+   ──────────────────────────────────────────────────────────── */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 99px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-2);
+  background: var(--canvas);
+  border: var(--border-w) solid var(--line-strong);
+  cursor: pointer;
+  transition: all 120ms ease;
+  box-shadow: var(--shadow);
+}
+.chip:hover {
+  background: var(--cream-card);
+  transform: translateY(-1px);
+}
+.chip-mark { font-size: 12px; line-height: 1; }
+
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: var(--border-w) solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--canvas);
+  box-shadow: var(--shadow);
+}
+.input-row-mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-4);
+  flex: 1;
+}
+.input-row-cursor {
+  display: inline-block;
+  width: 1px;
+  height: 14px;
+  background: var(--ink);
+  vertical-align: middle;
+  animation: blink 1s steps(2, end) infinite;
+}
+@keyframes blink {
+  to { visibility: hidden; }
+}
+.send-btn {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--coral);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--canvas);
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Annotations (handwritten margin notes)
+   ──────────────────────────────────────────────────────────── */
+.anno {
+  position: absolute;
+  font-family: var(--fr-hand);
+  font-size: 18px;
+  color: var(--coral);
+  line-height: 1.1;
+  pointer-events: none;
+  max-width: 180px;
+  z-index: 10;
+}
+.anno-arrow {
+  display: block;
+  font-size: 16px;
+  margin-top: 2px;
+}
+[data-anno="0"] .anno { display: none; }
+
+/* small label */
+.kbd {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: var(--label-tracking);
+  text-transform: var(--label-caps);
+  color: var(--ink-4);
+}
+
+/* divider */
+.hr-dashed {
+  border: 0;
+  border-top: 1px dashed var(--line);
+  margin: 14px 0;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Focus mode: when one variation has focus, dim the others
+   This is applied at the DesignCanvas section level via data attr
+   ──────────────────────────────────────────────────────────── */
+[data-focus] [data-variation]:not([data-variation~=""]) {
+  transition: opacity 200ms ease, filter 200ms ease;
+}
+
+/* Sidebar (V1) */
+.v1-sidebar {
+  width: 220px;
+  border-right: 1px dashed var(--line);
+  padding: 14px 10px;
+  background: var(--cream-2);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 100%;
+}
+.v1-thread {
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--ink-2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid transparent;
+}
+.v1-thread .v1-dot {
+  width: 4px; height: 4px; border-radius: 50%; background: var(--ink-4);
+}
+.v1-thread.active {
+  background: var(--canvas);
+  border-color: var(--line);
+  color: var(--ink);
+}
+.v1-thread.active .v1-dot { background: var(--coral); }
+
+/* ─── Sidebar thread hover styles (switchable via Tweaks) ────
+   Default = "tint". Set [data-hover=…] on the canvas wrapper. */
+.v1-thread {
+  transition:
+    background 110ms ease,
+    border-color 110ms ease,
+    color 110ms ease,
+    padding-left 120ms ease;
+}
+.v1-thread .v1-dot {
+  transition: background 120ms ease, transform 120ms ease;
+}
+
+/* tint — soft background fill + dot turns coral */
+[data-hover="tint"] .v1-thread:not(.active):hover {
+  background: var(--cream-card);
+  color: var(--ink);
+}
+[data-hover="tint"] .v1-thread:not(.active):hover .v1-dot { background: var(--coral); }
+
+/* border — outline appears, no fill */
+[data-hover="border"] .v1-thread:not(.active):hover {
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+/* slide — coral left accent bar slides in, row nudges right */
+[data-hover="slide"] .v1-thread:not(.active) {
+  position: relative;
+  overflow: hidden;
+}
+[data-hover="slide"] .v1-thread:not(.active)::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 4px; bottom: 4px;
+  width: 0;
+  background: var(--coral);
+  transition: width 140ms ease;
+}
+[data-hover="slide"] .v1-thread:not(.active):hover {
+  background: var(--cream-2);
+  padding-left: 14px;
+  color: var(--ink);
+}
+[data-hover="slide"] .v1-thread:not(.active):hover::before { width: 3px; }
+
+/* mark — dot grows + turns coral, label color shifts coral */
+[data-hover="mark"] .v1-thread:not(.active):hover {
+  color: var(--coral);
+}
+[data-hover="mark"] .v1-thread:not(.active):hover .v1-dot {
+  background: var(--coral);
+  transform: scale(1.8);
+}
+
+/* underline — coral underline appears under the label only */
+[data-hover="underline"] .v1-thread:not(.active):hover span:nth-of-type(2) {
+  box-shadow: 0 1.5px 0 var(--coral);
+}
+[data-hover="underline"] .v1-thread:not(.active):hover {
+  color: var(--ink);
+}
+.v1-thread-meta {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--ink-4);
+  margin-left: auto;
+}
+
+.v1-section-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: var(--label-tracking);
+  text-transform: var(--label-caps);
+  color: var(--ink-4);
+  margin: 14px 4px 6px;
+}
+
+/* "+ new chat" CTA — sits under the branding row in the sidebar. */
+.v1-new-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  margin: 6px 0 4px;
+  background: var(--canvas);
+  border: 1.5px solid var(--ink);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+.v1-new-btn:hover {
+  background: var(--coral);
+  color: #ffffff;
+  border-color: var(--coral);
+}
+.v1-new-btn .plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px; height: 14px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--coral);
+  font-size: 14px;
+  line-height: 1;
+}
+.v1-new-btn:hover .plus { color: #ffffff; }
+
+/* Artifact panel chrome — single row: kicker + action + close */
+.artifact-chrome {
+  background: var(--canvas);
+  border-bottom: 2px solid var(--ink);
+}
+.artifact-chrome-top {
+  display: flex;
+  align-items: center;
+  padding: 8px 14px;
+  gap: 12px;
+}
+.artifact-chrome-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.artifact-kicker {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--coral);
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+}
+
+/* Prominent action button inside the artifact chrome (e.g. ↓ .PDF on CV) */
+.artifact-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #ffffff;
+  background: var(--coral);
+  padding: 4px 8px;
+  cursor: pointer;
+  border: 0;
+  transition: background 120ms ease;
+}
+.artifact-action:hover { background: var(--coral-2); }
+
+/* "← BACK" pill — mobile fullscreen artifact returns to chat */
+.artifact-back {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 4px 7px;
+  border: 1.5px solid var(--ink);
+  flex-shrink: 0;
+  background: var(--canvas);
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+.artifact-back:hover {
+  background: var(--coral);
+  color: #ffffff;
+  border-color: var(--coral);
+}
+
+/* Mobile fullscreen artifact body — scrollable with a bottom fade hint */
+.artifact-mobile-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 16px 16px 24px;
+  background: var(--cream-2);
+  position: relative;
+}
+.artifact-mobile-fade {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 32px;
+  background: linear-gradient(180deg, transparent 0%, var(--cream-2) 90%);
+  pointer-events: none;
+}
+
+/* Artifact-close × in the V3 right pane chrome.
+   Prominent enough to read as a "back to chat" affordance. */
+.artifact-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px; height: 22px;
+  margin-left: 6px;
+  border: 1.5px solid var(--ink);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--ink);
+  background: var(--canvas);
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+.artifact-close:hover {
+  background: var(--coral);
+  color: #ffffff;
+  border-color: var(--coral);
+}
+
+/* Navigation-map artboard styling */
+.navmap {
+  width: 100%;
+  height: 100%;
+  padding: 32px 40px;
+  background: var(--canvas);
+  font-family: var(--font-body);
+  color: var(--ink);
+  position: relative;
+  overflow: hidden;
+}
+.navmap h2 {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.022em;
+  margin: 0;
+  line-height: 1;
+}
+.navmap .lede {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--coral);
+  margin-bottom: 6px;
+}
+.navmap-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  margin-top: 26px;
+  border-top: 2px solid var(--ink);
+  border-left: 2px solid var(--ink);
+}
+.navmap-cell {
+  border-right: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+  padding: 12px 14px;
+  min-height: 168px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  background: var(--canvas);
+}
+.navmap-cell .step {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--ink-4);
+}
+.navmap-cell h3 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.014em;
+  line-height: 1.05;
+  margin: 0;
+}
+.navmap-cell p {
+  font-family: var(--font-body);
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--ink-2);
+  margin: 0;
+}
+.navmap-cell .trigger {
+  margin-top: auto;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--coral);
+  padding-top: 6px;
+  border-top: 1px dashed var(--line);
+}
+.navmap-arrow {
+  position: absolute;
+  top: 50%; transform: translateY(-50%);
+  right: -10px;
+  width: 20px; height: 20px;
+  background: var(--canvas);
+  border: 2px solid var(--ink);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--coral);
+  z-index: 2;
+}
+.navmap-back {
+  margin-top: 18px;
+  padding: 12px 14px;
+  border: 2px solid var(--ink);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.navmap-back .back-arrow {
+  color: var(--coral);
+  font-weight: 700;
+}
+
+/* V2 — spotlight */
+.v2-headline {
+  font-family: var(--font-display);
+  font-size: 56px;
+  line-height: 1.0;
+  letter-spacing: var(--headline-tracking);
+  color: var(--ink);
+  text-align: center;
+  font-weight: var(--headline-weight);
+  font-style: var(--headline-style);
+}
+.v2-headline em {
+  font-style: italic;
+  color: var(--coral);
+}
+.v2-sub {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--ink-3);
+  text-align: center;
+  max-width: 400px;
+  margin: 14px auto 28px;
+  line-height: 1.6;
+}
+
+/* V3 — split */
+.v3-split {
+  display: flex;
+  height: 100%;
+}
+.v3-chat {
+  width: 46%;
+  border-right: 1px dashed var(--line);
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+}
+.v3-artifact {
+  flex: 1;
+  padding: 18px 22px;
+  background: var(--cream-2);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.v3-artifact-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  text-transform: var(--label-caps);
+  letter-spacing: var(--label-tracking);
+}
+.v3-artifact-tab .dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--coral);
+}
+
+/* V4 — essay thread */
+.v4-essay {
+  padding: 28px 56px 100px;
+  max-width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.v4-essay-mobile {
+  padding: 30px 24px 110px;
+}
+.v4-pinned {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  width: calc(100% - 80px);
+  max-width: 640px;
+}
+.v4-pinned-mobile {
+  width: calc(100% - 32px);
+  bottom: 14px;
+}
+
+/* Design notes card */
+.notes-card {
+  padding: 28px;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-body);
+  color: var(--ink-2);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.notes-card h2 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: var(--headline-weight);
+  font-style: var(--headline-style);
+  margin: 0 0 4px;
+  letter-spacing: var(--headline-tracking);
+}
+.notes-card .lede {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: var(--label-tracking);
+  text-transform: var(--label-caps);
+  color: var(--coral);
+  margin-bottom: 18px;
+}
+.notes-q {
+  display: flex;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px dashed var(--line);
+}
+.notes-q-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-4);
+  flex-shrink: 0;
+  width: 28px;
+}
+.notes-q-body strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+.notes-q-body em {
+  font-family: var(--fr-hand);
+  font-size: 16px;
+  color: var(--coral);
+  font-style: normal;
+  margin-left: 6px;
+}
+
+/* ── 15 · Brutalism · Stone (NEAR-WHITE + saturated RED block + black) ── */
+[data-theme="brutalism"] {
+  --canvas:        #fafafa;
+  --ink:           #000000;
+  --ink-2:         #0a0a0a;
+  --ink-3:         #2a2a2a;
+  --ink-4:         #6a6a6a;
+  --line:          #000000;
+  --line-strong:   #000000;
+  --cream-card:    #ffffff;
+  --cream-2:       #ededed;
+  --coral:         #e22e2e;
+  --coral-2:       #b81818;
+  --coral-tint:    #f8d6d6;
+  --navy:          #000000;
+  --navy-soft:     #0a0a0a;
+
+  --font-display:  var(--fr-body);
+  --font-body:     var(--fr-body);
+  --headline-weight: 900;
+  --headline-style:  normal;
+  --headline-tracking: -0.045em;
+  --label-caps:    uppercase;
+  --label-tracking: 0.2em;
+  --radius:        0px;
+  --radius-sm:     0px;
+  --border-w:      3px;
+  --border-style:  solid;
+  --shadow:        4px 4px 0 #000;
+  --shadow-card:   6px 6px 0 #000;
+}
+
+/* ── 17 · Brutalism · Warm (NEAR-WHITE + saturated NAVY block + espresso) ── */
+[data-theme="brutalism2"] {
+  --canvas:        #f6f4ee;
+  --ink:           #1c1410;
+  --ink-2:         #2a201c;
+  --ink-3:         #4a3e34;
+  --ink-4:         #8a7c6c;
+  --line:          #1c1410;
+  --line-strong:   #1c1410;
+  --cream-card:    #ffffff;
+  --cream-2:       #ece8df;
+  --coral:         #1a2c5a;
+  --coral-2:       #0e1c40;
+  --coral-tint:    #cad0e0;
+  --navy:          #1c1410;
+  --navy-soft:     #2a201c;
+
+  --font-display:  var(--fr-display);
+  --font-body:     var(--fr-body);
+  --headline-weight: 700;
+  --headline-style:  italic;
+  --headline-tracking: -0.03em;
+  --label-caps:    uppercase;
+  --label-tracking: 0.18em;
+  --radius:        0px;
+  --radius-sm:     0px;
+  --border-w:      3px;
+  --border-style:  solid;
+  --shadow:        4px 4px 0 #1c1410;
+  --shadow-card:   6px 6px 0 #1c1410;
+}
+
+/* ── 16 · Liquid Glass · Frost (cool pearl, sharp 4px corners) ── */
+[data-theme="glass"] {
+  --canvas:        #e0e8f2;
+  --ink:           #0e1426;
+  --ink-2:         #1a2238;
+  --ink-3:         #3e4670;
+  --ink-4:         #7e86a8;
+  --line:          rgba(14, 20, 38, 0.10);
+  --line-strong:   rgba(14, 20, 38, 0.20);
+  --cream-card:    rgba(255, 255, 255, 0.30);
+  --cream-2:       rgba(255, 255, 255, 0.20);
+  --coral:         #2e4878;
+  --coral-2:       #1c325c;
+  --coral-tint:    rgba(46, 72, 120, 0.14);
+  --navy:          #0e1426;
+  --navy-soft:     #1a2238;
+
+  --font-display:  var(--fr-display);
+  --font-body:     var(--fr-body);
+  --headline-weight: 400;
+  --headline-style:  normal;
+  --headline-tracking: -0.028em;
+  --label-caps:    none;
+  --label-tracking: 0.02em;
+  --radius:        4px;
+  --radius-sm:     2px;
+  --border-w:      1px;
+  --border-style:  solid;
+  --shadow:        0 1px 0 rgba(255,255,255,0.6) inset, 0 1px 0 rgba(255,255,255,0.4), 0 4px 12px rgba(14, 20, 38, 0.08);
+  --shadow-card:   0 1px 0 rgba(255,255,255,0.6) inset, 0 12px 36px rgba(14, 20, 38, 0.14), 0 2px 8px rgba(14, 20, 38, 0.08);
+}
+
+/* ── 17 · Brutalism · Warm (putty cream + coffee brown borders) ── */
+[data-theme="brutalism2_DEPRECATED"] {
+  --canvas:        #e6dac4;
+  --ink:           #1c140c;
+  --ink-2:         #2c2218;
+  --ink-3:         #4a3a2a;
+  --ink-4:         #8a7c68;
+  --line:          #1c140c;
+  --line-strong:   #1c140c;
+  --cream-card:    #d6cab4;
+  --cream-2:       #ddd1bb;
+  --coral:         #5a1a1a;
+  --coral-2:       #3a0e0e;
+  --coral-tint:    #d8b8b0;
+  --navy:          #1c140c;
+  --navy-soft:     #2c2218;
+
+  --font-display:  var(--fr-display);
+  --font-body:     var(--fr-body);
+  --headline-weight: 700;
+  --headline-style:  italic;
+  --headline-tracking: -0.03em;
+  --label-caps:    uppercase;
+  --label-tracking: 0.18em;
+  --radius:        0px;
+  --radius-sm:     0px;
+  --border-w:      3px;
+  --border-style:  solid;
+  --shadow:        4px 4px 0 #1c140c;
+  --shadow-card:   6px 6px 0 #1c140c;
+}
+
+/* ── 18 · Liquid Glass · Bloom (warm pearl, sharp 4px corners) ── */
+[data-theme="glass2"] {
+  --canvas:        #f0e6d6;
+  --ink:           #1c140c;
+  --ink-2:         #2a1c14;
+  --ink-3:         #5a4838;
+  --ink-4:         #8c7c68;
+  --line:          rgba(28, 20, 12, 0.10);
+  --line-strong:   rgba(28, 20, 12, 0.20);
+  --cream-card:    rgba(255, 248, 232, 0.30);
+  --cream-2:       rgba(255, 248, 232, 0.20);
+  --coral:         #6a3a20;
+  --coral-2:       #4a2810;
+  --coral-tint:    rgba(106, 58, 32, 0.14);
+  --navy:          #1c140c;
+  --navy-soft:     #2a1c14;
+
+  --font-display:  var(--fr-display);
+  --font-body:     var(--fr-body);
+  --headline-weight: 400;
+  --headline-style:  italic;
+  --headline-tracking: -0.025em;
+  --label-caps:    none;
+  --label-tracking: 0.02em;
+  --radius:        4px;
+  --radius-sm:     2px;
+  --border-w:      1px;
+  --border-style:  solid;
+  --shadow:        0 1px 0 rgba(255,248,232,0.7) inset, 0 4px 12px rgba(60, 40, 20, 0.08);
+  --shadow-card:   0 1px 0 rgba(255,248,232,0.7) inset, 0 12px 36px rgba(60, 40, 20, 0.14), 0 2px 8px rgba(60, 40, 20, 0.08);
+}
+
+/* ─── Theme-specific element overrides ──────────────────────────
+   Some themes need DOM-level tweaks beyond what tokens cover.
+   ──────────────────────────────────────────────────────────── */
+
+/* Brutalism (both variants) — squared sends, beefed chips, all-caps headlines */
+[data-theme="brutalism"] .send-btn,
+[data-theme="brutalism2"] .send-btn {
+  border-radius: 0;
+  width: 34px;
+  height: 34px;
+  border: 2px solid var(--ink);
+}
+[data-theme="brutalism"] .chip,
+[data-theme="brutalism2"] .chip {
+  border-width: 2px;
+  border-color: var(--ink);
+  border-radius: 0;
+  background: var(--canvas);
+}
+[data-theme="brutalism"] .bubble,
+[data-theme="brutalism2"] .bubble {
+  border-width: 2px;
+}
+[data-theme="brutalism"] .bubble-assistant,
+[data-theme="brutalism2"] .bubble-assistant {
+  border-style: solid;
+}
+[data-theme="brutalism"] .v2-headline,
+[data-theme="brutalism"] .notes-card h2,
+[data-theme="brutalism"] .wm-text,
+[data-theme="brutalism2"] .v2-headline,
+[data-theme="brutalism2"] .notes-card h2,
+[data-theme="brutalism2"] .wm-text {
+  text-transform: uppercase;
+}
+[data-theme="brutalism"] .v2-headline em,
+[data-theme="brutalism2"] .v2-headline em {
+  color: var(--coral);
+  font-style: normal;
+  border-bottom: 5px solid var(--coral);
+}
+[data-theme="brutalism"] .frame,
+[data-theme="brutalism2"] .frame {
+  border-width: 3px;
+}
+[data-theme="brutalism"] .v1-sidebar,
+[data-theme="brutalism2"] .v1-sidebar {
+  border-right: 3px solid var(--ink);
+}
+[data-theme="brutalism"] .v3-chat,
+[data-theme="brutalism2"] .v3-chat {
+  border-right: 3px solid var(--ink);
+}
+[data-theme="brutalism"] .v1-thread.active,
+[data-theme="brutalism2"] .v1-thread.active {
+  background: var(--ink);
+  color: var(--canvas);
+}
+[data-theme="brutalism"] .v1-thread.active .v1-dot,
+[data-theme="brutalism2"] .v1-thread.active .v1-dot {
+  background: var(--canvas);
+}
+
+/* Brutalism — saturated ACCENT BLOCKS (the actual brutalist move).
+   The sidebar (V1), artifact pane (V3), and pinned strip (V4) become
+   big slabs of --coral. V2's headline gets a red highlight box. */
+[data-theme="brutalism"] .v1-sidebar,
+[data-theme="brutalism2"] .v1-sidebar {
+  background: var(--coral);
+  border-right-color: var(--ink);
+}
+[data-theme="brutalism"] .v1-sidebar,
+[data-theme="brutalism"] .v1-sidebar .v1-thread,
+[data-theme="brutalism"] .v1-sidebar .v1-section-label,
+[data-theme="brutalism"] .v1-sidebar .v1-thread-meta,
+[data-theme="brutalism"] .v1-sidebar .wm-text,
+[data-theme="brutalism2"] .v1-sidebar,
+[data-theme="brutalism2"] .v1-sidebar .v1-thread,
+[data-theme="brutalism2"] .v1-sidebar .v1-section-label,
+[data-theme="brutalism2"] .v1-sidebar .v1-thread-meta,
+[data-theme="brutalism2"] .v1-sidebar .wm-text {
+  color: #ffffff;
+}
+[data-theme="brutalism"] .v1-sidebar .wm-mark,
+[data-theme="brutalism2"] .v1-sidebar .wm-mark {
+  background: #ffffff;
+  color: var(--coral);
+}
+[data-theme="brutalism"] .v1-sidebar .v1-dot,
+[data-theme="brutalism2"] .v1-sidebar .v1-dot {
+  background: rgba(255,255,255,0.7);
+}
+[data-theme="brutalism"] .v1-sidebar .v1-thread.active,
+[data-theme="brutalism2"] .v1-sidebar .v1-thread.active {
+  background: #ffffff;
+  color: var(--ink);
+  border: 2px solid var(--ink);
+}
+[data-theme="brutalism"] .v1-sidebar .v1-thread.active .v1-dot,
+[data-theme="brutalism2"] .v1-sidebar .v1-thread.active .v1-dot {
+  background: var(--coral);
+}
+
+/* V3 artifact pane — solid accent block */
+[data-theme="brutalism"] .v3-artifact,
+[data-theme="brutalism2"] .v3-artifact {
+  background: var(--coral);
+  color: #ffffff;
+}
+[data-theme="brutalism"] .v3-artifact *,
+[data-theme="brutalism2"] .v3-artifact * {
+  color: #ffffff;
+}
+[data-theme="brutalism"] .v3-artifact .ph-block,
+[data-theme="brutalism2"] .v3-artifact .ph-block {
+  background:
+    repeating-linear-gradient(135deg, transparent 0 6px, rgba(255,255,255,0.35) 6px 7px),
+    rgba(0,0,0,0.12);
+  border-color: #ffffff;
+  color: #ffffff;
+}
+[data-theme="brutalism"] .v3-artifact-tab .dot,
+[data-theme="brutalism2"] .v3-artifact-tab .dot {
+  background: #ffffff;
+}
+
+/* V2 headline — em words become a red highlight slab */
+[data-theme="brutalism"] .v2-headline em,
+[data-theme="brutalism2"] .v2-headline em {
+  background: var(--coral);
+  color: #ffffff;
+  font-style: normal;
+  border-bottom: 0;
+  padding: 0 12px;
+  display: inline-block;
+}
+
+/* Window chrome stays canvas-tinted, not accent */
+[data-theme="brutalism"] .win-chrome,
+[data-theme="brutalism2"] .win-chrome {
+  background: var(--cream-2);
+}
+
+/* Liquid Glass — NOT glassmorphism. Clearer surfaces, bright specular
+   edges, lighter blur, visible refraction. Inspired by Apple's WWDC25
+   material: low-opacity bubbles (~0.10–0.14), light blur (10–12px),
+   strong top-edge highlight, hairline outer ring, vivid wallpaper.
+   Frost (cool blues) ─────────────────────────────────────────── */
+[data-theme="glass"] .frame {
+  background:
+    radial-gradient(at 15% 18%, rgba(80, 120, 200, 0.60) 0%, transparent 40%),
+    radial-gradient(at 85% 26%, rgba(110, 145, 210, 0.55) 0%, transparent 40%),
+    radial-gradient(at 52% 92%, rgba(150, 180, 225, 0.55) 0%, transparent 45%),
+    radial-gradient(at 78% 76%, rgba(90, 130, 200, 0.45) 0%, transparent 40%),
+    linear-gradient(180deg, #c4d2ea 0%, #dce4f2 100%);
+}
+[data-theme="glass"] .bubble,
+[data-theme="glass"] .input-row,
+[data-theme="glass"] .chip,
+[data-theme="glass"] .v1-thread.active {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.70),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.18),
+    0 1px 2px rgba(14, 20, 38, 0.06),
+    0 4px 16px rgba(14, 20, 38, 0.10);
+  position: relative;
+  overflow: hidden;
+}
+[data-theme="glass"] .bubble::before,
+[data-theme="glass"] .input-row::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 55%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.24) 0%, transparent 100%);
+  pointer-events: none;
+  border-radius: inherit;
+}
+[data-theme="glass"] .bubble-user {
+  background: rgba(46, 72, 120, 0.22);
+  border-color: rgba(255, 255, 255, 0.30);
+}
+[data-theme="glass"] .bubble-assistant {
+  border-style: solid;
+}
+[data-theme="glass"] .v1-sidebar,
+[data-theme="glass"] .v3-artifact,
+[data-theme="glass"] .win-chrome {
+  background: rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.50);
+}
+[data-theme="glass"] .ph-block {
+  background:
+    repeating-linear-gradient(135deg, transparent 0 6px, rgba(46, 72, 120, 0.10) 6px 7px),
+    rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(8px);
+  border-color: rgba(255, 255, 255, 0.30);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+[data-theme="glass"] .send-btn {
+  background: rgba(46, 72, 120, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.30),
+    0 1px 2px rgba(14, 20, 38, 0.18);
+}
+
+/* Bloom (warm earth pearl) ─────────────────────────────────── */
+[data-theme="glass2"] .frame {
+  background:
+    radial-gradient(at 15% 18%, rgba(210, 175, 135, 0.60) 0%, transparent 40%),
+    radial-gradient(at 85% 26%, rgba(190, 160, 125, 0.55) 0%, transparent 40%),
+    radial-gradient(at 52% 92%, rgba(225, 195, 155, 0.55) 0%, transparent 45%),
+    radial-gradient(at 78% 76%, rgba(175, 140, 105, 0.45) 0%, transparent 40%),
+    linear-gradient(180deg, #f0e4ce 0%, #ede0c6 100%);
+}
+[data-theme="glass2"] .bubble,
+[data-theme="glass2"] .input-row,
+[data-theme="glass2"] .chip,
+[data-theme="glass2"] .v1-thread.active {
+  background: rgba(255, 250, 240, 0.14);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(255, 250, 240, 0.36);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 250, 240, 0.75),
+    inset 0 0 0 0.5px rgba(255, 250, 240, 0.20),
+    0 1px 2px rgba(60, 40, 20, 0.06),
+    0 4px 16px rgba(60, 40, 20, 0.10);
+  position: relative;
+  overflow: hidden;
+}
+[data-theme="glass2"] .bubble::before,
+[data-theme="glass2"] .input-row::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 55%;
+  background: linear-gradient(180deg, rgba(255, 250, 240, 0.26) 0%, transparent 100%);
+  pointer-events: none;
+  border-radius: inherit;
+}
+[data-theme="glass2"] .bubble-user {
+  background: rgba(106, 58, 32, 0.22);
+  border-color: rgba(255, 250, 240, 0.32);
+}
+[data-theme="glass2"] .bubble-assistant {
+  border-style: solid;
+}
+[data-theme="glass2"] .v1-sidebar,
+[data-theme="glass2"] .v3-artifact,
+[data-theme="glass2"] .win-chrome {
+  background: rgba(255, 250, 240, 0.12);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: inset 0 1px 0 rgba(255, 250, 240, 0.55);
+}
+[data-theme="glass2"] .ph-block {
+  background:
+    repeating-linear-gradient(135deg, transparent 0 6px, rgba(106, 58, 32, 0.10) 6px 7px),
+    rgba(255, 250, 240, 0.10);
+  backdrop-filter: blur(8px);
+  border-color: rgba(255, 250, 240, 0.32);
+  box-shadow: inset 0 1px 0 rgba(255, 250, 240, 0.5);
+}
+[data-theme="glass2"] .send-btn {
+  background: rgba(106, 58, 32, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 250, 240, 0.55),
+    inset 0 0 0 0.5px rgba(255, 250, 240, 0.30),
+    0 1px 2px rgba(60, 40, 20, 0.18);
+}
+[data-theme="glass"] .v1-thread,
+[data-theme="glass2"] .v1-thread {
+  border-radius: 4px;
+}

@@ -11,6 +11,7 @@ services:
       - "5432:5432"
     volumes:
       - simlm_pg_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d simlm"]
       interval: 5s

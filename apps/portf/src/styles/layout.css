@@ -1,0 +1,1325 @@
+/*
+ * apps/portf Phase E layout layer.
+ *
+ * Imported from globals.css AFTER portfolio.css. The portfolio.css file
+ * is the verbatim design source (.oxfmtignore'd, byte-identical); this
+ * file is where Phase E adds layout primitives that don't belong in the
+ * design system: chat-shell grid, mobile drawer state, typing indicator,
+ * bubble error modifier.
+ *
+ * Selector tie: layout wins on order. Custom properties (--ink-*, --coral,
+ * --line, --cream-*, --font-mono) are inherited from portfolio.css and
+ * the [data-theme="press"] block.
+ */
+
+/* ─── Chat layout grid ─────────────────────────────────────────────── */
+.chat-shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  height: 100%;
+}
+
+/* ChatPane shape - header / scrollable messages / footer.
+ * Ported from the design source's `V1Conversation`
+ * (docs/superpowers/artifacts/simlm2/project/variations-1-2.jsx). Each
+ * direct child is capped to a 760px column and centered so the
+ * conversation reads like a real chat product (Claude / ChatGPT
+ * standard), not a full-bleed terminal log. */
+/* Flex column with overflow-y:auto. Key insight: __messages uses
+ * `flex: 1 0 auto` (grow OK, shrink-disabled, basis=natural content
+ * height) so its natural content height is always honored. When that
+ * sum (header + content + footer) exceeds chat-pane height, the parent
+ * scrolls. With shrink disabled, content NEVER gets clipped to the
+ * available flex space - the overflow propagates to chat-pane and
+ * sticky position works correctly. */
+.chat-pane {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  /* No vertical padding - sticky elements hug viewport edges. */
+}
+/* All direct children centered in 760 reading column with own h-padding. */
+.chat-pane > * {
+  width: 100%;
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 22px;
+  padding-right: 22px;
+}
+
+.chat-pane__messages {
+  /* `flex: 1 0 auto` = grow:1 shrink:0 basis:auto. Grows to fill empty
+   * space on short threads (pushes footer to viewport bottom). Won't
+   * shrink below content height, so tall threads expand the flex parent
+   * past chat-pane's height = scrollbar engages. */
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* mobile-topbar + ChatHeader pinned to true top:0 (no parent padding).
+ * Padding-top sits INSIDE the sticky element so the gradient fade starts
+ * from the actual viewport edge, not 16px below. */
+.chat-pane > .mobile-topbar,
+.chat-pane > .chat-header {
+  position: sticky;
+  top: 0;
+  background: linear-gradient(to bottom, var(--canvas) 60%, transparent 100%);
+  padding-top: 16px;
+  padding-bottom: 32px;
+  z-index: 2;
+}
+
+/* Composer pinned to true bottom:0. Padding-bottom inside the sticky
+ * element so the bottom gutter sits below the gradient fade. */
+.chat-pane__footer {
+  position: sticky;
+  bottom: 0;
+  background: linear-gradient(to top, var(--canvas) 60%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 32px;
+  padding-bottom: 24px;
+  z-index: 2;
+}
+
+/* Natural height (no flex:1). With chat-pane as the grid scroll container,
+ * message-list expanding past the 1fr row's allocation is what triggers
+ * .chat-pane's overflow scroll. flex:1 here caps it at allocation and
+ * the overflowing bubbles render visibly but don't bump the row height. */
+.message-list {
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.empty-chat {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  color: var(--ink-4);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+/* ─── Typing indicator: 3 dots, staggered blink ────────────────────── */
+.typing-indicator {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+.typing-indicator span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink-4);
+  animation: portf-typing-blink 1.2s ease-in-out infinite;
+}
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes portf-typing-blink {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+
+/* ─── Bubble error modifier ────────────────────────────────────────── */
+.bubble.is-error {
+  border-color: var(--coral);
+}
+
+/* ─── Sidebar row remove button ────────────────────────────────────── */
+.thread-remove {
+  border: none;
+  background: transparent;
+  color: var(--ink-4);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 6px;
+  margin-left: 4px;
+  opacity: 0;
+  transition:
+    opacity 120ms ease,
+    color 120ms ease;
+}
+.v1-thread:hover .thread-remove,
+.thread-remove:focus-visible {
+  opacity: 1;
+}
+.thread-remove:hover {
+  color: var(--coral);
+}
+
+/* ─── Inline rename input (sits inside .v1-thread) ─────────────────── */
+.v1-thread input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-body);
+  font-size: 12px;
+  background: var(--canvas);
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+}
+
+/* ─── Sidebar row title ellipsis ───────────────────────────────────────
+ * `.v1-thread` is a flex row: `.v1-dot` · label `<span>` · meta `<span>`.
+ * Without `min-width: 0` + ellipsis on the label, long titles wrap to a
+ * second line and the row grows vertically. Match the design (single
+ * line, ellipsis on overflow). Targeted via `:not(.v1-dot):not(.v1-thread-meta)`
+ * so the meta + dot keep their sizing; the footer / empty-state spans
+ * also inherit the ellipsis behavior naturally.
+ *
+ * `.v1-nav-ico` and `.v1-nav-count` are also `<span>` children of
+ * `.v1-thread` (ArtifactsNavItem row) but must NOT flex-grow - the icon
+ * is a fixed 11px square, the count is a right-aligned mono chip. Without
+ * the explicit exclusion the icon stretched to ~62px wide and read as a
+ * red-bordered rect next to "Artifacts". */
+.v1-thread > span:not(.v1-dot):not(.v1-thread-meta):not(.v1-nav-ico):not(.v1-nav-count) {
+  flex: 1 1 0;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── Viewport sizing chain ────────────────────────────────────────────
+ * portfolio.css zeroes html/body margins but never sets a height; the
+ * `.frame` wrapper from PortfShell uses `height: 100%` which collapses
+ * to content-driven because body has no height. HomePane's
+ * `minHeight: 100vh` then forces the main to 100vh, while the `.frame`
+ * border (1px each side) sits OUTSIDE that height → total body height =
+ * 100vh + 2px → page scrolls ~2px. Anchor the chain at 100% so the
+ * frame's border fits inside the viewport. */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+/* The press-theme `.frame` keeps its decorative border but now sizes via
+ * the chain above. min-height: 100% so short pages still fill the
+ * viewport without scrolling, while long pages can still grow. */
+.frame {
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+/* ─── HomePane subtitle width override ─────────────────────────────────
+ * portfolio.css ships `.v2-sub` with `max-width: 400px` which forces the
+ * spotlight subtitle ("Senior Web Developer · product-minded · 10+ years
+ * shipping production web apps. Everything on this site is a chat - ask
+ * anything, or pick a prompt below.") into 3 lines. Widen to 620px so it
+ * sits on 2 lines instead. portfolio.css is verbatim-locked; override
+ * here. */
+.v2-sub {
+  max-width: 620px;
+}
+
+/* ─── Composer focus ring ──────────────────────────────────────────────
+ * Browsers paint a default blue focus ring on the bare `<input>` inside
+ * `.input-row`. Replace with a subtle border-color shift on the parent
+ * `.input-row` via :focus-within, and kill the input's native outline.
+ * Only scope to the chat-pane composer - HomePane's chip-animation
+ * Composer is decorative and uses its own static styling. */
+.chat-pane .input-row {
+  transition: border-color 120ms ease;
+}
+.chat-pane .input-row:focus-within {
+  border-color: var(--ink);
+}
+.chat-pane .input-row input {
+  outline: none;
+  border: none;
+  background: transparent;
+  width: 100%;
+}
+
+/* ─── Readability bumps ────────────────────────────────────────────────
+ * portfolio.css ships labels + body text at 8-13px which is uncomfortable
+ * on a 1080p+ desktop. Bump the readable surfaces by ~2px across the
+ * board so the conversation, sidebar rows, and chrome labels are usable
+ * at a normal reading distance. portfolio.css is verbatim-locked; override
+ * here. The decorative sizes (mob-notch dots, wm sub, headline scales)
+ * stay at design values - they're chrome, not content. */
+.bubble {
+  font-size: 15px;
+}
+.bubble-sender {
+  font-size: 11px;
+}
+.bubble-sender-assistant {
+  font-size: 10px;
+}
+.empty-chat {
+  font-size: 14px;
+}
+.v1-thread {
+  font-size: 13px;
+}
+.v1-thread-meta {
+  font-size: 11px;
+}
+.v1-section-label {
+  font-size: 11px;
+}
+.chip {
+  font-size: 13px;
+}
+.chip-mark {
+  font-size: 14px;
+}
+.input-row-mono {
+  font-size: 14px;
+}
+.kbd {
+  font-size: 11px;
+}
+.v2-sub {
+  font-size: 15px;
+}
+
+/* ─── Mobile-only chrome (hidden on desktop) ───────────────────────── */
+.mobile-topbar {
+  display: none;
+}
+.sidebar-backdrop {
+  display: none;
+}
+
+/* portfolio.css sets `.v1-sidebar { width: 220px }`. The chat-shell grid
+ * already controls the sidebar column width (240px), so the explicit
+ * width is redundant + conflicts (220 vs 240 leaves a 20px gap). Override
+ * to auto so the grid template wins as the single source of truth.
+ * portfolio.css is verbatim-locked (Phase C rule) - can't edit there. */
+.v1-sidebar {
+  width: auto;
+}
+
+/* ─── Mobile drawer overrides ──────────────────────────────────────── */
+@media (max-width: 768px) {
+  .chat-shell {
+    grid-template-columns: 1fr;
+  }
+  .v1-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(85vw, 320px);
+    transform: translateX(-100%);
+    transition: transform 220ms ease;
+    z-index: 30;
+  }
+  .v1-sidebar.is-open {
+    transform: translateX(0);
+  }
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 20;
+  }
+  .mobile-topbar {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px dashed var(--line);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Artifact preview card (Phase F)
+   Ported from the V1FirstChat shape in
+   docs/superpowers/artifacts/simlm2/project/flow-and-pages.jsx:144-164
+   ──────────────────────────────────────────────────────────── */
+
+.artifact-preview-card {
+  margin-top: 12px;
+  border: 2px solid var(--ink);
+  display: flex;
+  gap: 12px;
+  padding: 10px 12px 10px 10px;
+  cursor: pointer;
+  align-items: stretch;
+  background: transparent;
+  font: inherit;
+  width: 100%;
+  text-align: left;
+  transition: background 120ms ease;
+}
+
+.artifact-preview-card:focus-visible {
+  outline: 2px solid var(--coral);
+  outline-offset: 2px;
+}
+
+.artifact-preview-card:hover {
+  background: var(--cream-2);
+}
+
+.artifact-preview-card-thumb {
+  width: 88px;
+  height: 64px;
+  flex-shrink: 0;
+  object-fit: cover;
+  background: var(--coral-tint);
+  border: 1px solid var(--line);
+}
+
+.artifact-preview-card-thumb-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: var(--ink-4);
+  text-transform: uppercase;
+}
+
+.artifact-preview-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.artifact-preview-card-kicker {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--coral);
+}
+
+.artifact-preview-card-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.artifact-preview-card-stack {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--ink-3);
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+}
+
+.artifact-preview-card-arrow {
+  align-self: center;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  color: var(--coral);
+  transition: transform 120ms ease;
+}
+
+.artifact-preview-card:hover .artifact-preview-card-arrow {
+  transform: translateX(2px);
+}
+
+.artifact-preview-card-hint {
+  margin-top: 4px;
+  color: var(--ink-4);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Phase G — artifact pane layout
+   ───────────────────────────────────────────────────────────── */
+
+/* When the chat shell has an artifact open, switch from 2-col to 3-col.
+ * sidebar fixed; chat respects 360px min then grows; artifact takes equal
+ * share of remaining (1fr/1fr) so XL viewports give ~50% to each instead
+ * of letting artifact eat everything past chat's old 360px cap. */
+.chat-shell[data-artifact-open="true"] {
+  grid-template-columns: 240px minmax(360px, 1fr) minmax(0, 1fr);
+}
+
+/* Mount animation: slide-in from right + fade. ~220ms ease-out.
+ * Global prefers-reduced-motion rule in theme.css clamps duration. */
+@keyframes artifact-slide-in {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* The artifact-pane is the section element <ArtifactPanel> renders.
+ * Default desktop styling: column flex inside its grid cell. */
+.artifact-pane {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--cream-2);
+  border-left: 2px solid var(--ink);
+  outline: none;
+  animation: artifact-slide-in 220ms ease-out;
+}
+
+/* Title block sits below the chrome row. */
+.artifact-panel-head {
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.artifact-panel-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.018em;
+  line-height: 1.05;
+}
+.artifact-panel-meta {
+  margin-top: 6px;
+}
+
+/* Scrollable body area. */
+.artifact-panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px 18px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+/* Cap content reading width inside the pane; mirrors `.chat-pane > *`
+ * (760px column). Keeps scrollbar at the pane edge while line length
+ * stays sane on XL viewports. */
+.artifact-panel-body > * {
+  width: 100%;
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* MDX body wrapper — per-kind typography.
+ * Flex column lets the per-body footer push to the bottom via
+ * `margin-top: auto`, matching the simlm2 design source
+ * (docs/superpowers/artifacts/simlm2/project/flow-and-pages.jsx:357-360). */
+.artifact-body {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+/* Per-body footer (stack row at bottom; design source footer pattern). */
+.artifact-body-footer {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.artifact-body-stack {
+  margin: 0;
+  font-family: var(--font-mono);
+}
+
+/* Project body: heading emphasis + footer balance.
+ * Design source flow-and-pages.jsx:351-360 places stack/CTA at the bottom. */
+.artifact-body.is-projects h1,
+.artifact-body.is-projects h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.012em;
+  line-height: 1.1;
+  margin: 0 0 10px;
+}
+.artifact-body.is-projects h1 {
+  font-size: 22px;
+}
+.artifact-body.is-projects h2 {
+  font-size: 18px;
+  margin-top: 18px;
+}
+.artifact-body.is-projects p {
+  margin: 0 0 12px;
+}
+.artifact-body.is-projects ul {
+  margin: 0 0 12px;
+  padding-left: 20px;
+}
+.artifact-body.is-projects li {
+  margin: 0 0 5px;
+}
+
+/* Essay body: drop-cap + reading-friendly measure + footer rule.
+ * Design source flow-and-pages.jsx:428-463. */
+.artifact-body.is-essays {
+  font-family: var(--font-display);
+  font-size: 16px;
+  line-height: 1.6;
+}
+.artifact-body.is-essays p {
+  margin: 0 0 12px;
+  text-wrap: pretty;
+}
+.artifact-body.is-essays p:first-of-type::first-letter {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--coral);
+  /* Modern path: 3-line drop, 1-line sink. Chrome 110+, Safari 9+. */
+  initial-letter: 3 1;
+  -webkit-initial-letter: 3 1;
+  margin-right: 10px;
+  /* Fallback for browsers without initial-letter: float + tuned metrics
+   * to span ~3 body lines (body line-height 1.6 × 16px ≈ 25.6px, so cap
+   * ≈ 80px). */
+  font-size: 80px;
+  line-height: 0.85;
+  padding-top: 6px;
+  float: left;
+}
+.artifact-body.is-essays h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: -0.01em;
+  margin: 20px 0 10px;
+}
+.artifact-body.is-essays blockquote {
+  border-left: 2px solid var(--coral);
+  padding-left: 12px;
+  margin: 14px 0;
+  color: var(--ink-3);
+  font-style: italic;
+}
+
+/* Resume body: 2fr/1fr grid layout via CvSection wrappers.
+ * Design source flow-and-pages.jsx:531-577. */
+.artifact-body.is-resume {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 18px;
+  font-size: 13px;
+}
+.artifact-body.is-resume .cv-section.is-left {
+  grid-column: 1;
+}
+.artifact-body.is-resume .cv-section.is-right {
+  grid-column: 2;
+}
+.artifact-body.is-resume h2 {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--coral);
+  margin: 0 0 8px;
+}
+.artifact-body.is-resume h2 + h2 {
+  margin-top: 16px;
+}
+.artifact-body.is-resume strong {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+}
+.artifact-body.is-resume p {
+  margin: 0 0 6px;
+}
+.artifact-body.is-resume ul {
+  margin: 0 0 12px;
+  padding-left: 16px;
+}
+.artifact-body.is-resume li {
+  margin: 0 0 4px;
+}
+@media (max-width: 768px) {
+  .artifact-body.is-resume {
+    grid-template-columns: 1fr;
+  }
+  .artifact-body.is-resume .cv-section.is-left,
+  .artifact-body.is-resume .cv-section.is-right {
+    grid-column: 1;
+  }
+}
+
+/* Misc body: simple readable defaults; no decoration. */
+.artifact-body.is-misc h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: -0.01em;
+  margin: 18px 0 8px;
+}
+.artifact-body.is-misc h2:first-child {
+  margin-top: 0;
+}
+.artifact-body.is-misc p {
+  margin: 0 0 10px;
+}
+.artifact-body.is-misc a {
+  color: var(--coral);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.artifact-body.is-misc ul {
+  margin: 0 0 10px;
+  padding-left: 18px;
+}
+.artifact-body.is-misc li {
+  margin: 0 0 4px;
+}
+
+/* Secondary action variant — same shape, inverted color for stacking with primary.
+ * Used by ProjectAction when both `url` and `repo` are present (Task 3). */
+.artifact-action-secondary {
+  background: transparent;
+  color: var(--ink);
+  border: 1.5px solid var(--ink);
+}
+.artifact-action-secondary:hover {
+  background: var(--ink);
+  color: var(--canvas);
+}
+
+/* Override: allow multi-action wrap when stacking primary + secondary. */
+.artifact-chrome-actions {
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+
+/* Desktop default: show ×, hide ← BACK. */
+.artifact-back {
+  display: none;
+}
+
+/* Mobile (≤768px): fullscreen artifact, hide chat columns, show ← BACK,
+ * hide × close. Single DOM tree — CSS owns the swap. */
+@media (max-width: 768px) {
+  .chat-shell[data-artifact-open="true"] {
+    grid-template-columns: 1fr;
+  }
+  .chat-shell[data-artifact-open="true"] .v1-sidebar,
+  .chat-shell[data-artifact-open="true"] .chat-pane,
+  .chat-shell[data-artifact-open="true"] .sidebar-backdrop,
+  .chat-shell[data-artifact-open="true"] .mobile-topbar {
+    display: none;
+  }
+  .chat-shell[data-artifact-open="true"] .artifact-pane {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    border-left: 0;
+  }
+  .artifact-pane .artifact-close {
+    display: none;
+  }
+  .artifact-pane .artifact-back {
+    display: inline-flex;
+  }
+}
+
+/* Preserve author-authored newlines + soft-wrap long unbroken tokens.
+ * portfolio.css's .bubble has no white-space rule -> default `normal`
+ * collapses every `\n` to a space. Multi-line YAML responses
+ * (`response: |` blocks) need pre-wrap to render line breaks.
+ * Mirrors apps/web's `whitespace-pre-wrap break-words` on its
+ * BotMessage / UserMessage / TeachMessage components. */
+.bubble {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Inside-bubble markdown subset (see MarkdownBubble.tsx).
+ * react-markdown wraps every paragraph in <p>; tighten margins so a
+ * single-paragraph bubble looks identical to a plain-text bubble.
+ * Lists, blockquotes, and headings only add chrome when actually used. */
+.bubble-assistant > p,
+.bubble-assistant > ul,
+.bubble-assistant > ol,
+.bubble-assistant > blockquote,
+.bubble-assistant > h2,
+.bubble-assistant > h3 {
+  margin: 0;
+}
+.bubble-assistant > * + * {
+  margin-top: 8px;
+}
+.bubble-assistant ul,
+.bubble-assistant ol {
+  padding-left: 1.2em;
+}
+.bubble-assistant li + li {
+  margin-top: 2px;
+}
+.bubble-assistant code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--cream-card);
+  border: 1px solid var(--line);
+  padding: 0 4px;
+  border-radius: 3px;
+}
+.bubble-assistant strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+.bubble-assistant em {
+  font-style: italic;
+}
+.bubble-assistant a {
+  color: var(--coral);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.bubble-assistant a:hover {
+  text-decoration-thickness: 2px;
+}
+.bubble-assistant blockquote {
+  border-left: 2px solid var(--line-strong);
+  padding-left: 10px;
+  color: var(--ink-3);
+}
+.bubble-assistant h2 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.bubble-assistant h3 {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+/* Queued follow-up hint shown below the composer while a stream is in
+ * flight and a single-slot queue item is waiting. Renders ONLY when the
+ * queue slot is populated. */
+.composer-queue-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 4px 10px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--ink-3);
+  border-top: 1px dashed var(--line);
+}
+.composer-queue-text {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Artifacts gallery (/artifacts route - Phase K extension)
+
+   Ported verbatim from the design source
+   (`docs/superpowers/artifacts/simlm2/project/styles.css:1525-1885`)
+   so the gallery matches the handed-off mock pixel-for-pixel. The CSS
+   variables (--coral-tint, --cream-card, --line-strong, --label-tracking,
+   --label-caps) all already exist in portfolio.css across every theme, so
+   no fallbacks are needed here.
+   ──────────────────────────────────────────────────────────── */
+
+/* Sidebar nav-item icon used by ArtifactsNavItem - bordered mini-square
+ * stands in for the .v1-dot so it reads as a document/library entry,
+ * not a chat thread. */
+.v1-nav-ico {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+  border: 1.5px solid var(--ink-3);
+  display: inline-block;
+}
+.v1-thread.active .v1-nav-ico {
+  border-color: var(--coral);
+}
+.v1-thread.v1-nav-item:not(.active):hover .v1-nav-ico {
+  border-color: var(--coral);
+}
+/* Nav item layout - no remove button, count chip on the right. */
+.v1-thread.v1-nav-item {
+  cursor: pointer;
+}
+.v1-thread.v1-nav-item .v1-nav-count {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--ink-4);
+  letter-spacing: 0.04em;
+}
+.v1-thread.v1-nav-item.active .v1-nav-count {
+  color: var(--coral);
+}
+
+/* ─── /artifacts shell - sidebar + gallery (no chat pane) ──────── */
+.artifacts-shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  height: 100dvh;
+}
+@media (max-width: 768px) {
+  .artifacts-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Wrapper around the right-hand column so the `.mobile-topbar` row
+ * can sit above the gallery/pane without disturbing the shell grid.
+ * Mirrors the ChatPane composition (mobile-topbar then main pane).
+ * Flex column so .artx / .artifact-pane (children with `flex: 1` or
+ * `height: 100%`) fill the cell on desktop, with the topbar a fixed
+ * row on mobile via its own @media rule. */
+.artifacts-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+/* ─── Artifacts page (library / index) ─────────────────────── */
+.artx {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 22px 0;
+  overflow: hidden;
+  position: relative;
+  min-width: 0;
+  width: 100%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.artx-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--ink);
+}
+.artx-title {
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: var(--headline-weight);
+  font-style: var(--headline-style);
+  letter-spacing: var(--headline-tracking);
+  line-height: 1.02;
+  margin: 4px 0 0;
+}
+.artx-sub {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--ink-3);
+  line-height: 1.5;
+  max-width: 360px;
+  margin: 6px 0 0;
+}
+.artx-filters {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 240px;
+}
+.artx-filter {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border: 1.5px solid var(--line-strong);
+  color: var(--ink-3);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 120ms ease,
+    color 120ms ease,
+    border-color 120ms ease;
+  background: transparent;
+}
+.artx-filter:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.artx-filter.active {
+  background: var(--ink);
+  color: var(--canvas);
+  border-color: var(--ink);
+}
+.artx-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1.55fr 1fr;
+  gap: 22px;
+  padding: 14px 0 0;
+  overflow-y: auto;
+}
+@media (max-width: 768px) {
+  .artx-body {
+    grid-template-columns: 1fr;
+  }
+}
+.artx-col-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: var(--label-tracking);
+  text-transform: var(--label-caps);
+  color: var(--coral);
+  margin: 0 0 8px;
+  display: flex;
+  justify-content: space-between;
+}
+.artx-col-label .n {
+  color: var(--ink-4);
+}
+
+/* Project rows */
+.artx-proj {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  transition: padding-left 130ms ease;
+  text-decoration: none;
+  color: inherit;
+}
+.artx-proj:hover {
+  padding-left: 6px;
+}
+.artx-proj-thumb {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border: 1.5px solid var(--ink);
+  background: var(--cream-card);
+  position: relative;
+}
+.artx-proj-thumb.coral {
+  background: var(--coral-tint);
+  border-color: var(--coral);
+}
+.artx-proj-main {
+  flex: 1;
+  min-width: 0;
+}
+.artx-proj-name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.artx-proj-name .yr {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--ink-4);
+  letter-spacing: 0.04em;
+}
+.artx-proj-name .live {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--coral);
+  border: 1px solid var(--coral);
+  padding: 1px 4px;
+}
+.artx-proj-tags {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.artx-proj-arrow {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--ink-4);
+  flex-shrink: 0;
+  transition:
+    color 120ms ease,
+    transform 130ms ease;
+}
+.artx-proj:hover .artx-proj-arrow {
+  color: var(--coral);
+  transform: translateX(2px);
+}
+
+/* Writing rows */
+.artx-essay {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+.artx-essay-num {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--coral);
+  flex-shrink: 0;
+  width: 16px;
+}
+.artx-essay-main {
+  flex: 1;
+  min-width: 0;
+}
+.artx-essay-title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.25;
+  text-wrap: pretty;
+}
+.artx-essay:hover .artx-essay-title {
+  color: var(--coral);
+}
+.artx-essay-meta {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--ink-4);
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+
+/* CV slab in the right column */
+.artx-cv {
+  margin-top: 14px;
+  border: 2px solid var(--ink);
+  padding: 12px;
+  background: var(--cream-card);
+}
+.artx-cv-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+  transition: padding-left 130ms ease;
+}
+.artx-cv-row:hover {
+  padding-left: 4px;
+}
+
+/* scroll-more fade */
+.artx-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 30px;
+  background: linear-gradient(to top, var(--canvas), transparent);
+  pointer-events: none;
+}
+
+/* ─── Filtered single-category views ───────────────────────── */
+.artx-single {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 0 0;
+}
+
+/* Projects - expanded card grid */
+.artx-card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 768px) {
+  .artx-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.artx-card {
+  border: 2px solid var(--ink);
+  background: var(--canvas);
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition:
+    transform 130ms ease,
+    box-shadow 130ms ease;
+  text-decoration: none;
+  color: inherit;
+}
+.artx-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 4px 4px 0 var(--line-strong);
+}
+.artx-card-thumb {
+  height: 78px;
+  background: var(--cream-card);
+  border-bottom: 1.5px solid var(--ink);
+  position: relative;
+}
+.artx-card-thumb.coral {
+  background: var(--coral-tint);
+}
+.artx-card-thumb-label {
+  position: absolute;
+  top: 7px;
+  left: 9px;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+.artx-card-live {
+  position: absolute;
+  top: 7px;
+  right: 9px;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--coral);
+  border: 1px solid var(--coral);
+  padding: 1px 4px;
+}
+.artx-card-body {
+  padding: 9px 11px 10px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.artx-card-name {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: -0.012em;
+}
+.artx-card-name .yr {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--ink-4);
+}
+.artx-card-desc {
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-3);
+  margin: 5px 0 0;
+  text-wrap: pretty;
+}
+.artx-card-foot {
+  margin-top: auto;
+  padding-top: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.artx-card-tags {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--ink-4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.artx-card-open {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--coral);
+  flex-shrink: 0;
+}
+
+/* Writing - expanded rows with a dek */
+.artx-essay-lg {
+  padding: 12px 0;
+  align-items: flex-start;
+  cursor: pointer;
+}
+.artx-essay-dek {
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  color: var(--ink-3);
+  line-height: 1.5;
+  margin: 4px 0 5px;
+  text-wrap: pretty;
+}
+.artx-essay-lg .artx-proj-arrow {
+  align-self: center;
+}
+
+/* CV - full résumé artifact */
+.artx-cv-detail {
+  border: 2px solid var(--ink);
+  background: var(--cream-card);
+  padding: 16px 18px;
+}
+.artx-cv-detail-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1.5px solid var(--ink);
+}
+.artx-cv-detail-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 22px;
+  padding-top: 12px;
+}
+@media (max-width: 768px) {
+  .artx-cv-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.artx-cv-exp {
+  display: grid;
+  grid-template-columns: 78px 1fr;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+}
+.artx-cv-exp .when {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--ink-4);
+}

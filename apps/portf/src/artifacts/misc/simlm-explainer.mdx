@@ -1,0 +1,30 @@
+---
+slug: simlm-explainer
+kind: misc
+title: About this chat
+kicker: about
+period: "2026"
+stack:
+  - SimLM
+summary: This chat is not an LLM. It is a pattern matcher over curated Q&A pairs.
+thumb: null
+matchPatterns:
+  - about this chat
+  - what is this
+  - is this chatgpt
+  - how does this work
+locale: en
+order: 1
+---
+
+## What this is
+
+A SimSimi-style pattern-matching chatbot. No LLM in the request path. Replies come from a curated pair store scored by a three-tier engine: exact match -> Postgres FTS -> trigram similarity.
+
+## Why
+
+If I do not have an answer to your question, I would rather say so than invent one. The honesty trade is worth the coverage gap.
+
+## Where the code lives
+
+SimLM is open. See the SimLM essay artifact for the deeper architecture write-up.

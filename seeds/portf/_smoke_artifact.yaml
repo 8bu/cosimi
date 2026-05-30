@@ -1,0 +1,54 @@
+# Phase G smoke seeds. Drop file + re-seed to flush via batch rollback.
+# Real corpus replaces this from the dedicated brainstorm session.
+
+# WegoPro project artifact triggers
+- input: best project
+  response: |
+    Probably WegoPro - four years building B2B corporate travel and expense at scale.
+
+    Shipped:
+    - Recent bookings
+    - Policy change indicators
+    - Hierarchy approvals
+    - Custom fields
+    - Onboarding flow
+    - Back-office dashboard
+
+    Led the Nuxt 2 to Vue 3 SPA migration, then solo-migrated the back-office to Nuxt 4 + Nuxt UI.
+
+    Tap the card to open it on the right.
+  topic: portfolio/artifact/wegopro
+
+- input: wegopro
+  response: |
+    **WegoPro** - B2B corporate travel and expense platform.
+
+    *4 years* as Senior Web Developer, remote. Stack: `Nuxt 4`, `Vue 3`, `TypeScript`, `Tailwind`, `AWS`.
+
+    > Tap the card to open it on the right - or visit [wegopro.com](https://wegopro.com).
+  topic: portfolio/artifact/wegopro
+
+- input: b2b travel
+  response: That is WegoPro - 4 years building corporate travel and expense at scale. Opening it on the right.
+  topic: portfolio/artifact/wegopro
+
+- input: corporate travel
+  response: WegoPro - B2B corporate travel and expense. Tap the card.
+  topic: portfolio/artifact/wegopro
+
+# CV artifact triggers
+- input: cv
+  response: Of course - here it is on the right. PDF download from the top.
+  topic: portfolio/artifact/longnguyen-2026
+
+- input: resume
+  response: Same as my CV - rendered on the right, PDF download up top.
+  topic: portfolio/artifact/longnguyen-2026
+
+- input: your cv
+  response: Sure - opening it on the right. PDF link in the chrome.
+  topic: portfolio/artifact/longnguyen-2026
+
+- input: download cv
+  response: Card on the right has a download button - top corner of the artifact pane.
+  topic: portfolio/artifact/longnguyen-2026

@@ -1,0 +1,79 @@
+---
+slug: nuxt-migration
+kind: essays
+title: Migrating a 4-year Nuxt 2 codebase to Vue 3
+kicker: essay
+period: 2026-04
+stack:
+  - Nuxt 2
+  - Nuxt 4
+  - Vue 2
+  - Vue 3
+  - Web Components
+summary: A post-mortem on the WegoPro migration. What worked, what I would undo, and the parts nobody warns you about.
+thumb: null
+matchPatterns:
+  - nuxt migration
+  - nuxt 2 to vue 3
+  - vue 3 migration
+  - migration essay
+locale: en
+order: 1
+---
+
+The hard part of migrating Nuxt 2 to Vue 3 is not Vue 3. It is the four years of accreted decisions you have to ship alongside it: every legacy module, every i18n string, every Vuex store still humming along in the background. The framework upgrade is a weekend of reading release notes. The codebase upgrade is a year of carrying two runtimes on the same page without anyone noticing.
+
+This is a post-mortem on doing that at WegoPro - four years on the team, the last stretch spent driving the migration to completion.
+
+## The starting state
+
+A Nuxt 2 application sitting on Vue 2.7, ~150k lines of TypeScript, two distinct surfaces sharing a monorepo: a customer-facing app with heavy SSR and SEO requirements, and a back-office dashboard for internal operators. Vuex for state, vue-i18n for translations, a custom SCSS design system, a handful of in-house Nuxt modules that hooked into request lifecycle for auth and analytics. Healthy CI, real test coverage, the kind of codebase where you cannot just stop the world for three months.
+
+The constraints were the usual ones. The product roadmap did not pause for the migration. Every PR still had to ship a feature or fix a bug; the migration had to be additive. End-of-life pressure on Vue 2.7 was real but not catastrophic - we had quarters, not weeks.
+
+## What the bridge unlocked specifically
+
+The unlock was Vue 3 web components. New features were authored in Vue 3, compiled as custom elements via `defineCustomElement`, and embedded inside the still-running Nuxt 2 host. The host stays alive while the bridge layer carries each surface across one at a time. No big-bang rewrite, no parallel deploys, no flag-flip cutover at 2am.
+
+Concretely this meant: a new "transaction history" view ships as a Vue 3 island mounted at `<wp-tx-history :user-id="user.id" />` inside the existing Nuxt 2 page template. The host owns layout, navigation, auth context. The island owns its data fetching, its reactive state, its DOM. The two runtimes share a page through DOM attributes and `CustomEvent`s. From the user's side, nothing changes. From the build side, the Vue 3 surfaces compile into a separate bundle loaded lazily, so the Vue 2 bundle does not balloon.
+
+The detail that mattered most: this let the team keep velocity. People shipping product features could pick "ship in Vue 3 or stay in Vue 2" per surface, based on whether the island boundary was clean enough to justify the migration. Surfaces that were too entangled with host state stayed Vue 2 until later. Surfaces that were already self-contained moved early. The migration order ended up matching the natural seams of the application.
+
+## The slowdowns nobody planned for
+
+The bridge was the easy part. The slowdowns came from everything orbiting it.
+
+i18n strings did not move on a per-component cadence. The translation files were one big tree shared across surfaces. Every island that moved to Vue 3 had to either reach back into the host's vue-i18n store via a custom hook, or pull a duplicated copy of its strings into a Vue 3 i18n instance. We did both at different times. Neither felt clean.
+
+SCSS variables were the second tax. Design tokens lived in a shared `_variables.scss` that every component imported. Vue 3 web components compile with shadow DOM by default, which means imported styles do not leak in. Either you opt out of shadow DOM (and lose the encapsulation that made the migration safe), or you build a token-export step that ships the design tokens into both worlds. We went token-export. It worked but it added a build step that nobody owns.
+
+Vuex stores were the third. Some stores had assumptions baked into action-sequencing - dispatch A before B or the UI lies. Islands that needed read access could subscribe to the host store via a thin adapter. Islands that needed to mutate it had to round-trip through `CustomEvent`s back to the host, which then dispatched to its own store. The latency was negligible. The mental model was not.
+
+## What I would undo (expanded)
+
+The bridge worked but it taught the team to defer the hard cleanup. Two years in, some Nuxt 2 modules are still there, still humming, still pinning the host to Vue 2 runtime in a few corners. The bridge made it cheap to live in the in-between, so the in-between stretched.
+
+Next migration I would budget a "delete week" upfront, written into the schedule, with named owners per legacy module. The work of removing a Nuxt 2 module is not technically hard - it is one or two days of reading and rewriting. The work of getting four people to agree on what "done" means for a deprecated module is much harder, and that is the work the bridge accidentally hid.
+
+I would also start the back-office migration first, not in parallel. The back-office moved separately as a solo migration to Nuxt 4 + Nuxt UI - fresh app, fresh tooling, fresh routing. Easier path because the back-office had a cleaner boundary; the customer-facing app was the one carrying the historical scar tissue. Doing it first would have taught us the patterns before we applied them to the harder codebase.
+
+## What nobody warns you (expanded)
+
+The framework docs cover Vue 2 to Vue 3 surface by surface. They do not cover the parts that span the whole codebase.
+
+- **Build complexity doubles before it halves.** Two compilers, two bundlers, two type-checkers, two test runners. CI time grew before it shrank.
+- **Error monitoring gets noisier.** Sourcemaps from two bundles. Stack traces that cross the runtime boundary. Sentry rules that worked for one runtime do not always work for both.
+- **Hiring conversations get harder.** "What stack are you on" stops having a single answer. New hires onboarded to two mental models on day one.
+- **Pull request reviews drift.** Reviewers who know Vue 2 cold but not Vue 3 start rubber-stamping the Vue 3 diffs. Reviewers who came in on Vue 3 do not understand the Vue 2 patterns. The team has to be deliberate about cross-coverage.
+
+None of these are showstoppers. All of them eat weeks if you do not plan for them.
+
+## What worked across teams
+
+Two things mattered more than any technical decision.
+
+First, sustained architecture decisions. The migration only worked because the same person held the architectural line for the whole stretch. Whenever someone proposed a shortcut that broke the island/host boundary, the answer was no, even when the shortcut would have shipped a feature faster that sprint. Migrations die when nobody is willing to keep saying no.
+
+Second, a written record. Each migrated surface got a one-page doc: what moved, what stayed, what the boundary is, what the known sharp edges are. After two years the docs were the closest thing the team had to a map of the codebase. The code itself was harder to read because it was bilingual.
+
+The migration is technically complete now. The bridge is mostly gone. Some Nuxt 2 modules remain, scheduled for the next quarter. The lesson I keep is the one I did not expect: the framework upgrade was the easy part. The four years of decisions were the hard part. They always are.

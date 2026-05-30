@@ -1,9 +1,11 @@
 {
   "name": "simlm",
   "private": true,
+  "license": "SEE LICENSE IN LICENSE.md",
   "scripts": {
-    "dev": "turbo run dev",
-    "dev:all": "if ! docker info > /dev/null 2>&1; then echo 'Docker daemon is not reachable. Start Docker Desktop (or colima/equivalent) and re-run pnpm dev:all.' >&2; exit 1; fi && pnpm db:up && pnpm migrate && pnpm dev",
+    "dev": "pnpm dev:simlm",
+    "dev:simlm": "bash scripts/dev-simlm.sh",
+    "dev:portf": "bash scripts/dev-portf.sh",
     "build": "turbo run build",
     "lint": "oxlint",
     "typecheck": "turbo run typecheck",
@@ -14,10 +16,13 @@
     "db:up": "docker compose -f docker-compose.dev.yml up -d --wait postgres",
     "db:down": "docker compose -f docker-compose.dev.yml down",
     "db:reset": "docker compose -f docker-compose.dev.yml down -v && pnpm db:up",
-    "migrate": "pnpm --filter @simlm/db migrate up",
+    "migrate": "tsx --env-file=.env packages/db/src/migrate.ts up",
+    "migrate:portf": "tsx --env-file=.env.portf packages/db/src/migrate.ts up",
     "seed": "tsx --env-file=.env packages/db/src/scripts/seed.ts seeds/vi/*.yaml seeds/chatterbot/*.yml",
     "seed:vi": "tsx --env-file=.env packages/db/src/scripts/seed.ts seeds/vi/*.yaml --locale=vi",
-    "seed:chatterbot": "tsx --env-file=.env packages/db/src/scripts/seed.ts seeds/chatterbot/*.yml --locale=en"
+    "seed:chatterbot": "tsx --env-file=.env packages/db/src/scripts/seed.ts seeds/chatterbot/*.yml --locale=en",
+    "seed:portf": "tsx --env-file=.env.portf packages/db/src/scripts/seed.ts seeds/portf/*.yaml --locale=en",
+    "provision:portf": "tsx --env-file=.env.portf packages/db/src/scripts/provision-portf-db.ts"
   },
   "devDependencies": {
     "@simlm/oxlint-config": "workspace:*",
