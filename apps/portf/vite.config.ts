@@ -21,6 +21,9 @@ import remarkMdxFrontmatter from "remark-mdx-frontmatter";
 export default defineConfig({
   plugins: [
     tanstackStart({
+      router: {
+        routeFileIgnorePattern: "\\.test\\.tsx?$",
+      },
       prerender: {
         enabled: true,
         crawlLinks: true,
