@@ -47,7 +47,7 @@ const MIME: Record<string, string> = {
 };
 
 function resolveStatic(urlPath: string): string | null {
-  const safe = normalize(urlPath).replace(/^(\.\.[\/\\])+/, "");
+  const safe = normalize(urlPath).replace(/^(\.\.[/\\])+/, "");
   let target = join(DIST, safe);
   if (!target.startsWith(DIST)) return null;
   if (existsSync(target) && statSync(target).isDirectory()) {

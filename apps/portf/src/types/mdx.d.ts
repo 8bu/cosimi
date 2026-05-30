@@ -16,5 +16,3 @@ declare module "*.mdx" {
   const Component: ComponentType;
   export default Component;
 }
-
-export {};
