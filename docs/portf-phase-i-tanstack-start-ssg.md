@@ -54,4 +54,13 @@ Discovery log. Appended as I1-I9 execute.
 - **No separate `_shell.html` in 1.168** (spec assumed there would be). The SPA fallback target is `dist/client/chat/index.html` (5.6 KB; prerendered by the `/chat` route's own SSR with full chrome + head meta).
 - Static host rewrite: `/chat/<any-thread-id>` → `/chat/index.html`. Nginx: `try_files $uri /chat/index.html =404;` for `/chat/*`. Cloudflare Pages: `_redirects` line `/chat/* /chat/index.html 200`. Documented in spec §10 (future deployment phase).
 
-## I7 — og:image satori pipeline
+## I7 — og:image satori done
+
+- 4 fonts bundled under `apps/portf/scripts/og-fonts/`: Inter Regular/Bold + Source Serif 4 Regular/Bold (SIL OFL 1.1). Inter sourced from rsms/inter v4.1 release zip → `extras/ttf/`. Source Serif from `adobe-fonts/source-serif` release.
+- `scripts/og-card.tsx` defines 1200×630 layout: kicker top accent, Source Serif title center, summary below, period bottom-left, `Long NGUYỄN (8bu)` watermark bottom-right. `display: "flex"` on every node (satori requirement).
+- `scripts/generate-og.ts`: **reads MDX frontmatter via fs + regex parser** (cannot import `@/features/artifacts/catalog` because `import.meta.glob` is Vite-only and tsx can't resolve it). Loads fonts → satori → @resvg/resvg-js → PNG per descriptor + default. SHA-256 cache under `public/og/.cache/` (gitignored); per-descriptor cache invalidation.
+- 11 PNGs committed: 10 descriptors + default. Each 1200×630 RGBA, 32-58 KB.
+- `prebuild` hook wired: `pnpm build` runs `og:generate` first (cache-hit on no-frontmatter-change). Vite copies `public/og/*.png` into `dist/client/og/`. Confirmed `wegopro.png` served from dist.
+- Vietnamese diacritic in watermark renders cleanly (both bundled fonts support Vietnamese combining marks).
+
+## I8 — SSG build-output test gate
