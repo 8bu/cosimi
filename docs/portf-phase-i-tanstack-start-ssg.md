@@ -27,4 +27,10 @@ Discovery log. Appended as I1-I9 execute.
 - Dev boot ✓: `http://localhost:5174/` serves 5.9 KB HTML with correct `<title>`, favicons, theme attr, SSR-rendered HomePane content. No console TypeErrors.
 - 225 portf tests pass (224 baseline + 1 new router factory test from I1.3).
 
-## I3 — Per-route head meta
+## I3 — Per-route head done
+
+- `/`, `/artifacts`, `/chat`, `/chat/$threadId` each declare `head()` returning meta + canonical (no canonical on threadId — value varies).
+- Title pattern: `Long NGUYỄN - portfolio` (home), `Artifacts | Long NGUYỄN`, `Chat | Long NGUYỄN`. `og:image` defaults to `/og/default.png` (rendered in I7).
+- 225 portf tests stay green (224 baseline + 1 router factory).
+
+## I4 — Artifact head (catalog-driven)
