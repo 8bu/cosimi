@@ -50,7 +50,7 @@ describe("/artifact/$kind/$slug route", () => {
     const result = (Route as unknown as { loader: (a: unknown) => unknown }).loader({
       params: { kind: "projects", slug: "wegopro" },
     });
-    expect(result).toEqual({ descriptor: d });
+    expect(result).toEqual({ kind: d.kind, slug: d.slug });
   });
 
   it("loader throws notFound when descriptor is missing", async () => {

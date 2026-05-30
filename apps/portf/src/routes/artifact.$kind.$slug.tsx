@@ -2,7 +2,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 
 import { getDescriptor } from "@/features/artifacts/catalog";
 import { ArtifactPane } from "@/features/artifacts/components/ArtifactPane";
-import type { ArtifactDescriptor, ArtifactKind } from "@/features/artifacts/types";
+import type { ArtifactKind } from "@/features/artifacts/types";
 import { MobileBurger } from "@/features/sidebar/components/MobileBurger";
 import { Sidebar } from "@/features/sidebar/components/Sidebar";
 
@@ -12,17 +12,26 @@ interface LoaderArgs {
 
 const VALID_KINDS: readonly ArtifactKind[] = ["projects", "essays", "resume", "misc"];
 
+/**
+ * Loader returns lookup keys only — NOT the descriptor object. The descriptor
+ * carries a React Component (the MDX body) which TanStack Start's Seroval
+ * serializer cannot transfer from server to client. Both `head()` and
+ * `ArtifactStandalone` re-resolve the descriptor via `getDescriptor()`; the
+ * catalog is statically materialized at build time (Vite `import.meta.glob`
+ * eager), so the second lookup costs nothing.
+ */
 export const Route = createFileRoute("/artifact/$kind/$slug")({
   loader: ({ params }: LoaderArgs) => {
     if (!VALID_KINDS.includes(params.kind as ArtifactKind)) throw notFound();
     const descriptor = getDescriptor(params.slug);
     if (!descriptor) throw notFound();
     if (descriptor.kind !== params.kind) throw notFound();
-    return { descriptor };
+    return { kind: descriptor.kind, slug: descriptor.slug };
   },
-  head: ({ loaderData }: { loaderData?: { descriptor: ArtifactDescriptor } }) => {
-    if (!loaderData) return {};
-    const d = loaderData.descriptor;
+  head: ({ params }: { params?: { kind: string; slug: string } }) => {
+    if (!params) return {};
+    const d = getDescriptor(params.slug);
+    if (!d || d.kind !== params.kind) return {};
     const titleStr = `${d.title} - ${d.kind} | Long NGUYỄN`;
     return {
       meta: [
@@ -52,7 +61,9 @@ export const Route = createFileRoute("/artifact/$kind/$slug")({
  * `@media (max-width: 768px)` rule hides it on desktop.
  */
 function ArtifactStandalone() {
-  const { descriptor } = Route.useLoaderData();
+  const { slug } = Route.useParams();
+  const descriptor = getDescriptor(slug);
+  if (!descriptor) throw notFound();
   return (
     <section className="artifacts-shell">
       <Sidebar />

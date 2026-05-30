@@ -21,10 +21,12 @@ const fakeDescriptor: ArtifactDescriptor = {
 
 describe("/artifact/$kind/$slug head()", () => {
   it("emits catalog-driven title + og:image + canonical", () => {
+    // head() re-resolves the descriptor from the catalog using params.slug,
+    // so the test exercises the real catalog (wegopro is a known descriptor).
+    void fakeDescriptor;
     const headFn = Route.options.head;
     expect(headFn).toBeDefined();
     const result = headFn!({
-      loaderData: { descriptor: fakeDescriptor },
       params: { kind: "projects", slug: "wegopro" },
       matches: [],
       match: {} as never,
