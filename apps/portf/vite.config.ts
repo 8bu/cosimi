@@ -29,7 +29,18 @@ export default defineConfig({
         crawlLinks: true,
         autoStaticPathsDiscovery: true,
         failOnError: true,
+        // Drop binary assets (resume PDF reachable via descriptor.url).
+        filter: ({ path }) => !path.endsWith(".pdf"),
       },
+      // Misc descriptors (simlm-explainer, tools-ai-workflow, contact-coffee-chat)
+      // are chat-only by design — `apps/portf/src/features/artifacts-index/data.ts`
+      // excludes kind=misc from gallery rows, so crawlLinks cannot reach them.
+      // List them explicitly so they still emit prerendered HTML.
+      pages: [
+        { path: "/artifact/misc/simlm-explainer" },
+        { path: "/artifact/misc/tools-ai-workflow" },
+        { path: "/artifact/misc/contact-coffee-chat" },
+      ],
       sitemap: {
         enabled: true,
         host: "https://8bu.dev",
