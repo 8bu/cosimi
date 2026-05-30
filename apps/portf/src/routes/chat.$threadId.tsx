@@ -16,6 +16,7 @@ import { useMessagesStore } from "@/store/messages";
  * synchronously in the effect body.
  */
 export const Route = createFileRoute("/chat/$threadId")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Chat | Long NGUYỄN" },
