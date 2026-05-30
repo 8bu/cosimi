@@ -1,6 +1,6 @@
 import { hydrateRoot } from "react-dom/client";
 import { StartClient } from "@tanstack/react-start/client";
-import { createRouter } from "./router";
+import { getRouter } from "./router";
 import { useMessagesStore } from "@/store/messages";
 import { abortAllInflight } from "@/lib/inflight";
 import "@/styles/globals.css";
@@ -11,5 +11,5 @@ import "@/styles/globals.css";
 useMessagesStore.getState().hydrate();
 window.addEventListener("beforeunload", abortAllInflight);
 
-createRouter();
+getRouter();
 hydrateRoot(document, <StartClient />);
