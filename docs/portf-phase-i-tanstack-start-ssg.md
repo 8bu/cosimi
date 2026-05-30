@@ -63,4 +63,12 @@ Discovery log. Appended as I1-I9 execute.
 - `prebuild` hook wired: `pnpm build` runs `og:generate` first (cache-hit on no-frontmatter-change). Vite copies `public/og/*.png` into `dist/client/og/`. Confirmed `wegopro.png` served from dist.
 - Vietnamese diacritic in watermark renders cleanly (both bundled fonts support Vietnamese combining marks).
 
-## I8 — SSG build-output test gate
+## I8 — SSG test gate done
+
+- `apps/portf/vitest.ssg.config.ts`: Node env, isolated from jsdom unit sweep, 180s testTimeout + hookTimeout. No mdx plugin (test reads MDX via fs).
+- `apps/portf/test/ssg-output.test.ts`: 7 assertions — home + gallery HTML, per-descriptor HTML (discovered via fs frontmatter parser), chat shell, og PNGs (per-descriptor + default), sitemap.xml, artifact title+og:image meta, home canonical link.
+- `test:ssg` declared in `turbo.json` with inputs `src/** test/** scripts/** public/og/** vite.config.ts vitest.ssg.config.ts`, outputs `dist/**`, depends on `^build`.
+- `test:ssg` invoked separately from default `test` (long wall-clock).
+- **All 5 root gates green:** typecheck (all 11 workspaces), lint (11 warnings unchanged, 0 errors), format:check (407 files), test (53 in api alone, 226 in portf, etc.), test:ssg (7 assertions, ~3s after build).
+
+## I9 — Smoke + close-out
