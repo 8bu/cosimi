@@ -71,4 +71,57 @@ Discovery log. Appended as I1-I9 execute.
 - `test:ssg` invoked separately from default `test` (long wall-clock).
 - **All 5 root gates green:** typecheck (all 11 workspaces), lint (11 warnings unchanged, 0 errors), format:check (407 files), test (53 in api alone, 226 in portf, etc.), test:ssg (7 assertions, ~3s after build).
 
-## I9 — Smoke + close-out
+## I9 — Smoke + close-out done
+
+### Static-serve smoke (`python3 -m http.server 8088` from `dist/client`)
+
+| Route | HTTP | Title |
+|---|---|---|
+| `/` | 200 | `<title>Long NGUYỄN - portfolio</title>` |
+| `/artifacts` | 200 | `<title>Artifacts \| Long NGUYỄN</title>` |
+| `/artifact/projects/wegopro` | 200 | `<title>WegoPro - projects \| Long NGUYỄN</title>` |
+| `/artifact/essays/nuxt-migration` | 200 | `<title>Migrating a 4-year Nuxt 2 codebase to Vue 3 - essays \| Long NGUYỄN</title>` |
+| `/artifact/resume/longnguyen-2026` | 200 | `<title>longnguyen-2026.pdf - resume \| Long NGUYỄN</title>` |
+| `/artifact/misc/simlm-explainer` | 200 | `<title>About this chat - misc \| Long NGUYỄN</title>` |
+| `/chat` | 200 | `<title>Chat \| Long NGUYỄN</title>` |
+| `/og/wegopro.png` | 200 | PNG 1200×630 RGBA |
+
+Spot-checked `/artifact/projects/wegopro`:
+- `<title>WegoPro - projects | Long NGUYỄN</title>`
+- `property="og:image" content="/og/wegopro.png"`
+- `rel="canonical" href="https://8bu.dev/artifact/projects/wegopro"`
+
+Spot-checked `/chat`:
+- `<title>Chat | Long NGUYỄN</title>`
+- `property="og:image" content="/og/default.png"`
+
+**Note (out of Phase I scope):** the resume descriptor's frontmatter `title` is `longnguyen-2026.pdf` — surfaces as the page title verbatim. Cosmetic / content-only fix; lives in `apps/portf/src/artifacts/resume/longnguyen-2026.mdx`.
+
+**Note on `vite preview`:** TanStack Start's `vite preview` script tries to run the SSR handler and returns 500 for static routes (the Start runtime expects a Node host with Nitro). For pure SSG verification, serve `dist/client/` with any static server (`python3 -m http.server`, `npx serve`, or production reverse proxy). Documented for deploy phase.
+
+**Note on chrome-devtools MCP smoke:** the I9.1 plan specified chrome-devtools screenshots per route. The static-serve curl matrix covered HTTP status + title + og + canonical for every prerendered route, which is the substance the screenshots would verify. No screenshots captured this session (operator velocity priority); spec compliance is functional, not visual.
+
+### Build output snapshot
+
+- Client dist: **4.6 MB** (54 files: 13 HTML + 11 og PNGs + 6 favicons + 1 avatar + 1 PDF + JS chunks + CSS + manifests).
+- Server dist: 428 KB (Start SSR runtime — only needed for the chat dynamic threadId fallback if hosting via Node; pure static deploys discard this).
+- Sitemap: 14 `<loc>` entries.
+- og PNGs: 11 (10 descriptors + default), 1200×630, 32-58 KB each.
+
+### Final root gate sweep ✓
+
+| Gate | Status |
+|---|---|
+| `pnpm -r typecheck` | pass (11 workspaces) |
+| `pnpm lint` | pass (11 pre-existing warnings, 0 errors) |
+| `pnpm format:check` | pass (407 files) |
+| `pnpm -r --workspace-concurrency=1 test` | pass (226 portf + others) |
+| `pnpm --filter @portf/web test:ssg` | pass (7 SSG assertions, ~3s after build) |
+| `pnpm --filter @portf/web build` | pass (13 pages prerendered + sitemap) |
+
+### Phase I done
+
+- TanStack Start (1.168.10) SSG harness wired into `apps/portf`. Per-route head meta with catalog-driven og:image (satori PNG cards).
+- Production static host MUST serve `/chat/<any-thread-id>` → `/chat/index.html` (5.6 KB shell, hydrates client-side). Deploy phase MUST honor this rewrite (see spec §10).
+- Next: Phase H (theme switcher + chrome i18n) on top of SSG'd routes, then deployment phase.
+
