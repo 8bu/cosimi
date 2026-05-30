@@ -97,7 +97,13 @@ Spot-checked `/chat`:
 
 **Note (out of Phase I scope):** the resume descriptor's frontmatter `title` is `longnguyen-2026.pdf` — surfaces as the page title verbatim. Cosmetic / content-only fix; lives in `apps/portf/src/artifacts/resume/longnguyen-2026.mdx`.
 
-**Note on `vite preview`:** TanStack Start's `vite preview` script tries to run the SSR handler and returns 500 for static routes (the Start runtime expects a Node host with Nitro). For pure SSG verification, serve `dist/client/` with any static server (`python3 -m http.server`, `npx serve`, or production reverse proxy). Documented for deploy phase.
+**Note on `vite preview`:** TanStack Start's `vite preview` script tries to run the SSR handler and returns 500 for static routes (the Start runtime expects a Node host with Nitro). For pure SSG verification, use `pnpm --filter @portf/web serve:prod` (added in commit `3279167`) — Node http server that:
+
+  1. Static-serves `dist/client/` with proper MIME types.
+  2. Proxies `/api/*` → `http://localhost:3010` (matches dev vite proxy).
+  3. SPA fallback: `/chat/<anything>` → `/chat/index.html` (matches the production host rewrite documented in spec §10).
+
+Alternative for HTML-only smoke (no chat): `python3 -m http.server 8088` from `dist/client/` — returns 200 + correct titles + og meta, but `/api/*` not proxied + no SPA fallback. Documented for deploy phase.
 
 **Note on chrome-devtools MCP smoke:** the I9.1 plan specified chrome-devtools screenshots per route. The static-serve curl matrix covered HTTP status + title + og + canonical for every prerendered route, which is the substance the screenshots would verify. No screenshots captured this session (operator velocity priority); spec compliance is functional, not visual.
 
