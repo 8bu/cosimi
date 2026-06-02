@@ -130,13 +130,13 @@ importers:
   packages/adapter-postgres:
     dependencies:
       '@cosimi/core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../core
       '@cosimi/db-core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../db-core
       '@cosimi/normalizer':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../normalizer
       yaml:
         specifier: ^2.0.0
@@ -151,6 +151,9 @@ importers:
       postgres:
         specifier: ^3.4.0
         version: 3.4.9
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(@swc/core@1.15.33)(jiti@2.7.0)(postcss@8.5.14)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.4)
       tsx:
         specifier: ^4.19.0
         version: 4.21.0
@@ -186,6 +189,9 @@ importers:
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.17
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(@swc/core@1.15.33)(jiti@2.7.0)(postcss@8.5.14)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.4)
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -193,7 +199,7 @@ importers:
   packages/db-core:
     dependencies:
       '@cosimi/core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../core
     devDependencies:
       '@cosimi/tsconfig':
@@ -205,6 +211,9 @@ importers:
       postgres:
         specifier: ^3.4.0
         version: 3.4.9
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(@swc/core@1.15.33)(jiti@2.7.0)(postcss@8.5.14)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.4)
       tsx:
         specifier: ^4.19.0
         version: 4.21.0
@@ -215,7 +224,7 @@ importers:
   packages/logger:
     dependencies:
       '@cosimi/core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../core
       pino:
         specifier: ^10.0.0
@@ -227,6 +236,9 @@ importers:
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.17
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(@swc/core@1.15.33)(jiti@2.7.0)(postcss@8.5.14)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.4)
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -234,7 +246,7 @@ importers:
   packages/matcher:
     dependencies:
       '@cosimi/core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../core
     devDependencies:
       '@cosimi/adapter-postgres':
@@ -255,6 +267,9 @@ importers:
       postgres:
         specifier: ^3.4.0
         version: 3.4.9
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(@swc/core@1.15.33)(jiti@2.7.0)(postcss@8.5.14)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.4)
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -267,6 +282,9 @@ importers:
       '@cosimi/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(@swc/core@1.15.33)(jiti@2.7.0)(postcss@8.5.14)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.4)
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -279,13 +297,13 @@ importers:
   packages/sdk:
     dependencies:
       '@cosimi/core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../core
       '@cosimi/matcher':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../matcher
       '@cosimi/normalizer':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../normalizer
     devDependencies:
       '@cosimi/db-core':

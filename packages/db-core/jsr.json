@@ -1,0 +1,12 @@
+{
+  "name": "@cosimi/db-core",
+  "version": "0.1.0",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "exports": {
+    ".": "./src/index.ts",
+    "./ports": "./src/ports.ts"
+  },
+  "publish": {
+    "exclude": ["dist", "test", "**/*.test.ts", "tsup.config.ts", "vitest.config.ts"]
+  }
+}

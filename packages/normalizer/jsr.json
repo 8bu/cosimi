@@ -1,0 +1,11 @@
+{
+  "name": "@cosimi/normalizer",
+  "version": "0.1.0",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "publish": {
+    "exclude": ["dist", "test", "**/*.test.ts", "tsup.config.ts", "vitest.config.ts"]
+  }
+}

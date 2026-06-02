@@ -1,7 +1,6 @@
 {
   "name": "@cosimi/sdk",
   "version": "0.1.0",
-  "private": true,
   "license": "SEE LICENSE IN LICENSE.md",
   "repository": {
     "type": "git",
@@ -9,8 +8,7 @@
     "directory": "packages/sdk"
   },
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "type": "module",
   "main": "./src/index.ts",
@@ -26,17 +24,29 @@
     }
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./offline": {
+        "types": "./dist/offline/index.d.ts",
+        "default": "./dist/offline/index.js"
+      }
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts"
   },
   "scripts": {
+    "build": "tsup",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "build": "tsup"
+    "test": "vitest run"
   },
   "dependencies": {
-    "@cosimi/core": "workspace:*",
-    "@cosimi/matcher": "workspace:*",
-    "@cosimi/normalizer": "workspace:*"
+    "@cosimi/core": "workspace:^",
+    "@cosimi/matcher": "workspace:^",
+    "@cosimi/normalizer": "workspace:^"
   },
   "devDependencies": {
     "@cosimi/db-core": "workspace:*",
