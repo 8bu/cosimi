@@ -167,6 +167,28 @@ SP2  Tier 2/3 impl              SP3  portf → 8bu.dev
 SP2 and SP3 both unblock after SP1 and are independent of each other. Each gets its own
 `spec → plan → implementation` cycle.
 
+### SP4 — playground consolidation (TODO brief, not yet specced)
+
+Collapse the four `playgrounds/*` packages (`api`, `admin-api`, `web`, `admin`) into **one
+TanStack Start app** that demos the SDK. Public chat UI + admin dashboard as routes; the
+former Hono REST/SSE endpoints become **TanStack Start server routes** that call
+`@cosimi/sdk` + `@cosimi/adapter-postgres` in-process — no separate API process. Deploy as a
+single Workers app (TanStack Start precedent: `apps/portf`). Replaces the four packages.
+
+Open decisions to resolve at brainstorm time:
+- **Auth-contract collapse (load-bearing).** Today admin-api's `127.0.0.1` bind + process split
+  *is* the auth contract (no app-layer auth). One app kills that split — the demo needs a
+  conscious replacement (open admin for a pure demo, a shared-secret/password gate, or a
+  build-flag-gated admin surface). Don't silently drop the gate.
+- **SSE over server routes.** The chat stream must work through a TanStack Start server route
+  returning a streaming `Response` (the `data: [DONE]` terminator + token pacing contract).
+- **Request-scoped DB on Workers.** Each server route touching the DB must run inside
+  `runWithRequestDb` (same workerd socket-per-request constraint as today's api Worker).
+- Scope: demo-only — relaxed security rigor vs the production process-split model is acceptable
+  *if chosen deliberately*.
+
+This is a future cycle; brainstorm → spec → plan when picked up.
+
 ---
 
 ## SP2 reference — Tier 2 & 3 implementation
