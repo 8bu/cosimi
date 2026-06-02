@@ -522,13 +522,13 @@ importers:
 
   packages/matcher:
     dependencies:
-      '@cosimi/adapter-postgres':
-        specifier: workspace:*
-        version: link:../adapter-postgres
       '@cosimi/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
+      '@cosimi/adapter-postgres':
+        specifier: workspace:*
+        version: link:../adapter-postgres
       '@cosimi/db-core':
         specifier: workspace:*
         version: link:../db-core

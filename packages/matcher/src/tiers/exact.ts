@@ -1,11 +1,12 @@
 import type { MatchResult } from "@cosimi/core";
-import { sql } from "@cosimi/adapter-postgres";
+import type { SqlAccessor } from "../types";
 
 // Hits pairs_normalized_unaccented_idx (B-tree, partial on deleted_at IS NULL).
 // The added `(locale = $2 OR locale = 'und')` filter picks up pairs_locale_idx
 // (partial on deleted_at IS NULL, see migration 010). ORDER BY (locale = $2)
 // DESC ensures a locale-tagged match beats a universal one when both exist.
 export async function exactTier(
+  sql: SqlAccessor,
   normalizedInput: string,
   locale: string,
   topK: number,

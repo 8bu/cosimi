@@ -1,11 +1,12 @@
 import type { MatchResult } from "@cosimi/core";
-import { sql } from "@cosimi/adapter-postgres";
+import type { SqlAccessor } from "../types";
 
 // Hits pairs_trgm_idx (GIST + gist_trgm_ops). The `%` operator short-circuits
 // via the index; the explicit similarity(...) >= minSim filter applies the
 // threshold from env on top so we don't rely on Postgres' set_limit() GUC.
 // Locale filter + ordering mirrors exactTier (see exact.ts).
 export async function trigramTier(
+  sql: SqlAccessor,
   normalizedInput: string,
   locale: string,
   minSim: number,

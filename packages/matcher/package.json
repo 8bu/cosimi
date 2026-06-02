@@ -16,10 +16,10 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@cosimi/adapter-postgres": "workspace:*",
     "@cosimi/core": "workspace:*"
   },
   "devDependencies": {
+    "@cosimi/adapter-postgres": "workspace:*",
     "@cosimi/db-core": "workspace:*",
     "@cosimi/normalizer": "workspace:*",
     "@cosimi/tsconfig": "workspace:*",

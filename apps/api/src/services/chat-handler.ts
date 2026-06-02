@@ -93,7 +93,7 @@ async function runMatchBranch(args: RunChatArgs, env: Env): Promise<void> {
   // {{ name }} substitution. The no-match branch doesn't read config —
   // the fallback wording is FE chrome (i18n), not server-owned text.
   const [result, config] = await Promise.all([
-    match({ normalizedInput: normalized, sessionId: args.sessionId, locales }),
+    match(sql, { normalizedInput: normalized, sessionId: args.sessionId, locales }),
     getAppConfig(),
   ]);
 

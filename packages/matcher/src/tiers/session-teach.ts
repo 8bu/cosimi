@@ -1,5 +1,5 @@
 import type { MatchResult } from "@cosimi/core";
-import { sql } from "@cosimi/adapter-postgres";
+import type { SqlAccessor } from "../types";
 
 // session_teaches has no GENERATED unaccented column, so f_unaccent runs on
 // both sides at query time. Acceptable: 10-min TTL keeps the table small.
@@ -8,6 +8,7 @@ import { sql } from "@cosimi/adapter-postgres";
 // OR 'und' (universal) match. The matched row's locale ships in the result
 // so the UI can annotate "from <locale>" when the fallback fires.
 export async function sessionTeachTier(
+  sql: SqlAccessor,
   sessionId: string,
   normalizedInput: string,
   locale: string,

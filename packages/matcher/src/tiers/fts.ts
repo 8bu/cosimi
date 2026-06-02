@@ -1,10 +1,11 @@
 import type { MatchResult } from "@cosimi/core";
-import { sql } from "@cosimi/adapter-postgres";
+import type { SqlAccessor } from "../types";
 
 // Hits pairs_fts_idx (GIN on to_tsvector('simple', normalized_unaccented)).
 // ts_rank can theoretically exceed 1.0; clamp so the UI gets a 0..1 scale.
 // Locale filter + ordering mirrors exactTier (see exact.ts).
 export async function ftsTier(
+  sql: SqlAccessor,
   normalizedInput: string,
   locale: string,
   minRank: number,
