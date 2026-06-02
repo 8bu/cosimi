@@ -1,7 +1,7 @@
-import { match } from "@cosimi/matcher";
 import { normalize } from "@cosimi/normalizer";
 import { getAppConfig, sql } from "@cosimi/adapter-postgres";
 import { loadEnv, type Env } from "@cosimi/core";
+import { createCosimi } from "@cosimi/sdk";
 
 import { renderTemplate } from "@cosimi/template";
 
@@ -10,6 +10,13 @@ import { tokenize, jitterMs, sleep } from "../lib/tokenizer";
 import { handleTeach, TeachError } from "./teach-handler";
 import { parseTeachCommand, looksLikeTeach } from "./teach-parser";
 import { log } from "../lib/logger";
+
+// One client for the process. `sql` is the runtime-portable accessor (it
+// resolves the request-scoped Workers client via ALS at call time), so a
+// module-scope client is correct for both the Node pool and per-request
+// Workers isolates — and `createCosimi` does no I/O or loadEnv at
+// construction, so it's safe to evaluate at import time on Workers.
+const cosimi = createCosimi({ sql });
 
 export interface RunChatArgs {
   sessionId: string;
@@ -93,7 +100,7 @@ async function runMatchBranch(args: RunChatArgs, env: Env): Promise<void> {
   // {{ name }} substitution. The no-match branch doesn't read config —
   // the fallback wording is FE chrome (i18n), not server-owned text.
   const [result, config] = await Promise.all([
-    match(sql, { normalizedInput: normalized, sessionId: args.sessionId, locales }),
+    cosimi.match(args.message, { sessionId: args.sessionId, locales }),
     getAppConfig(),
   ]);
 

@@ -471,12 +471,12 @@ importers:
       '@cosimi/logger':
         specifier: workspace:*
         version: link:../../packages/logger
-      '@cosimi/matcher':
-        specifier: workspace:*
-        version: link:../../packages/matcher
       '@cosimi/normalizer':
         specifier: workspace:*
         version: link:../../packages/normalizer
+      '@cosimi/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
       '@cosimi/template':
         specifier: workspace:*
         version: link:../../packages/template
