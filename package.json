@@ -12,6 +12,9 @@
     "test": "turbo run test",
     "format": "oxfmt --ignore-path .gitignore --ignore-path .oxfmtignore",
     "format:check": "oxfmt --check --ignore-path .gitignore --ignore-path .oxfmtignore",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "turbo run build && changeset publish && jsr publish",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "db:up": "docker compose -f docker-compose.dev.yml up -d --wait postgres",
     "db:down": "docker compose -f docker-compose.dev.yml down",
@@ -25,6 +28,7 @@
     "provision:portf": "tsx --env-file=.env.portf packages/adapter-postgres/src/scripts/provision-portf-db.ts"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.31.0",
     "@cosimi/oxlint-config": "workspace:*",
     "oxfmt": "^0.47.0",
     "oxlint": "^1.0.0",
