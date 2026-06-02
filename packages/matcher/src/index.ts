@@ -1,9 +1,8 @@
-import type { MatchResult } from "@cosimi/types";
-import { loadEnv } from "@cosimi/config";
-import { sessionTeachTier } from "./tiers/session-teach";
-import { exactTier } from "./tiers/exact";
-import { ftsTier } from "./tiers/fts";
-import { trigramTier } from "./tiers/trigram";
+import type { MatchResult } from "@cosimi/core";
+import { loadEnv } from "@cosimi/core";
+
+import type { SqlAccessor, TierContext, TierHandler } from "./types";
+import { runCascade, tier1Handlers } from "./registry";
 
 export interface MatchOptions {
   /** Already-normalized input (NFC + lowercase + whitespace-collapsed). */
@@ -20,42 +19,46 @@ export interface MatchOptions {
    * still hit the universal pool.
    */
   locales?: string[];
+  /**
+   * The tier cascade to run. Defaults to `tier1Handlers` (exact/fts/trigram +
+   * session_teach). The SDK appends Tier 2/3 handlers here to extend matching.
+   */
+  tiers?: TierHandler[];
 }
 
-export async function match(opts: MatchOptions): Promise<MatchResult | null> {
+/**
+ * Run the match cascade. `sql` is the injected postgres client accessor — the
+ * matcher stays adapter-agnostic; the caller (SDK / app) supplies the client.
+ */
+export async function match(sql: SqlAccessor, opts: MatchOptions): Promise<MatchResult | null> {
   const env = loadEnv();
   const locales = opts.locales && opts.locales.length > 0 ? opts.locales : ["und"];
+  const handlers = opts.tiers ?? tier1Handlers;
 
-  // Per-locale cascade: full 4-tier sweep for each locale before falling
-  // through to the next. Rationale: a Vi session-teach SHOULD beat an
-  // English exact match. The cross-tier ordering "tier first, then locale"
-  // would invert that priority and surprise users mid-conversation.
-  // Phase 11.2 may collapse into a single query with `WHERE locale = ANY($)`
-  // + `ORDER BY array_position($, locale)` — premature now.
+  // Per-locale cascade: full sweep for each locale before falling through to
+  // the next. A Vi session-teach SHOULD beat an English exact match; the
+  // cross-tier ordering "tier first, then locale" would invert that priority
+  // and surprise users mid-conversation.
   for (const locale of locales) {
-    if (opts.sessionId) {
-      const r = await sessionTeachTier(opts.sessionId, opts.normalizedInput, locale);
-      if (r) return r;
-    }
-
-    const ex = await exactTier(opts.normalizedInput, locale, env.MATCH_TOP_K);
-    if (ex) return ex;
-
-    const fts = await ftsTier(opts.normalizedInput, locale, env.MATCH_FTS_MIN, env.MATCH_TOP_K);
-    if (fts) return fts;
-
-    const tri = await trigramTier(
-      opts.normalizedInput,
+    const ctx: TierContext = {
+      sql,
+      normalizedInput: opts.normalizedInput,
       locale,
-      env.MATCH_TRGM_MIN,
-      env.MATCH_TOP_K,
-    );
-    if (tri) return tri;
+      sessionId: opts.sessionId,
+      topK: env.MATCH_TOP_K,
+      ftsMin: env.MATCH_FTS_MIN,
+      trgmMin: env.MATCH_TRGM_MIN,
+    };
+    const hit = await runCascade(handlers, ctx);
+    if (hit) return hit;
   }
 
   return null;
 }
 
+export { runCascade, tier1Handlers } from "./registry";
+export { sessionTeachHandler, exactHandler, ftsHandler, trigramHandler } from "./registry";
+export type { SqlAccessor, TierContext, TierHandler } from "./types";
 export { sessionTeachTier } from "./tiers/session-teach";
 export { exactTier } from "./tiers/exact";
 export { ftsTier } from "./tiers/fts";

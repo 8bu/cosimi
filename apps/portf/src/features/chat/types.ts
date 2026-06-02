@@ -1,8 +1,8 @@
-import type { MatchTier } from "@cosimi/types";
+import type { MatchTier } from "@cosimi/core";
 
 /**
  * UI message shapes - bridge between API event types and the messages
- * store's discriminated union. ChatStreamEvent (`@cosimi/types`) is the
+ * store's discriminated union. ChatStreamEvent (`@cosimi/core`) is the
  * WIRE shape; ChatMessage is the SETTLED-STATE shape rendered by
  * `<MessageBubble>`.
  *

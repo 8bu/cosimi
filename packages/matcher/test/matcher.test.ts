@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { match } from "@cosimi/matcher";
-import { closeDb } from "@cosimi/db";
+import { closeDb, sql } from "@cosimi/adapter-postgres";
 import { normalize } from "@cosimi/normalizer";
 
 import {
@@ -25,7 +25,7 @@ describe("matcher", () => {
   });
 
   it("returns exact tier for a direct (already-normalized) match", async () => {
-    const r = await match({ normalizedInput: normalize("xin chào"), sessionId: null });
+    const r = await match(sql, { normalizedInput: normalize("xin chào"), sessionId: null });
     expect(r).not.toBeNull();
     expect(r!.tier).toBe("exact");
     expect(r!.response).toBe("chào bạn!");
@@ -37,14 +37,14 @@ describe("matcher", () => {
   it("returns exact tier when the query has different case and no diacritics", async () => {
     // 'XIN CHAO' → normalize → 'xin chao'; f_unaccent('xin chao') = 'xin chao'
     // which equals the stored pair's normalized_unaccented ('xin chao').
-    const r = await match({ normalizedInput: normalize("XIN CHAO"), sessionId: null });
+    const r = await match(sql, { normalizedInput: normalize("XIN CHAO"), sessionId: null });
     expect(r?.tier).toBe("exact");
     expect(r?.response).toBe("chào bạn!");
     expect(r?.pairId).toBe(ids.exactPairId);
   });
 
   it("returns trigram tier (low confidence) for a typo", async () => {
-    const r = await match({ normalizedInput: normalize("helo"), sessionId: null });
+    const r = await match(sql, { normalizedInput: normalize("helo"), sessionId: null });
     expect(r).not.toBeNull();
     expect(r!.tier).toBe("trigram");
     expect(r!.lowConfidence).toBe(true);
@@ -54,7 +54,7 @@ describe("matcher", () => {
   });
 
   it("returns fts tier for a partial-keyword query", async () => {
-    const r = await match({ normalizedInput: normalize("doing today"), sessionId: null });
+    const r = await match(sql, { normalizedInput: normalize("doing today"), sessionId: null });
     expect(r).not.toBeNull();
     expect(r!.tier).toBe("fts");
     expect(r!.lowConfidence).toBe(false);
@@ -64,12 +64,12 @@ describe("matcher", () => {
   });
 
   it("returns null for nonsense input that nothing fuzzy-matches", async () => {
-    const r = await match({ normalizedInput: normalize("qqqqqqqq"), sessionId: null });
+    const r = await match(sql, { normalizedInput: normalize("qqqqqqqq"), sessionId: null });
     expect(r).toBeNull();
   });
 
   it("skips soft-deleted rows", async () => {
-    const r = await match({
+    const r = await match(sql, {
       normalizedInput: normalize("reveal the secret password"),
       sessionId: null,
     });
@@ -85,7 +85,7 @@ describe("matcher", () => {
     });
 
     it("wins over exact when sessionId has a matching teach row", async () => {
-      const r = await match({ normalizedInput: normalize("xin chào"), sessionId: SESSION_ID });
+      const r = await match(sql, { normalizedInput: normalize("xin chào"), sessionId: SESSION_ID });
       expect(r?.tier).toBe("session_teach");
       expect(r?.response).toBe("personalised greeting");
       expect(r?.confidence).toBe(1.0);
@@ -94,13 +94,13 @@ describe("matcher", () => {
     });
 
     it("falls through to exact when sessionId is null", async () => {
-      const r = await match({ normalizedInput: normalize("xin chào"), sessionId: null });
+      const r = await match(sql, { normalizedInput: normalize("xin chào"), sessionId: null });
       expect(r?.tier).toBe("exact");
       expect(r?.response).toBe("chào bạn!");
     });
 
     it("falls through to exact when sessionId belongs to a different session", async () => {
-      const r = await match({
+      const r = await match(sql, {
         normalizedInput: normalize("xin chào"),
         sessionId: "99999999-9999-9999-9999-999999999999",
       });
@@ -112,7 +112,7 @@ describe("matcher", () => {
   it("random-picks among top-K exact candidates", async () => {
     const responses = new Set<string>();
     for (let i = 0; i < 30; i += 1) {
-      const r = await match({ normalizedInput: normalize("ping"), sessionId: null });
+      const r = await match(sql, { normalizedInput: normalize("ping"), sessionId: null });
       expect(r?.tier).toBe("exact");
       expect(ids.pingPairIds).toContain(r!.pairId);
       responses.add(r!.response);
@@ -134,7 +134,7 @@ describe("matcher", () => {
     });
 
     it("returns the vi row when primary='vi' and a vi pair exists", async () => {
-      const r = await match({
+      const r = await match(sql, {
         normalizedInput: normalize("meo meo"),
         sessionId: null,
         locales: ["vi", "und"],
@@ -146,7 +146,7 @@ describe("matcher", () => {
     });
 
     it("returns the en row when primary='en' and an en pair exists", async () => {
-      const r = await match({
+      const r = await match(sql, {
         normalizedInput: normalize("meo meo"),
         sessionId: null,
         locales: ["en", "und"],
@@ -161,7 +161,7 @@ describe("matcher", () => {
       // 'cat sound' only exists as en. With locales=['vi','und'], the vi
       // pass finds nothing (no vi row, no 'und' row for this input), the
       // 'und' pass also finds nothing — null.
-      const r = await match({
+      const r = await match(sql, {
         normalizedInput: normalize("cat sound"),
         sessionId: null,
         locales: ["vi", "und"],
@@ -172,7 +172,7 @@ describe("matcher", () => {
     it("falls through to a later locale when the primary has no hit", async () => {
       // locales=['vi','en']: vi sees nothing for 'cat sound', the loop
       // advances to en which has the row.
-      const r = await match({
+      const r = await match(sql, {
         normalizedInput: normalize("cat sound"),
         sessionId: null,
         locales: ["vi", "en"],
@@ -183,7 +183,7 @@ describe("matcher", () => {
     });
 
     it("matches 'und'-tagged pairs under any primary via per-tier overlap (no fallback iteration needed)", async () => {
-      const r = await match({
+      const r = await match(sql, {
         normalizedInput: normalize("universal greeting"),
         sessionId: null,
         locales: ["vi"],
@@ -198,7 +198,7 @@ describe("matcher", () => {
       // exactTier ensures the requested-locale row beats 'und'. (None of
       // our 'meo meo' rows are 'und'-tagged, but the assertion of
       // matched-locale identity covers the same code path.)
-      const r = await match({
+      const r = await match(sql, {
         normalizedInput: normalize("meo meo"),
         sessionId: null,
         locales: ["vi"],
@@ -208,7 +208,7 @@ describe("matcher", () => {
 
     it("defaults to ['und'] when locales is omitted (legacy/test compatibility)", async () => {
       // 'xin chào' is a default-loadFixtures row with locale='und'.
-      const r = await match({ normalizedInput: normalize("xin chào"), sessionId: null });
+      const r = await match(sql, { normalizedInput: normalize("xin chào"), sessionId: null });
       expect(r?.tier).toBe("exact");
       expect(r?.locale).toBe("und");
     });

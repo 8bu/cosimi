@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-import { loadEnv } from "@cosimi/config";
+import { loadEnv } from "@cosimi/core";
 import pino from "pino";
 
 export function createLogger(component: string) {

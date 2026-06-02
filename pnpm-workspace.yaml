@@ -1,5 +1,6 @@
 packages:
   - "apps/*"
+  - "playgrounds/*"
   - "packages/*"
 
 # Supply-chain mitigation — refuse to resolve any package version

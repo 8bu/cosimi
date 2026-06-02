@@ -1,4 +1,4 @@
-import type { MatchTier } from "@cosimi/types";
+import type { MatchTier } from "@cosimi/core";
 
 import { getCatalog } from "@/features/artifacts/catalog";
 import type { ArtifactDescriptor } from "@/features/artifacts/types";

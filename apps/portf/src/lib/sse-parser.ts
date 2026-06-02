@@ -1,4 +1,4 @@
-import type { ChatStreamEvent } from "@cosimi/types";
+import type { ChatStreamEvent } from "@cosimi/core";
 
 /**
  * Parse a fetch ReadableStream of SSE bytes into a typed event stream.

@@ -2,6 +2,15 @@
   "name": "@cosimi/logger",
   "version": "0.0.0",
   "private": true,
+  "license": "SEE LICENSE IN LICENSE.md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/8bu/cosimi.git",
+    "directory": "packages/logger"
+  },
+  "files": [
+    "src"
+  ],
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
@@ -11,11 +20,14 @@
       "default": "./src/index.ts"
     }
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@cosimi/config": "workspace:*",
+    "@cosimi/core": "workspace:*",
     "pino": "^10.0.0"
   },
   "devDependencies": {

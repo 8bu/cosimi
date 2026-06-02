@@ -33,7 +33,7 @@ confirm() {
 spike() {
   print_warning "Veto gate: proves postgres.js → Hyperdrive → Neon before trusting the real worker."
   print_info "Deploying spike worker…"
-  (cd apps/api && pnpm exec wrangler deploy -c spike/wrangler.spike.toml)
+  (cd playgrounds/api && pnpm exec wrangler deploy -c spike/wrangler.spike.toml)
   print_info "Invoke the printed workers.dev URL and confirm {\"ok\":true,\"paramOk\":true}."
   print_warning "If paramOk=false with a prepared-statement error, set prepare:false in @cosimi/db before real deploy."
 }
@@ -61,14 +61,14 @@ deploy_web_pages() {
 deploy_portf_api() {
   run_gates
   print_info "Deploying portf-api Worker (env.portf)…"
-  (cd apps/api && pnpm exec wrangler deploy -e portf)
+  (cd playgrounds/api && pnpm exec wrangler deploy -e portf)
   print_success "portf-api deployed."
 }
 
 deploy_cosimi_api() {
   run_gates
   print_info "Deploying cosimi-api Worker (env.cosimi)…"
-  (cd apps/api && pnpm exec wrangler deploy -e cosimi)
+  (cd playgrounds/api && pnpm exec wrangler deploy -e cosimi)
   print_success "cosimi-api deployed."
 }
 
@@ -80,7 +80,7 @@ deploy_all() {
   pnpm --filter @cosimi/web build
   # shellcheck disable=SC2086
   $WRANGLER pages deploy ../web/dist --project-name cosimi-web
-  (cd apps/api && pnpm exec wrangler deploy -e portf && pnpm exec wrangler deploy -e cosimi)
+  (cd playgrounds/api && pnpm exec wrangler deploy -e portf && pnpm exec wrangler deploy -e cosimi)
   print_success "Full deploy complete."
 }
 
@@ -111,8 +111,8 @@ tail_logs() {
   printf 'Tail which worker? [1] portf-api  [2] cosimi-api: '
   read -r choice
   case "$choice" in
-    1) (cd apps/api && pnpm exec wrangler tail -e portf) ;;
-    2) (cd apps/api && pnpm exec wrangler tail -e cosimi) ;;
+    1) (cd playgrounds/api && pnpm exec wrangler tail -e portf) ;;
+    2) (cd playgrounds/api && pnpm exec wrangler tail -e cosimi) ;;
     *) print_error "Invalid choice." ;;
   esac
 }

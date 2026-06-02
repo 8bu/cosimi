@@ -2,6 +2,15 @@
   "name": "@cosimi/matcher",
   "version": "0.0.0",
   "private": true,
+  "license": "SEE LICENSE IN LICENSE.md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/8bu/cosimi.git",
+    "directory": "packages/matcher"
+  },
+  "files": [
+    "src"
+  ],
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
@@ -11,16 +20,19 @@
       "default": "./src/index.ts"
     }
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
-    "@cosimi/config": "workspace:*",
-    "@cosimi/db": "workspace:*",
-    "@cosimi/types": "workspace:*"
+    "@cosimi/core": "workspace:*"
   },
   "devDependencies": {
+    "@cosimi/adapter-postgres": "workspace:*",
+    "@cosimi/db-core": "workspace:*",
     "@cosimi/normalizer": "workspace:*",
     "@cosimi/tsconfig": "workspace:*",
     "@types/node": "^22.0.0",
