@@ -50,17 +50,54 @@ export interface StorageRepository {
   delete(key: string): Promise<void>;
 }
 
+// SP2 DTOs (type-only seams). Vector embeddings are `number[]` at the port
+// boundary; the postgres adapter maps them to/from pgvector.
+
+export interface Document {
+  id: string;
+  title: string;
+  mimeType: string;
+  storageKey: string;
+  createdAt: Date;
+}
+export type NewDocument = Omit<Document, "id" | "createdAt">;
+
+export interface Chunk {
+  id: string;
+  documentId: string;
+  content: string;
+  chunkIndex: number;
+  sectionTitle: string | null;
+  embedding: number[] | null;
+  createdAt: Date;
+}
+export type NewChunk = Omit<Chunk, "id" | "createdAt">;
+export interface ScoredChunk extends Chunk {
+  /** Cosine similarity to the query embedding, [0, 1]. */
+  similarity: number;
+}
+
 export interface DocumentRepository {
-  // SP2: create / findById / list / delete
-  [method: string]: unknown;
+  create(doc: NewDocument): Promise<Document>;
+  findById(id: string): Promise<Document | null>;
+  list(): Promise<Document[]>;
+  delete(id: string): Promise<void>;
 }
 
 export interface ChunkRepository {
-  // SP2: create / createMany / findById / findByDocument / findNearest / delete
-  [method: string]: unknown;
+  create(chunk: NewChunk): Promise<Chunk>;
+  createMany(chunks: NewChunk[]): Promise<Chunk[]>;
+  findById(id: string): Promise<Chunk | null>;
+  findByDocument(documentId: string): Promise<Chunk[]>;
+  findNearest(embedding: number[], limit: number): Promise<ScoredChunk[]>;
+  delete(id: string): Promise<void>;
 }
 
 export interface GraphRepository {
-  // SP2: addNode / addEdge / getParent / getChildren / getRelated / deleteNode
-  [method: string]: unknown;
+  addNode(chunk: Chunk): Promise<void>;
+  addEdge(fromId: string, toId: string, type: RelationType): Promise<void>;
+  getParent(chunkId: string): Promise<Chunk | null>;
+  getChildren(chunkId: string): Promise<Chunk[]>;
+  getRelated(chunkId: string, maxHops?: number): Promise<Chunk[]>;
+  deleteNode(chunkId: string): Promise<void>;
 }
