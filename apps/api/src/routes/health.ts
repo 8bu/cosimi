@@ -1,4 +1,4 @@
-import { sql } from "@cosimi/db";
+import { sql } from "@cosimi/adapter-postgres";
 import type { HealthResponse } from "@cosimi/core";
 import { Hono } from "hono";
 

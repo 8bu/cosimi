@@ -1,4 +1,4 @@
-import { sql } from "@cosimi/db";
+import { sql } from "@cosimi/adapter-postgres";
 import { Hono } from "hono";
 
 const startedAt = Date.now();

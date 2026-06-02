@@ -1,6 +1,6 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 
-import { closeDb, sql } from "@cosimi/db";
+import { closeDb, sql } from "@cosimi/adapter-postgres";
 
 import { sweepOnce } from "../src/lib/gc";
 import { newSessionId, resetDb } from "./helpers";

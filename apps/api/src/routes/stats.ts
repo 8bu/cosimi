@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { sql } from "@cosimi/db";
+import { sql } from "@cosimi/adapter-postgres";
 import type { StatsResponse } from "@cosimi/core";
 
 /**

@@ -13,7 +13,7 @@ interface SpikeEnv {
  * the real worker. Returns JSON with a literal SELECT and a parameterized
  * SELECT (the latter exercises prepared statements, which can fail behind a
  * transaction pooler - if `paramOk` is false with a prepared-statement error,
- * the real worker's @cosimi/db client needs `prepare: false`).
+ * the real worker's @cosimi/adapter-postgres client needs `prepare: false`).
  */
 export default {
   async fetch(_req: Request, env: SpikeEnv, _ctx: ExecutionContext): Promise<Response> {

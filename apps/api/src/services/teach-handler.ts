@@ -1,4 +1,4 @@
-import { sql } from "@cosimi/db";
+import { sql } from "@cosimi/adapter-postgres";
 import { normalize } from "@cosimi/normalizer";
 import { loadEnv } from "@cosimi/core";
 

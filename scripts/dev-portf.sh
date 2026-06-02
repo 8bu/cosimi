@@ -37,7 +37,7 @@ fi
 pnpm provision:portf
 pnpm migrate:portf
 
-count=$(pnpm --silent exec tsx --env-file=.env.portf packages/db/src/scripts/pairs-count.ts)
+count=$(pnpm --silent exec tsx --env-file=.env.portf packages/adapter-postgres/src/scripts/pairs-count.ts)
 if [ "$count" = "0" ]; then
   printf "portf pairs table is empty. Seed now (seeds/portf/*.yaml)? (y/N) "
   read -r answer

@@ -1,5 +1,5 @@
 import { loadEnv } from "@cosimi/core";
-import { sql } from "@cosimi/db";
+import { sql } from "@cosimi/adapter-postgres";
 
 import { log } from "./logger";
 

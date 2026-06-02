@@ -12,8 +12,8 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@cosimi/adapter-postgres": "workspace:*",
     "@cosimi/core": "workspace:*",
-    "@cosimi/db": "workspace:*",
     "@cosimi/logger": "workspace:*",
     "@cosimi/normalizer": "workspace:*",
     "@hono/node-server": "^1.19.0",
@@ -22,6 +22,7 @@
     "valibot": "^1.0.0"
   },
   "devDependencies": {
+    "@cosimi/db-core": "workspace:*",
     "@cosimi/tsconfig": "workspace:*",
     "@types/node": "^22.0.0",
     "postgres": "^3.4.0",

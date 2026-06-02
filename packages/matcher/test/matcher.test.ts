@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { match } from "@cosimi/matcher";
-import { closeDb } from "@cosimi/db";
+import { closeDb } from "@cosimi/adapter-postgres";
 import { normalize } from "@cosimi/normalizer";
 
 import {

@@ -17,8 +17,8 @@
     "spike": "wrangler deploy -c spike/wrangler.spike.toml"
   },
   "dependencies": {
+    "@cosimi/adapter-postgres": "workspace:*",
     "@cosimi/core": "workspace:*",
-    "@cosimi/db": "workspace:*",
     "@cosimi/logger": "workspace:*",
     "@cosimi/matcher": "workspace:*",
     "@cosimi/normalizer": "workspace:*",
@@ -29,6 +29,7 @@
     "valibot": "^1.0.0"
   },
   "devDependencies": {
+    "@cosimi/db-core": "workspace:*",
     "@cosimi/tsconfig": "workspace:*",
     "@types/node": "^22.0.0",
     "postgres": "^3.4.0",

@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { sql, insertManyPairs, type InsertPairInput } from "@cosimi/db";
+import { sql, insertManyPairs, type InsertPairInput } from "@cosimi/adapter-postgres";
 import type { ChatStreamEvent } from "@cosimi/core";
 
 /**

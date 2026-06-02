@@ -1,19 +1,20 @@
-import { readdir } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
+import postgres from "postgres";
 import { loadEnv } from "@cosimi/core";
-import { sql, closeDb } from "#client";
 
-const MIGRATIONS_DIR = fileURLToPath(new URL("../migrations", import.meta.url));
+import { listMigrationFiles, MIGRATIONS_DIR } from "./apply-migrations";
 
 type Subcommand = "up" | "status" | "reset";
+type Sql = ReturnType<typeof postgres>;
 
-async function listMigrationFiles(): Promise<string[]> {
-  const entries = await readdir(MIGRATIONS_DIR);
-  return entries.filter((f) => f.endsWith(".sql")).toSorted();
+// Standalone CLI client. db-core stays driver-agnostic at runtime — only this
+// CLI (and apply-migrations' type import) touches `postgres`, declared a
+// peerDependency. The adapter packages own the request-scoped/pooled clients.
+function createClient(): Sql {
+  const env = loadEnv();
+  return postgres(env.DATABASE_URL, { max: 1, onnotice: () => {} });
 }
 
-async function ensureTrackingTable() {
-  const db = sql();
+async function ensureTrackingTable(db: Sql) {
   await db`
     CREATE TABLE IF NOT EXISTS _migrations (
       filename   TEXT PRIMARY KEY,
@@ -22,19 +23,15 @@ async function ensureTrackingTable() {
   `;
 }
 
-async function getApplied(): Promise<Set<string>> {
-  const db = sql();
-  const rows = await db<{ filename: string }[]>`
-    SELECT filename FROM _migrations
-  `;
+async function getApplied(db: Sql): Promise<Set<string>> {
+  const rows = await db<{ filename: string }[]>`SELECT filename FROM _migrations`;
   return new Set(rows.map((r) => r.filename));
 }
 
-async function runUp(): Promise<{ applied: string[]; skipped: string[] }> {
-  await ensureTrackingTable();
-  const db = sql();
+async function runUp(db: Sql): Promise<{ applied: string[]; skipped: string[] }> {
+  await ensureTrackingTable(db);
   const all = await listMigrationFiles();
-  const already = await getApplied();
+  const already = await getApplied(db);
   const applied: string[] = [];
   const skipped: string[] = [];
 
@@ -59,10 +56,10 @@ async function runUp(): Promise<{ applied: string[]; skipped: string[] }> {
   return { applied, skipped };
 }
 
-async function runStatus(): Promise<number> {
-  await ensureTrackingTable();
+async function runStatus(db: Sql): Promise<number> {
+  await ensureTrackingTable(db);
   const all = await listMigrationFiles();
-  const already = await getApplied();
+  const already = await getApplied(db);
   const pending: string[] = [];
 
   for (const filename of all) {
@@ -77,16 +74,15 @@ async function runStatus(): Promise<number> {
   return pending.length === 0 ? 0 : 1;
 }
 
-async function runReset() {
+async function runReset(db: Sql) {
   const env = loadEnv();
   if (env.NODE_ENV === "production") {
     throw new Error("reset refused: NODE_ENV=production");
   }
-  const db = sql();
   console.log("dropping schema public ...");
   await db.unsafe("DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
   console.log("re-applying migrations ...");
-  await runUp();
+  await runUp(db);
 }
 
 async function main() {
@@ -96,25 +92,26 @@ async function main() {
     process.exit(2);
   }
 
+  const db = createClient();
   try {
     if (cmd === "up") {
-      const { applied, skipped } = await runUp();
+      const { applied, skipped } = await runUp(db);
       console.log(`\n${applied.length} applied, ${skipped.length} already up-to-date`);
       process.exit(0);
     }
     if (cmd === "status") {
-      const code = await runStatus();
+      const code = await runStatus(db);
       process.exit(code);
     }
     if (cmd === "reset") {
-      await runReset();
+      await runReset(db);
       process.exit(0);
     }
   } catch (err) {
     console.error(err instanceof Error ? err.message : err);
     process.exit(1);
   } finally {
-    await closeDb();
+    await db.end();
   }
 }
 

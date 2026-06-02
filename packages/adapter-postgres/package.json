@@ -1,6 +1,6 @@
 {
-  "name": "@cosimi/db",
-  "version": "0.0.0",
+  "name": "@cosimi/adapter-postgres",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "main": "./src/index.ts",
@@ -19,20 +19,23 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "migrate": "tsx --env-file=../../.env src/migrate.ts",
     "seed": "tsx --env-file=../../.env src/scripts/seed.ts"
   },
   "dependencies": {
     "@cosimi/core": "workspace:*",
+    "@cosimi/db-core": "workspace:*",
     "@cosimi/normalizer": "workspace:*",
-    "postgres": "^3.4.0",
     "yaml": "^2.0.0"
   },
   "devDependencies": {
     "@cosimi/tsconfig": "workspace:*",
     "@types/node": "^22.0.0",
+    "postgres": "^3.4.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
+  },
+  "peerDependencies": {
+    "postgres": "^3.4.0"
   }
 }

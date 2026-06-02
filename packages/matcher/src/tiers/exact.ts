@@ -1,5 +1,5 @@
 import type { MatchResult } from "@cosimi/core";
-import { sql } from "@cosimi/db";
+import { sql } from "@cosimi/adapter-postgres";
 
 // Hits pairs_normalized_unaccented_idx (B-tree, partial on deleted_at IS NULL).
 // The added `(locale = $2 OR locale = 'und')` filter picks up pairs_locale_idx

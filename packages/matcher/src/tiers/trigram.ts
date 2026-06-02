@@ -1,5 +1,5 @@
 import type { MatchResult } from "@cosimi/core";
-import { sql } from "@cosimi/db";
+import { sql } from "@cosimi/adapter-postgres";
 
 // Hits pairs_trgm_idx (GIST + gist_trgm_ops). The `%` operator short-circuits
 // via the index; the explicit similarity(...) >= minSim filter applies the

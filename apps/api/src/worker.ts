@@ -1,4 +1,4 @@
-import { runWithRequestDb } from "@cosimi/db";
+import { runWithRequestDb } from "@cosimi/adapter-postgres";
 
 import { app } from "./app";
 import { sweepOnce } from "./lib/gc";
@@ -26,7 +26,7 @@ interface WorkerEnv {
 
 /**
  * Bridge Cloudflare bindings into `process.env` before `loadEnv()` (called
- * lazily by @cosimi/db, @cosimi/matcher, gc) sees them. The Postgres URL is
+ * lazily by @cosimi/adapter-postgres, @cosimi/matcher, gc) sees them. The Postgres URL is
  * NOT a secret/var - it is provided at runtime by the Hyperdrive binding.
  * Remaining string-valued bindings (LOG_LEVEL, MATCH_*, SSE_DELAY_*, ...) are
  * forwarded verbatim; the Hyperdrive object is skipped (not a string).

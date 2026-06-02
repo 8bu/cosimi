@@ -117,12 +117,12 @@ importers:
 
   apps/admin-api:
     dependencies:
+      '@cosimi/adapter-postgres':
+        specifier: workspace:*
+        version: link:../../packages/adapter-postgres
       '@cosimi/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@cosimi/db':
-        specifier: workspace:*
-        version: link:../../packages/db
       '@cosimi/logger':
         specifier: workspace:*
         version: link:../../packages/logger
@@ -142,6 +142,9 @@ importers:
         specifier: ^1.0.0
         version: 1.4.0(typescript@5.9.3)
     devDependencies:
+      '@cosimi/db-core':
+        specifier: workspace:*
+        version: link:../../packages/db-core
       '@cosimi/tsconfig':
         specifier: workspace:*
         version: link:../../packages/tsconfig
@@ -163,12 +166,12 @@ importers:
 
   apps/api:
     dependencies:
+      '@cosimi/adapter-postgres':
+        specifier: workspace:*
+        version: link:../../packages/adapter-postgres
       '@cosimi/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@cosimi/db':
-        specifier: workspace:*
-        version: link:../../packages/db
       '@cosimi/logger':
         specifier: workspace:*
         version: link:../../packages/logger
@@ -194,6 +197,9 @@ importers:
         specifier: ^1.0.0
         version: 1.4.0(typescript@5.9.3)
     devDependencies:
+      '@cosimi/db-core':
+        specifier: workspace:*
+        version: link:../../packages/db-core
       '@cosimi/tsconfig':
         specifier: workspace:*
         version: link:../../packages/tsconfig
@@ -410,6 +416,40 @@ importers:
         specifier: ^3.0.0
         version: 3.2.4(@types/debug@4.1.13)(@types/node@22.19.17)(jiti@2.7.0)(jsdom@25.0.1)(lightningcss@1.32.0)(tsx@4.21.0)(yaml@2.8.4)
 
+  packages/adapter-postgres:
+    dependencies:
+      '@cosimi/core':
+        specifier: workspace:*
+        version: link:../core
+      '@cosimi/db-core':
+        specifier: workspace:*
+        version: link:../db-core
+      '@cosimi/normalizer':
+        specifier: workspace:*
+        version: link:../normalizer
+      yaml:
+        specifier: ^2.0.0
+        version: 2.8.4
+    devDependencies:
+      '@cosimi/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.17
+      postgres:
+        specifier: ^3.4.0
+        version: 3.4.9
+      tsx:
+        specifier: ^4.19.0
+        version: 4.21.0
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.4(@types/debug@4.1.13)(@types/node@22.19.17)(jiti@2.7.0)(jsdom@25.0.1)(lightningcss@1.32.0)(tsx@4.21.0)(yaml@2.8.4)
+
   packages/branding:
     dependencies:
       '@cosimi/template':
@@ -439,20 +479,11 @@ importers:
         specifier: ^5.7.0
         version: 5.9.3
 
-  packages/db:
+  packages/db-core:
     dependencies:
       '@cosimi/core':
         specifier: workspace:*
         version: link:../core
-      '@cosimi/normalizer':
-        specifier: workspace:*
-        version: link:../normalizer
-      postgres:
-        specifier: ^3.4.0
-        version: 3.4.9
-      yaml:
-        specifier: ^2.0.0
-        version: 2.8.4
     devDependencies:
       '@cosimi/tsconfig':
         specifier: workspace:*
@@ -460,15 +491,15 @@ importers:
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.17
+      postgres:
+        specifier: ^3.4.0
+        version: 3.4.9
       tsx:
         specifier: ^4.19.0
         version: 4.21.0
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
-      vitest:
-        specifier: ^3.0.0
-        version: 3.2.4(@types/debug@4.1.13)(@types/node@22.19.17)(jiti@2.7.0)(jsdom@25.0.1)(lightningcss@1.32.0)(tsx@4.21.0)(yaml@2.8.4)
 
   packages/logger:
     dependencies:
@@ -491,13 +522,16 @@ importers:
 
   packages/matcher:
     dependencies:
+      '@cosimi/adapter-postgres':
+        specifier: workspace:*
+        version: link:../adapter-postgres
       '@cosimi/core':
         specifier: workspace:*
         version: link:../core
-      '@cosimi/db':
-        specifier: workspace:*
-        version: link:../db
     devDependencies:
+      '@cosimi/db-core':
+        specifier: workspace:*
+        version: link:../db-core
       '@cosimi/normalizer':
         specifier: workspace:*
         version: link:../normalizer

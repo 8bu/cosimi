@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import * as v from "valibot";
 
-import { sql } from "@cosimi/db";
+import { sql } from "@cosimi/adapter-postgres";
 
 /**
  * Bulk soft-delete by source / topic / batch_id. At least one filter must

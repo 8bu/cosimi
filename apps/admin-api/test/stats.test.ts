@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 
-import { closeDb, sql } from "@cosimi/db";
+import { closeDb, sql } from "@cosimi/adapter-postgres";
 
 import { app } from "../src/app";
 import { getJson, resetDb, seedPairs } from "./helpers";

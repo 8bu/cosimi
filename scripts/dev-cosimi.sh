@@ -36,7 +36,7 @@ fi
 
 pnpm migrate
 
-count=$(pnpm --silent exec tsx --env-file=.env packages/db/src/scripts/pairs-count.ts)
+count=$(pnpm --silent exec tsx --env-file=.env packages/adapter-postgres/src/scripts/pairs-count.ts)
 if [ "$count" = "0" ]; then
   printf "cosimi pairs table is empty. Seed now (vi + chatterbot)? (y/N) "
   read -r answer

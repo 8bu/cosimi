@@ -1,21 +1,9 @@
 import type postgres from "postgres";
 import { normalize } from "@cosimi/normalizer";
-import type { Source } from "@cosimi/core";
+import type { InsertPairInput } from "@cosimi/db-core";
 import { sql } from "#client";
 
-export interface InsertPairInput {
-  input: string;
-  response: string;
-  source: Source;
-  topic?: string | null;
-  batch_id?: number | null;
-  flagged?: boolean;
-  // BCP-47 locale tag. Missing → 'und' (universal); the column has a
-  // matching default at the schema level (migration 010), but routing
-  // the default through the helper keeps the JS-side write shape
-  // explicit so admin tools / tests don't accidentally drop it.
-  locale?: string;
-}
+export type { InsertPairInput };
 
 // postgres.Sql is the pool client; postgres.TransactionSql is the handle
 // passed to .begin() callbacks. Both extend the same template-literal API

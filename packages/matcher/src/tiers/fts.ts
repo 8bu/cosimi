@@ -1,5 +1,5 @@
 import type { MatchResult } from "@cosimi/core";
-import { sql } from "@cosimi/db";
+import { sql } from "@cosimi/adapter-postgres";
 
 // Hits pairs_fts_idx (GIN on to_tsvector('simple', normalized_unaccented)).
 // ts_rank can theoretically exceed 1.0; clamp so the UI gets a 0..1 scale.

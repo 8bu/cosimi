@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import * as v from "valibot";
 
-import { sql } from "@cosimi/db";
+import { sql } from "@cosimi/adapter-postgres";
 import { loadEnv } from "@cosimi/core";
 import type { FeedbackResponse } from "@cosimi/core";
 
