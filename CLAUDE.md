@@ -61,10 +61,12 @@ docs/             # phased specs SPEC_PHASE_0.md … SPEC_PHASE_16.md
 
 - `apps/api` and `apps/admin-api` are **separate processes**. admin-api binds `127.0.0.1`; process split + network-layer gate IS auth contract — don't add app-layer auth to admin routes. No `/admin/*` route prefix.
 - **No LLM at runtime** in `apps/api`. `@cosimi/matcher` only reply source.
-- Env via `loadEnv()` from `@cosimi/config` — called once at startup, never at import time. Never `export const env = loadEnv()` (breaks test env injection).
+- Env via `loadEnv()` from `@cosimi/config` — called once at startup, never at import time. Never `export const env = loadEnv()` (breaks test env injection). On Cloudflare Workers this is doubly load-bearing: deploy-time startup validation runs global scope with NO bindings, so any import-time `loadEnv()` fails (`DATABASE_URL` absent). The api logger is a lazy `Proxy` for this reason — `loadEnv()`/`createLogger()` only fire on first use, after `worker.ts hoistEnv` bridges the Hyperdrive binding into `process.env.DATABASE_URL`.
+- **Workers deploy** (`apps/api` → `portf-api` / `cosimi-api` Workers): the SAME `src/worker.ts` entry; `src/index.ts` is the Node entry. Full runbook + Workers traps in `docs/DEPLOY.md` ("Workers runtime constraints"). Key rule: no module-level DB connection (see Database & migrations). pino logs are invisible to `wrangler tail` — only `console.*` surfaces.
 
 ### Database & migrations
 
+- `sql()` from `@cosimi/db` returns a request-scoped client when one is set (Cloudflare Workers), else a process-level singleton pool (Node dev/prod/tests). The Worker entry wraps `fetch`/`scheduled` in `runWithRequestDb(fn)` (an `AsyncLocalStorage` per-request client) because workerd binds each socket to the request that opened it — a shared pool reused across requests throws `Cannot perform I/O on behalf of a different request`. Never create a module-level postgres connection; any new Workers entrypoint touching the DB MUST run inside `runWithRequestDb`. Don't `end()` the request client (a streaming SSE response keeps using it after `app.fetch()` resolves; `idle_timeout` reaps it).
 - Migrations in `packages/db/migrations/` numbered, additive, **never rewritten after merge**. New changes → new file. `pnpm migrate reset` dev-only (`NODE_ENV !== 'production'`).
 - **Canonical write path for `pairs`**: `insertPair` / `insertManyPairs` from `@cosimi/db`. Never raw `INSERT INTO pairs`. Both omit `normalized_unaccented` (Postgres rejects explicit values) and accept optional `tx`; inside `.begin()` MUST pass `tx`.
 - `pairs.normalized_unaccented` is `GENERATED ALWAYS AS (f_unaccent(normalized_input)) STORED`. Never INSERT/UPDATE directly.
@@ -115,7 +117,7 @@ docs/             # phased specs SPEC_PHASE_0.md … SPEC_PHASE_16.md
 ### Logging
 
 - PII redaction is belt-and-suspenders. `@cosimi/logger.createLogger()` ships a `redact.paths` list (`input`, `response`, `reply`, `message`, `body.message`, `body.reply`, `body.input`); `redactInput(text)` → `{ length, hash: sha256[..8] }`. INFO+: use `redactInput()` if logging text. DEBUG raw values go under `*_dbg` suffixes (escape the redact list).
-- App logger files are thin `createLogger('<app>')` re-exports — never construct pino directly.
+- App logger files are thin `createLogger('<app>')` re-exports — never construct pino directly. Exception: `apps/api/src/lib/logger.ts` exports a lazy `Proxy` that defers `createLogger()` (hence `loadEnv()`) to first use, so the Workers bundle survives import-time deploy validation (see Architecture & security). Construction is still via `createLogger`, just deferred.
 
 ### Tests
 
@@ -172,5 +174,7 @@ docs/             # phased specs SPEC_PHASE_0.md … SPEC_PHASE_16.md
 ## Project status
 
 Phases 0–16 merged on `main`. 265 tests across 7 packages. Standing gates: `pnpm -r typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm -r --workspace-concurrency=1 test`.
+
+**Deploy (branch `phase-cf-deploy`):** portf is LIVE — `https://8bu.dev` (Pages) + `portf-api` Worker (`8bu.dev/api/*`) → Hyperdrive → Neon `portf` (459 pairs). cosimi (`apps/web` + `cosimi-api`) wired but undeployed. All-Cloudflare, no VPS/Docker. Manual deploy via `./deploy.sh`; see `docs/DEPLOY.md`.
 
 Out of scope: UI-chrome i18n (admin chrome English-only), multi-user accounts, observability dashboards (pino → stdout for v1; OpenTelemetry is the natural next step), telemetry. `<DataTable>` extraction is deferred — needs three call sites + genuine design before code.

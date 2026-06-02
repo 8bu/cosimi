@@ -9,7 +9,12 @@
     "start": "tsx --env-file=../../.env src/index.ts",
     "start:portf": "tsx --env-file=../../.env.portf src/index.ts",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "deploy:portf": "wrangler deploy -e portf",
+    "deploy:cosimi": "wrangler deploy -e cosimi",
+    "tail:portf": "wrangler tail -e portf",
+    "tail:cosimi": "wrangler tail -e cosimi",
+    "spike": "wrangler deploy -c spike/wrangler.spike.toml"
   },
   "dependencies": {
     "@cosimi/config": "workspace:*",
@@ -30,6 +35,7 @@
     "postgres": "^3.4.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",
-    "vitest": "^3.0.0"
+    "vitest": "^3.0.0",
+    "wrangler": "^4.0.0"
   }
 }

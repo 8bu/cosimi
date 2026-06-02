@@ -23,7 +23,7 @@ healthRoute.get("/", async (c) => {
     let timer: ReturnType<typeof setTimeout> | null = null;
     const timeout = new Promise<never>((_, rej) => {
       timer = setTimeout(() => rej(new Error("db ping timeout")), 1000);
-      timer.unref();
+      if (typeof timer.unref === "function") timer.unref();
     });
     try {
       await Promise.race([sql()`SELECT 1`, timeout]);

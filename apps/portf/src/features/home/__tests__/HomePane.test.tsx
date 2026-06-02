@@ -1,8 +1,23 @@
 import { describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen } from "@testing-library/react";
+import type { SuggestionChip } from "../data";
 
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
+}));
+
+// Pin the sampled chips so HomePane tests are deterministic (the live hook
+// shuffles a random 5 from a ~50-chip pool on mount).
+const FIXED_CHIPS = [
+  { mark: "🚀", label: "Best project" },
+  { mark: "🧰", label: "Tech stack" },
+  { mark: "🤝", label: "Why hire you" },
+  { mark: "☕", label: "Coffee chat" },
+  { mark: "🗓️", label: "Available for hire" },
+] as unknown as ReadonlyArray<SuggestionChip>;
+
+vi.mock("../use-sampled-chips", () => ({
+  useSampledChips: () => FIXED_CHIPS,
 }));
 
 describe("HomePane", () => {
@@ -26,12 +41,12 @@ describe("HomePane", () => {
       const input = screen.getByRole("textbox") as HTMLInputElement;
 
       await act(async () => {
-        fireEvent.click(screen.getByRole("button", { name: /Stack/ }));
+        fireEvent.click(screen.getByRole("button", { name: /Tech stack/ }));
         // Advance one char's worth of typing.
         await vi.advanceTimersByTimeAsync(40);
       });
       expect(input.value.length).toBeGreaterThan(0);
-      expect("Stack").toContain(input.value);
+      expect("Tech stack").toContain(input.value);
     } finally {
       vi.useRealTimers();
     }

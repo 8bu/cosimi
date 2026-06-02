@@ -1,4 +1,4 @@
-import { SUGGESTION_CHIPS } from "@/features/home/data";
+import { useSampledChips } from "@/features/home/use-sampled-chips";
 import { useMessagesStore } from "@/store/messages";
 
 interface ChatChipsProps {
@@ -10,9 +10,9 @@ interface ChatChipsProps {
  *
  * Shape ported from the design source's `V1Conversation` chip block
  * (`docs/superpowers/artifacts/cosimi2/project/variations-1-2.jsx:80`,
- * `<Chips items={SUGGESTION_CHIPS}>`). Same SUGGESTION_CHIPS constant
- * the V2 spotlight HomePane uses, so the recruiter sees a consistent
- * "menu" both at landing and in-thread.
+ * `<Chips items={SUGGESTION_CHIPS}>`). Samples a random 5 from the same
+ * pool the V2 spotlight HomePane uses (via `useSampledChips`), so the
+ * recruiter sees a consistent "menu" both at landing and in-thread.
  *
  * Click → fires `messagesStore.send(threadId, chip.label)`. Disabled
  * mid-stream to avoid interleaved sends (the messages-store guard would
@@ -20,10 +20,11 @@ interface ChatChipsProps {
  */
 export function ChatChips({ threadId }: ChatChipsProps) {
   const send = useMessagesStore((s) => s.send);
+  const chips = useSampledChips(5);
 
   return (
     <div className="chips" style={{ marginBottom: 10 }}>
-      {SUGGESTION_CHIPS.map((c) => (
+      {chips.map((c) => (
         <button
           key={c.label}
           type="button"

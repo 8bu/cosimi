@@ -18,3 +18,5 @@ minimumReleaseAge: 10080 # minutes; 60 * 24 * 7
 allowBuilds:
   esbuild: true # tsx ships esbuild and needs its native-binary postinstall
   "@swc/core": true # @vitejs/plugin-react-swc uses @swc/core; the postinstall fetches the platform-specific native binary. Without it, Vite's React transform can't load.
+  workerd: false # wrangler's local-dev runtime; deploy/dry-run/tail bundle via esbuild and never need workerd's native binary. Flip to true only if you start using `wrangler dev`.
+  sharp: false # transitive of wrangler; nothing on our build/deploy path does image processing (portf og PNGs use resvg, not sharp). Deny the native-binary postinstall.

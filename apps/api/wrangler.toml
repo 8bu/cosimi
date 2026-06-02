@@ -1,0 +1,45 @@
+name = "cosimi-api"
+main = "src/worker.ts"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = false
+
+# -- portf instance (primary): 8bu.dev/api/* -------------------------------
+[env.portf]
+name = "portf-api"
+
+[[env.portf.routes]]
+pattern = "8bu.dev/api/*"
+zone_name = "8bu.dev"
+
+# Hyperdrive config `portf-hd` -> Neon 6sf project, `portf` DB (direct endpoint).
+[[env.portf.hyperdrive]]
+binding = "HYPERDRIVE"
+id = "7994710a22e94e3fab65ac8deaa79a59"
+
+[env.portf.triggers]
+crons = ["*/5 * * * *"]
+
+[env.portf.vars]
+NODE_ENV = "production"
+LOG_LEVEL = "info"
+
+# -- cosimi instance: cosimi.8bu.dev/api/* ---------------------------------
+[env.cosimi]
+name = "cosimi-api"
+
+[[env.cosimi.routes]]
+pattern = "cosimi.8bu.dev/api/*"
+zone_name = "8bu.dev"
+
+# Hyperdrive config `cosimi-hd` -> Neon 6sf project, `cosimi` DB (direct endpoint).
+[[env.cosimi.hyperdrive]]
+binding = "HYPERDRIVE"
+id = "9b92a20da27b4c68a6cc2fc27e7c8bd1"
+
+[env.cosimi.triggers]
+crons = ["*/5 * * * *"]
+
+[env.cosimi.vars]
+NODE_ENV = "production"
+LOG_LEVEL = "info"

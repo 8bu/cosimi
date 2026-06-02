@@ -3,7 +3,7 @@ import { Wordmark } from "@/components/Wordmark";
 import { ChipRow } from "./ChipRow";
 import { Composer, type ComposerHandle } from "./Composer";
 import { SpotlightHeadline } from "./SpotlightHeadline";
-import { SUGGESTION_CHIPS } from "../data";
+import { useSampledChips } from "../use-sampled-chips";
 
 /**
  * V2 spotlight composition root.
@@ -22,6 +22,7 @@ import { SUGGESTION_CHIPS } from "../data";
  */
 export function HomePane() {
   const composerRef = useRef<ComposerHandle>(null);
+  const chips = useSampledChips(5);
 
   return (
     <main
@@ -88,7 +89,7 @@ export function HomePane() {
             }}
           >
             <ChipRow
-              chips={SUGGESTION_CHIPS}
+              chips={chips}
               onPick={(label) => composerRef.current?.runChipAnimation(label)}
             />
           </div>

@@ -313,3 +313,31 @@
 - input: "web3.js"
   response: "Yes."
   topic: portfolio/web3
+
+# ============================================================
+# BEST / PROUDEST WORK (marquee = Nuxt migration)
+# ============================================================
+- input: "best project"
+  response: "The Nuxt 2 to 4 migration at WegoPro. I led the strategy - Vue 3 web components as a bridge layer - and solo-migrated the entire back-office to Nuxt 4 + Nuxt UI without stopping shipping."
+  topic: portfolio/best-work
+- input: "best project?"
+  response: "WegoPro's Nuxt 2 to 4 migration. Led it end-to-end, solo-migrated the back-office dashboard."
+  topic: portfolio/best-work
+- input: "favorite project"
+  response: "The WegoPro Nuxt migration. Biggest ownership: bridge-layer strategy plus a solo back-office rebuild on Nuxt 4 + Nuxt UI."
+  topic: portfolio/best-work
+- input: "favourite project"
+  response: "The WegoPro Nuxt 2 to 4 migration. Led the strategy, solo-migrated the back-office."
+  topic: portfolio/best-work
+- input: "proudest work"
+  response: "Leading the Nuxt 2 to 4 migration at WegoPro - a live B2B platform - using Vue 3 web components as the bridge, and solo-migrating the back-office."
+  topic: portfolio/best-work
+- input: "what are you most proud of"
+  response: "Pulling off the Nuxt 2 to 4 migration on a live product without halting feature work. Bridge layer in Vue 3 web components, back-office solo-migrated to Nuxt 4 + Nuxt UI."
+  topic: portfolio/best-work
+- input: "best thing you've shipped"
+  response: "The WegoPro Nuxt 4 migration - especially the back-office dashboard I migrated solo."
+  topic: portfolio/best-work
+- input: "What project are you most proud of?"
+  response: "The Nuxt 2 to 4 migration I led at WegoPro. I designed the bridge-layer strategy using Vue 3 web components and solo-migrated the entire back-office dashboard to Nuxt 4 with Nuxt UI, all while the platform kept shipping features."
+  topic: portfolio/best-work

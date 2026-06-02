@@ -35,8 +35,8 @@ export function startGc(): void {
   }, env.GC_INTERVAL_MS);
   // Without unref, the active interval would block process exit even after
   // server.close() resolves. stopGc() is the orderly path; unref is the
-  // safety net for abnormal exits.
-  timer.unref();
+  // safety net for abnormal exits. Workers timers lack .unref() — guard it.
+  if (typeof timer.unref === "function") timer.unref();
 }
 
 export function stopGc(): void {
