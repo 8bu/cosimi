@@ -3,7 +3,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router";
-import type { AdminUnanswered } from "@cosimi/types";
+import type { AdminUnanswered } from "@cosimi/core";
 
 // Hoisted holder — vi.mock factories run before module imports, so they
 // can't close over module-scope variables. Same pattern as apps/web's

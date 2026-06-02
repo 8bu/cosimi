@@ -1,5 +1,5 @@
 import { serve } from "@hono/node-server";
-import { loadEnv } from "@cosimi/config";
+import { loadEnv } from "@cosimi/core";
 
 import { app } from "./app";
 import { startGc, stopGc } from "./lib/gc";

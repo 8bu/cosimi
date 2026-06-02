@@ -1,6 +1,6 @@
 import { sql } from "@cosimi/db";
 import { normalize } from "@cosimi/normalizer";
-import { loadEnv } from "@cosimi/config";
+import { loadEnv } from "@cosimi/core";
 
 import { checkTeachRateLimit } from "./rate-limit";
 

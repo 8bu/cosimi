@@ -12,11 +12,10 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@cosimi/config": "workspace:*",
+    "@cosimi/core": "workspace:*",
     "@cosimi/db": "workspace:*",
     "@cosimi/logger": "workspace:*",
     "@cosimi/normalizer": "workspace:*",
-    "@cosimi/types": "workspace:*",
     "@hono/node-server": "^1.19.0",
     "hono": "^4.10.0",
     "pino": "^10.0.0",

@@ -1,6 +1,6 @@
 import type postgres from "postgres";
 import { normalize } from "@cosimi/normalizer";
-import type { Source } from "@cosimi/types";
+import type { Source } from "@cosimi/core";
 import { sql } from "#client";
 
 export interface InsertPairInput {

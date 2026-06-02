@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { AdminPair } from "@cosimi/types";
+import type { AdminPair } from "@cosimi/core";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/ConfirmDialog";

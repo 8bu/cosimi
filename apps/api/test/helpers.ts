@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { sql, insertManyPairs, type InsertPairInput } from "@cosimi/db";
-import type { ChatStreamEvent } from "@cosimi/types";
+import type { ChatStreamEvent } from "@cosimi/core";
 
 /**
  * TRUNCATE every Phase 5–touched table so each test starts from a clean

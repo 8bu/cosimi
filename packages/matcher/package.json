@@ -16,9 +16,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@cosimi/config": "workspace:*",
-    "@cosimi/db": "workspace:*",
-    "@cosimi/types": "workspace:*"
+    "@cosimi/core": "workspace:*",
+    "@cosimi/db": "workspace:*"
   },
   "devDependencies": {
     "@cosimi/normalizer": "workspace:*",

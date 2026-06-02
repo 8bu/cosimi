@@ -1,5 +1,5 @@
 import { sql } from "@cosimi/db";
-import { loadEnv } from "@cosimi/config";
+import { loadEnv } from "@cosimi/core";
 
 /**
  * The teach queue itself is the source of truth for rate limiting: count

@@ -23,9 +23,8 @@
     "seed": "tsx --env-file=../../.env src/scripts/seed.ts"
   },
   "dependencies": {
-    "@cosimi/config": "workspace:*",
+    "@cosimi/core": "workspace:*",
     "@cosimi/normalizer": "workspace:*",
-    "@cosimi/types": "workspace:*",
     "postgres": "^3.4.0",
     "yaml": "^2.0.0"
   },

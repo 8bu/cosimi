@@ -1,5 +1,5 @@
 import { sql } from "@cosimi/db";
-import type { HealthResponse } from "@cosimi/types";
+import type { HealthResponse } from "@cosimi/core";
 import { Hono } from "hono";
 
 const startedAt = Date.now();

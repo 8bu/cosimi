@@ -32,9 +32,9 @@ importers:
       '@cosimi/branding':
         specifier: workspace:*
         version: link:../../packages/branding
-      '@cosimi/types':
+      '@cosimi/core':
         specifier: workspace:*
-        version: link:../../packages/types
+        version: link:../../packages/core
       '@cosimi/ui-tokens':
         specifier: workspace:*
         version: link:../../packages/ui-tokens
@@ -117,9 +117,9 @@ importers:
 
   apps/admin-api:
     dependencies:
-      '@cosimi/config':
+      '@cosimi/core':
         specifier: workspace:*
-        version: link:../../packages/config
+        version: link:../../packages/core
       '@cosimi/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -129,9 +129,6 @@ importers:
       '@cosimi/normalizer':
         specifier: workspace:*
         version: link:../../packages/normalizer
-      '@cosimi/types':
-        specifier: workspace:*
-        version: link:../../packages/types
       '@hono/node-server':
         specifier: ^1.19.0
         version: 1.19.14(hono@4.12.18)
@@ -166,9 +163,9 @@ importers:
 
   apps/api:
     dependencies:
-      '@cosimi/config':
+      '@cosimi/core':
         specifier: workspace:*
-        version: link:../../packages/config
+        version: link:../../packages/core
       '@cosimi/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -184,9 +181,6 @@ importers:
       '@cosimi/template':
         specifier: workspace:*
         version: link:../../packages/template
-      '@cosimi/types':
-        specifier: workspace:*
-        version: link:../../packages/types
       '@hono/node-server':
         specifier: ^1.19.0
         version: 1.19.14(hono@4.12.18)
@@ -224,9 +218,9 @@ importers:
 
   apps/portf:
     dependencies:
-      '@cosimi/types':
+      '@cosimi/core':
         specifier: workspace:*
-        version: link:../../packages/types
+        version: link:../../packages/core
       '@mdx-js/react':
         specifier: ^3.1.1
         version: 3.1.1(@types/react@19.2.14)(react@19.2.6)
@@ -324,12 +318,12 @@ importers:
       '@cosimi/branding':
         specifier: workspace:*
         version: link:../../packages/branding
+      '@cosimi/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@cosimi/template':
         specifier: workspace:*
         version: link:../../packages/template
-      '@cosimi/types':
-        specifier: workspace:*
-        version: link:../../packages/types
       '@cosimi/ui-tokens':
         specifier: workspace:*
         version: link:../../packages/ui-tokens
@@ -429,7 +423,7 @@ importers:
         specifier: ^5.7.0
         version: 5.9.3
 
-  packages/config:
+  packages/core:
     dependencies:
       valibot:
         specifier: ^1.0.0
@@ -447,15 +441,12 @@ importers:
 
   packages/db:
     dependencies:
-      '@cosimi/config':
+      '@cosimi/core':
         specifier: workspace:*
-        version: link:../config
+        version: link:../core
       '@cosimi/normalizer':
         specifier: workspace:*
         version: link:../normalizer
-      '@cosimi/types':
-        specifier: workspace:*
-        version: link:../types
       postgres:
         specifier: ^3.4.0
         version: 3.4.9
@@ -481,9 +472,9 @@ importers:
 
   packages/logger:
     dependencies:
-      '@cosimi/config':
+      '@cosimi/core':
         specifier: workspace:*
-        version: link:../config
+        version: link:../core
       pino:
         specifier: ^10.0.0
         version: 10.3.1
@@ -500,15 +491,12 @@ importers:
 
   packages/matcher:
     dependencies:
-      '@cosimi/config':
+      '@cosimi/core':
         specifier: workspace:*
-        version: link:../config
+        version: link:../core
       '@cosimi/db':
         specifier: workspace:*
         version: link:../db
-      '@cosimi/types':
-        specifier: workspace:*
-        version: link:../types
     devDependencies:
       '@cosimi/normalizer':
         specifier: workspace:*
@@ -556,15 +544,6 @@ importers:
         version: 3.2.4(@types/debug@4.1.13)(@types/node@22.19.17)(jiti@2.7.0)(jsdom@25.0.1)(lightningcss@1.32.0)(tsx@4.21.0)(yaml@2.8.4)
 
   packages/tsconfig: {}
-
-  packages/types:
-    devDependencies:
-      '@cosimi/tsconfig':
-        specifier: workspace:*
-        version: link:../tsconfig
-      typescript:
-        specifier: ^5.7.0
-        version: 5.9.3
 
   packages/ui-tokens: {}
 

@@ -1,4 +1,4 @@
-import { loadEnv } from "@cosimi/config";
+import { loadEnv } from "@cosimi/core";
 import { sql } from "@cosimi/db";
 
 import { log } from "./logger";

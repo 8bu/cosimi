@@ -1,7 +1,7 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 
 import postgres from "postgres";
-import { loadEnv } from "@cosimi/config";
+import { loadEnv } from "@cosimi/core";
 
 type Sql = ReturnType<typeof postgres>;
 

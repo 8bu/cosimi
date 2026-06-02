@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { ChatStreamEvent } from "@cosimi/types";
+import type { ChatStreamEvent } from "@cosimi/core";
 
 import { parseSseStream } from "./sse-parser";
 

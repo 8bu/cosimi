@@ -1,6 +1,6 @@
 import { renderTemplate } from "@cosimi/template";
 import { AlertTriangle } from "lucide-react";
-import type { MatchTier } from "@cosimi/types";
+import type { MatchTier } from "@cosimi/core";
 import type { BotMsg } from "@/features/chat/types";
 import { useTranslate, type TranslationKey } from "@/lib/i18n";
 

@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { sql } from "@cosimi/db";
-import type { StatsResponse } from "@cosimi/types";
+import type { StatsResponse } from "@cosimi/core";
 
 /**
  * Public, no-auth. Drives the chat header's "pairs learned" counter.

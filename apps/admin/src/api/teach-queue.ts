@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { AdminTeachQueueItem } from "@cosimi/types";
+import type { AdminTeachQueueItem } from "@cosimi/core";
 import { apiJson } from "@/api/client";
 
 const errMsg = (e: unknown): string => (e instanceof Error ? e.message : "request failed");

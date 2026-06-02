@@ -1,4 +1,4 @@
-import type { MatchResult } from "@cosimi/types";
+import type { MatchResult } from "@cosimi/core";
 import { sql } from "@cosimi/db";
 
 // Hits pairs_trgm_idx (GIST + gist_trgm_ops). The `%` operator short-circuits

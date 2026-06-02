@@ -1,7 +1,7 @@
 import { match } from "@cosimi/matcher";
 import { normalize } from "@cosimi/normalizer";
 import { getAppConfig, sql } from "@cosimi/db";
-import { loadEnv, type Env } from "@cosimi/config";
+import { loadEnv, type Env } from "@cosimi/core";
 
 import { renderTemplate } from "@cosimi/template";
 

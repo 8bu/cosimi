@@ -1,4 +1,4 @@
-import type { HealthResponse } from "@cosimi/types";
+import type { HealthResponse } from "@cosimi/core";
 
 import { apiJson } from "./client";
 

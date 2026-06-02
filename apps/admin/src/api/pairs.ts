@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { AdminPair, Source } from "@cosimi/types";
+import type { AdminPair, Source } from "@cosimi/core";
 import { apiJson } from "@/api/client";
 
 // Helper: extract a useful error string from the unknown thrown by

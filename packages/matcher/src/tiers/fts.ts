@@ -1,4 +1,4 @@
-import type { MatchResult } from "@cosimi/types";
+import type { MatchResult } from "@cosimi/core";
 import { sql } from "@cosimi/db";
 
 // Hits pairs_fts_idx (GIN on to_tsvector('simple', normalized_unaccented)).

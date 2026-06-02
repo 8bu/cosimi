@@ -1,5 +1,5 @@
-import type { MatchResult } from "@cosimi/types";
-import { loadEnv } from "@cosimi/config";
+import type { MatchResult } from "@cosimi/core";
+import { loadEnv } from "@cosimi/core";
 import { sessionTeachTier } from "./tiers/session-teach";
 import { exactTier } from "./tiers/exact";
 import { ftsTier } from "./tiers/fts";

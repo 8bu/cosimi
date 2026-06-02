@@ -1,4 +1,4 @@
-import type { Source } from "@cosimi/types";
+import type { Source } from "@cosimi/core";
 import { Input } from "@/components/ui/input";
 
 export interface Filters {

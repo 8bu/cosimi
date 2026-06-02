@@ -3,7 +3,7 @@ import * as v from "valibot";
 
 import { insertPair, sql } from "@cosimi/db";
 import { normalize } from "@cosimi/normalizer";
-import type { AdminPair } from "@cosimi/types";
+import type { AdminPair } from "@cosimi/core";
 
 import { PaginationSchema } from "../lib/pagination";
 

@@ -1,4 +1,4 @@
-import type { MatchResult } from "@cosimi/types";
+import type { MatchResult } from "@cosimi/core";
 import { sql } from "@cosimi/db";
 
 // session_teaches has no GENERATED unaccented column, so f_unaccent runs on

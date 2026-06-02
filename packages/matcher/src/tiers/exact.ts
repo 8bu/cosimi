@@ -1,4 +1,4 @@
-import type { MatchResult } from "@cosimi/types";
+import type { MatchResult } from "@cosimi/core";
 import { sql } from "@cosimi/db";
 
 // Hits pairs_normalized_unaccented_idx (B-tree, partial on deleted_at IS NULL).

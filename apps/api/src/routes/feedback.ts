@@ -2,8 +2,8 @@ import { Hono } from "hono";
 import * as v from "valibot";
 
 import { sql } from "@cosimi/db";
-import { loadEnv } from "@cosimi/config";
-import type { FeedbackResponse } from "@cosimi/types";
+import { loadEnv } from "@cosimi/core";
+import type { FeedbackResponse } from "@cosimi/core";
 
 import { withSession } from "../lib/session";
 

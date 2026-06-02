@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import type { StatsResponse } from "@cosimi/types";
+import type { StatsResponse } from "@cosimi/core";
 
 import { apiJson } from "./client";
 

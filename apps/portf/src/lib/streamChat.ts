@@ -1,4 +1,4 @@
-import type { ChatRequest, ChatStreamEvent } from "@cosimi/types";
+import type { ChatRequest, ChatStreamEvent } from "@cosimi/core";
 import { apiBase } from "@/lib/apiBase";
 import { parseSseStream } from "@/lib/sse-parser";
 import { usePreferencesStore } from "@/store/preferences";
