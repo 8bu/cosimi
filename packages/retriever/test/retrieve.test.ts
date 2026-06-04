@@ -14,7 +14,7 @@ function opts(queryEmbedding: number[], over: Partial<RetrieveOptions> = {}): Re
 
 describe("retrieve (unified hits)", () => {
   beforeEach(async () => {
-    await sql()`TRUNCATE pairs, chunk_pair_map, chunk_relations, chunks, documents, session_teaches, sessions, teach_queue, import_batches, votes, unanswered RESTART IDENTITY CASCADE`;
+    await sql()`TRUNCATE pairs, chunk_pair_map, chunk_relations, chunks, documents, import_batches, unanswered RESTART IDENTITY CASCADE`;
   });
 
   it("ranks a pair-hit above a chunk-hit when the pair is the closer match", async () => {

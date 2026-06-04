@@ -1,13 +1,13 @@
 import { insertManyPairs, sql, type InsertPairInput } from "@cosimi/adapter-postgres";
 
 /**
- * Truncate all admin-touched tables. CASCADE walks the FKs so we don't
- * have to enumerate dependents (session_teaches → teach_queue, votes →
- * pairs).
+ * Truncate all admin-touched tables. CASCADE walks the FKs (chunk_pair_map →
+ * pairs, chunks → documents) so we don't enumerate dependents. `app_config`
+ * is excluded — it holds seeded config the tests read.
  */
 export async function resetDb(): Promise<void> {
   await sql()`
-    TRUNCATE pairs, session_teaches, sessions, teach_queue, import_batches, votes, unanswered
+    TRUNCATE pairs, import_batches, unanswered, documents, ingest_jobs
     RESTART IDENTITY CASCADE
   `;
 }

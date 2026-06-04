@@ -1,18 +1,13 @@
--- Phase 11.1: per-row locale tagging for pairs, session_teaches, teach_queue.
+-- Per-row locale tagging for pairs.
 --
--- Default 'und' (ISO 639-3 BCP-47 "undetermined") so existing rows keep
--- matching under any primary locale as a low-priority fallback — no data
--- backfill heuristic. Operators who want sharper tagging on a fresh seed
--- run `pnpm seed:vi --locale=vi` (and equivalent for the chatterbot snapshot
--- with --locale=en).
+-- Default 'und' (ISO 639-3 BCP-47 "undetermined") so existing rows stay eligible
+-- under any primary locale as a low-priority fallback — no data backfill.
 --
 -- TEXT (not CHAR(N) or enum) is deliberate: adding a third locale later
 -- (ja, zh-Hant, …) is a UI <select> option + a fallback_message_<x> row,
 -- never a schema migration.
 
-ALTER TABLE pairs            ADD COLUMN locale TEXT NOT NULL DEFAULT 'und';
-ALTER TABLE session_teaches  ADD COLUMN locale TEXT NOT NULL DEFAULT 'und';
-ALTER TABLE teach_queue      ADD COLUMN locale TEXT NOT NULL DEFAULT 'und';
+ALTER TABLE pairs ADD COLUMN locale TEXT NOT NULL DEFAULT 'und';
 
 -- Partial index mirrors the existing matcher index pattern. The matcher's
 -- per-locale WHERE adds `AND (locale = $1 OR locale = 'und')`, so a small

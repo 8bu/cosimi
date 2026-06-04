@@ -30,13 +30,6 @@ confirm() {
   [[ "$reply" == "y" || "$reply" == "Y" ]]
 }
 
-spike() {
-  print_warning "Veto gate: proves postgres.js → Hyperdrive → Neon before trusting the real worker."
-  print_info "Deploying spike worker…"
-  (cd playgrounds/api && pnpm exec wrangler deploy -c spike/wrangler.spike.toml)
-  print_info "Invoke the printed workers.dev URL and confirm {\"ok\":true,\"paramOk\":true}."
-  print_warning "If paramOk=false with a prepared-statement error, set prepare:false in @cosimi/db before real deploy."
-}
 
 deploy_portf_pages() {
   run_gates
@@ -132,7 +125,6 @@ menu() {
   cat <<'MENU'
 
 cosimi deploy - Cloudflare + Neon (manual)
-  1) Spike: prove Neon + Hyperdrive (SELECT 1)
   2) Deploy portf  → Pages (8bu.dev)
   3) Deploy web    → Pages (cosimi.8bu.dev)
   4) Deploy portf-api  → Worker (env.portf)
@@ -153,7 +145,6 @@ main() {
     menu
     read -r choice
     case "$choice" in
-      1) spike ;;
       2) deploy_portf_pages ;;
       3) deploy_web_pages ;;
       4) deploy_portf_api ;;

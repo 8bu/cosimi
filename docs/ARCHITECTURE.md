@@ -160,8 +160,8 @@ Postgres. Full runbook + Workers traps in [`DEPLOY.md`](./DEPLOY.md).
 
 ## Status
 
-GraphRAG pivot on branch `phase-sdk-sp2-m1` (milestones stacked, no per-phase PR). Shipped: the
-retrieval engine, the async offline ingest pipeline, the lab product, the Workers AND embedder.
-**Next:** remove the dormant lexical/teach surface (`/teach`, FTS/trigram, sessions — still in
-the env schema and early migrations) and cut a clean GraphRAG schema baseline. Publishing is
-operator-gated (packages stay `private` until go-live).
+GraphRAG-only. Shipped: the retrieval engine, the async offline ingest pipeline, the lab product,
+the Workers AI embedder, and the subtraction pass that removed the SimSimi lexical/teach/chat
+surface (routes, services, the `teach_queue`/`votes`/`sessions`/`session_teaches` tables + their
+migrations, env keys, seeds, `adapter-r2`). **Next:** extract `apps/portf` to its own repo with its
+own backend. Publishing is operator-gated (packages stay `private` until go-live).

@@ -3,8 +3,6 @@ import { runWithRequestDb } from "@cosimi/adapter-postgres";
 import { app } from "./app";
 import { runWithAi } from "./lib/embedder";
 import type { AiBinding } from "@cosimi/adapter-embed-workers-ai";
-import { sweepOnce } from "./lib/gc";
-import { log } from "./lib/logger";
 import { stripApiPrefix } from "./lib/worker-url";
 
 /**
@@ -17,10 +15,6 @@ interface ExecutionContext {
   waitUntil(promise: Promise<unknown>): void;
   passThroughOnException(): void;
 }
-interface ScheduledController {
-  scheduledTime: number;
-  cron: string;
-}
 interface WorkerEnv {
   HYPERDRIVE?: { connectionString: string };
   AI?: AiBinding;
@@ -29,10 +23,10 @@ interface WorkerEnv {
 
 /**
  * Bridge Cloudflare bindings into `process.env` before `loadEnv()` (called
- * lazily by @cosimi/adapter-postgres, @cosimi/retriever, gc) sees them. The Postgres URL is
- * NOT a secret/var - it is provided at runtime by the Hyperdrive binding.
- * Remaining string-valued bindings (LOG_LEVEL, RETRIEVE_*, SSE_DELAY_*, ...) are
- * forwarded verbatim; the Hyperdrive object is skipped (not a string).
+ * lazily by @cosimi/adapter-postgres + @cosimi/retriever) sees them. The Postgres
+ * URL is NOT a secret/var - it is provided at runtime by the Hyperdrive binding.
+ * Remaining string-valued bindings (LOG_LEVEL, RETRIEVE_*, ...) are forwarded
+ * verbatim; the Hyperdrive object is skipped (not a string).
  */
 function hoistEnv(env: WorkerEnv): void {
   if (env.HYPERDRIVE?.connectionString) {
@@ -53,34 +47,11 @@ export default {
     //
     // runWithRequestDb installs a request-scoped postgres client so the pool
     // is never shared across requests (workerd forbids cross-request socket
-    // reuse). The scope rides along to Hono's deferred SSE generator via
-    // AsyncLocalStorage, so matcher/handler `sql()` calls resolve to it.
+    // reuse). The scope rides along via AsyncLocalStorage so `sql()` calls in
+    // the retrieve handler resolve to it.
     return runWithRequestDb(async () => {
       const run = () => app.fetch(stripApiPrefix(req));
       return env.AI ? runWithAi(env.AI, run) : run();
     });
-  },
-
-  // Replaces the in-process setInterval GC (Workers have no long-lived
-  // process). Cron cadence is set in wrangler.toml. waitUntil keeps the
-  // isolate alive until the sweep resolves; a throw is caught so the cron
-  // run is not marked failed on a transient DB blip.
-  async scheduled(
-    _controller: ScheduledController,
-    env: WorkerEnv,
-    ctx: ExecutionContext,
-  ): Promise<void> {
-    hoistEnv(env);
-    ctx.waitUntil(
-      runWithRequestDb(() =>
-        sweepOnce()
-          .then(({ sessions, teaches }) => {
-            if (sessions + teaches > 0) log.info({ sessions, teaches }, "gc.sweep");
-          })
-          .catch((err) => {
-            log.error({ err }, "gc.sweep.failed");
-          }),
-      ),
-    );
   },
 };

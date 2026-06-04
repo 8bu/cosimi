@@ -12,9 +12,11 @@ constellation + reference playground apps.
 > **GraphRAG-*inspired*, not Microsoft GraphRAG.** No entity extraction, communities, or
 > global/local search — the chunk graph is a flat retrieval-expansion + context structure.
 
-It began as a SimSimi-style lexical matcher (`exact → FTS → trigram`). That cascade is **deleted**
-(`@cosimi/matcher` → `@cosimi/retriever`). A dormant lexical/teach surface still lingers in
-`playgrounds/api` + the env schema + early migrations, slated for removal — see "Legacy surface".
+It began as a SimSimi-style lexical matcher (`exact → FTS → trigram`) with a `/chat` + `/teach`
+surface. That whole lexical/teach surface is **deleted** (`@cosimi/matcher` → `@cosimi/retriever`;
+chat/teach routes, sessions, the `teach_queue`/`votes`/`sessions`/`session_teaches` tables, and the
+SimSimi seeds are gone). The old chat frontend lives on only in `apps/portf`, which gets its own
+backend in a separate repo.
 
 ## Tech stack
 
@@ -40,16 +42,16 @@ packages/                  # the published constellation + private tooling
   adapter-embed-fake/      # deterministic in-process embedder for tests
   adapter-llm-anthropic/   # LLMPort over Anthropic Messages (offline generate/audit)
   adapter-llm-fake/        # scripted LLMPort for tests
-  adapter-storage/ adapter-r2/  # StorageRepository — local FS (dev) / R2 (prod)
+  adapter-storage/         # StorageRepository — local FS (dev)
   logger/         # pino + redactInput()
   tsconfig/ oxlint-config/ template/   # private tooling (never published)
 playgrounds/               # reference apps that consume @cosimi/sdk (NOT published)
-  api/         # public retrieval REST + SSE; POST /retrieve. Node + Workers entries. (legacy chat/teach dormant)
+  api/         # public retrieval REST; POST /retrieve (+ /stats, /healthz). Node + Workers entries
   admin-api/   # internal ingest + corpus REST; binds 127.0.0.1
   lab/         # single internal UI (Vite + React + shadcn-ui): Retrieve, Ingest, Documents, Fallback, Corpus
 apps/
-  portf/       # portfolio app (TanStack Start); extracted to the 8bu.dev repo in a later cycle
-seeds/                     # legacy hand-curated / chatterbot pair seeds (SimSimi era)
+  portf/       # portfolio app (TanStack Start) — leave alone; gets its own repo + backend in a later cycle
+seeds/portf/               # portf's seed data (the only seeds left; cosimi SimSimi corpora removed)
 docs/
   ARCHITECTURE.md  # canonical SDK/GraphRAG architecture (read this first)
   DEPLOY.md        # Cloudflare + Hyperdrive + Neon runbook
@@ -166,25 +168,20 @@ Full design in **`docs/ARCHITECTURE.md`** (retrieval algorithm, ingest pipeline,
 
 ### playgrounds/api
 
-- **Primary: `POST /retrieve`** (`routes/retrieve.ts`) — dogfoods `createCosimi(...).retrieve()`,
-  returns unified `{ hits }`; empty hits upsert an `unanswered` (source `retrieve`) fallback row.
-- **Legacy surface (dormant, slated for removal):** `routes/chat.ts` (SSE), `feedback.ts`,
-  `services/{chat-handler,teach-handler,teach-parser,rate-limit}`, `lib/{session,gc,sse}`. The chat
-  match branch is stubbed to `no_match`. Don't build new features on it; touch only to delete.
+- Three routes only: **`POST /retrieve`** (`routes/retrieve.ts`) — dogfoods
+  `createCosimi(...).retrieve()`, returns unified `{ hits }`, empty hits upsert an `unanswered`
+  (source `retrieve`) fallback row — plus `/stats` (corpus counts) and `/healthz`. No chat/teach/SSE.
 - `/healthz` runs a 1s-budgeted DB ping; timeout `.unref()`'d + cleared in `finally`. Shape
-  `{ ok, db, db_latency_ms, uptime_s }`. Two near-identical files (api + admin-api) — touch both.
+  `{ ok, db, db_latency_ms, uptime_s }`. The admin-api `/healthz` diverged (it adds GraphRAG schema
+  readiness) — they're no longer identical.
 
 ### playgrounds/admin-api
 
 - Loopback-only. Routes: `/ingest` (async, see above), `/documents` (+ `DELETE /:id` purges
-  document → chunks → generated pairs), `/import`, `/pairs`, `/rollback`, `/stats`, `/unanswered`,
-  corpus reads (`/documents/:id/chunks`, `/chunks/:id/pairs`), `/teach-queue` (legacy).
-- `DELETE /documents/:id` hard-deletes the generated pairs (the FK cascade would orphan them) inside
-  one transaction; pairs are 1:1-owned by their generating chunk.
-- `/import` JSONL reads `c.req.raw.body!.getReader()` directly (OOM-safe at 10k rows); `FLUSH_AT=500`.
-  Accumulates a `Set` of normalized inputs, then one `DELETE FROM unanswered WHERE … = ANY(...)`.
-- `POST /pairs` atomically deletes matching `unanswered` rows in the same transaction. Any new write
-  site must include the cleanup. `/rollback` is soft-delete only (`deleted_at`), re-runs are no-ops.
+  document → chunks → generated pairs), `/pairs`, `/stats`, `/unanswered`, corpus reads
+  (`/documents/:id/chunks`, `/chunks/:id/pairs`).
+- `POST /pairs` atomically deletes matching `unanswered` rows in the same transaction (soft-delete
+  via `deleted_at`). Any new write site must include the cleanup.
 - `ingest_jobs` helpers in `src/lib/ingest-jobs.ts` (raw `sql()`); the route injects `onProgress`
   into the SDK deps. The key is never written to the row.
 
@@ -205,9 +202,8 @@ Full design in **`docs/ARCHITECTURE.md`** (retrieval algorithm, ingest pipeline,
 
 ### Locale
 
-- Default `'und'` everywhere (`pairs`, `teach_queue`, etc.). Retrieval filters
-  `(locale = ANY(locales) OR locale = 'und')`. Canonical write path forwards locale; any new write
-  site must thread it through. `app_config[fallback_message_<locale>]` is the no-match line.
+- `pairs.locale` defaults to `'und'`. Retrieval filters `(locale = ANY(locales) OR locale = 'und')`.
+  Canonical write path forwards locale; any new write site must thread it through.
 
 ### Logging
 
@@ -242,24 +238,22 @@ Full design in **`docs/ARCHITECTURE.md`** (retrieval algorithm, ingest pipeline,
 - Enum-pick UI: native `<select>` with token styling. Keyboard shortcuts scope to the view's outer
   `<section ref tabIndex={-1}>`, never `window.addEventListener` (except the `?` cheatsheet).
 
-### Legacy surface (being removed)
-
-The SimSimi-era lexical/teach machinery still exists but is dormant: the `/chat` SSE + `/teach`
-parser + sessions/GC in `playgrounds/api`; the `teach_queue`, `votes`, `sessions`,
-`session_teaches` tables + early migrations; the `seeds/` corpora; and the `TEACH_*`, `SSE_*`,
-`SESSION_*`, `EXPOSE_MATCH_INSIGHTS`, `FALLBACK_MESSAGE`, `GC_INTERVAL_MS`, `PRUNE_SCORE_THRESHOLD`
-env keys. Don't extend it. A dedicated cleanup cuts a fresh GraphRAG baseline.
+> **Migration gap (004–008):** the SimSimi lexical/teach surface was removed, so migrations
+> 005–008 (teach_queue/votes/sessions/session_teaches) are gone and the numbering jumps 004 → 009.
+> 004 (`import_batches` + `pairs.batch_id`) is kept — `batch_id` is welded into the core pair write
+> path. Existing prod DBs keep the orphaned tables; fresh DBs simply never create them.
 
 ## Project status
 
-GraphRAG pivot on branch `phase-sdk-sp2-m1` (milestones stacked, no per-phase PR). Shipped: the
-deterministic retrieval engine, the async offline ingest pipeline, the lab product, the Workers AI
-embedder, async ingest jobs, document cleanup. Standing gates: `pnpm -r typecheck`, `pnpm lint`,
+GraphRAG-only. Shipped: the deterministic retrieval engine, the async offline ingest pipeline, the
+lab product, the Workers AI embedder, async ingest jobs, document cleanup, and the subtraction pass
+that stripped the SimSimi lexical/teach/chat surface (routes, services, tables, env keys, seeds,
+`adapter-r2`, the deploy spike). Standing gates: `pnpm -r typecheck`, `pnpm lint`,
 `pnpm format:check`, `pnpm -r --workspace-concurrency=1 test`.
 
 **Deploy:** all-Cloudflare (Pages + Workers → Hyperdrive → Neon), manual via `./deploy.sh`; see
-`docs/DEPLOY.md`. **Next:** remove the legacy lexical/teach surface + cut a clean schema baseline;
-extract `apps/portf` to its own repo as a `@cosimi/sdk` consumer.
+`docs/DEPLOY.md`. **Next:** extract `apps/portf` to its own repo (with its own backend) — until
+then portf is left untouched and its `/chat`/`/teach` endpoints 404 (the SimSimi backend is gone).
 
 **Out of scope (for now):** runtime RAG/LLM answer synthesis (the consumer's job); hybrid
 vector+keyword retrieval; cross-document graph links; re-ranking models; multi-user accounts;

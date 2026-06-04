@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 
 import { closeDb, sql } from "@cosimi/adapter-postgres";
@@ -21,21 +20,16 @@ describe("GET /stats", () => {
     expect(await res.json()).toEqual({
       total_active: 0,
       total_deleted: 0,
-      total_pending: 0,
       total_unanswered: 0,
     });
   });
 
-  it("counts active/deleted/pending/unanswered separately", async () => {
+  it("counts active/deleted/unanswered separately", async () => {
     const ids = await seedPairs([
       { input: "a", response: "1", source: "seed" },
       { input: "b", response: "2", source: "seed" },
     ]);
     await sql()`UPDATE pairs SET deleted_at = NOW() WHERE id = ${ids[0]!}`;
-    await sql()`
-      INSERT INTO teach_queue (input, normalized_input, response, submitted_by_session)
-      VALUES ('q', 'q', 'a', ${randomUUID()}::uuid)
-    `;
     await sql()`
       INSERT INTO unanswered (input, normalized_input) VALUES ('u', 'u')
     `;
@@ -44,7 +38,6 @@ describe("GET /stats", () => {
     expect(await res.json()).toEqual({
       total_active: 1,
       total_deleted: 1,
-      total_pending: 1,
       total_unanswered: 1,
     });
   });

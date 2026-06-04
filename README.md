@@ -65,7 +65,7 @@ npm dependency graph. The embedder is **mandatory** at runtime — retrieval nee
 | `@cosimi/adapter-embed-fake` | Deterministic in-process embedder for tests. |
 | `@cosimi/adapter-llm-anthropic` | `LLMPort` over Anthropic Messages (offline generate/audit). |
 | `@cosimi/adapter-llm-fake` | Scripted `LLMPort` for tests. |
-| `@cosimi/adapter-storage` / `@cosimi/adapter-r2` | `StorageRepository` (local FS dev / R2 prod). |
+| `@cosimi/adapter-storage` | `StorageRepository` (local FS, dev/offline). |
 | `@cosimi/logger` | pino + `redactInput()` PII redaction. |
 
 Workspace-private (never published): `tsconfig`, `oxlint-config`, `template`. (Branding lives in
@@ -118,9 +118,10 @@ GraphRAG pivot in progress on branch `phase-sdk-sp2-m1` (milestones stacked, no 
 product (Retrieve / Ingest / Documents / Fallback / Corpus) + the Workers AI embedder.
 Standing gates green (`typecheck`, `lint`, `format:check`, `test`).
 
-**Next:** remove the dormant lexical surface (`/chat`, `/teach`, FTS/trigram, sessions — still in
-the env schema and early migrations); a fresh GraphRAG schema baseline. Publishing the `@cosimi/*`
-packages is operator-gated (packages stay `private` until go-live).
+The SimSimi lexical/teach/chat surface has been **removed** (routes, services, the
+`teach_queue`/`votes`/`sessions`/`session_teaches` tables, env keys, seeds, `adapter-r2`). **Next:**
+extract `apps/portf` to its own repo with its own backend. Publishing the `@cosimi/*` packages is
+operator-gated (packages stay `private` until go-live).
 
 **Out of scope (for now):** runtime RAG/LLM answer synthesis (the consumer's job); hybrid
 vector+keyword retrieval; cross-document graph links; re-ranking models; multi-user accounts;

@@ -4,11 +4,6 @@ docs/
 *.md
 pnpm-lock.yaml
 
-# Frozen upstream snapshot — see seeds/chatterbot/NOTICE for SHA.
-# Re-formatting would diverge from the committed upstream content and
-# defeat the point of pinning the snapshot.
-seeds/chatterbot/
-
 # Verbatim copy of the design-source artifact — see docs/superpowers/artifacts/cosimi2/project/styles.css.
 # Re-formatting would break the byte-identical guarantee verified by cmp in Task 5.
 apps/portf/src/styles/portfolio.css

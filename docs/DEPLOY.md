@@ -47,24 +47,19 @@ Direct endpoint = the Neon connection string with `-pooler` removed from the hos
 pnpm --filter @cosimi/api exec wrangler hyperdrive create portf-hd  --connection-string="<neon-portf-direct>"
 pnpm --filter @cosimi/api exec wrangler hyperdrive create cosimi-hd --connection-string="<neon-cosimi-direct>"
 ```
-Copy each printed id into `playgrounds/api/wrangler.toml` and `playgrounds/api/spike/wrangler.spike.toml`. (Already done — see "Current state".)
+Copy each printed id into `playgrounds/api/wrangler.toml`. (Already done — see "Current state".)
 
 ### 3. Migrate (direct URL - DDL must run off the pooler)
 `./deploy.sh` -> option 7 -> choose DB(s) -> paste the Neon **direct** URL when prompted.
 (`migration 001` creates `pg_trgm` / `unaccent` extensions + the `f_unaccent` function, which require a real session, not the transaction pooler.)
 
-### 4. Seed (operator-run, optional)
+### 4. Seed (operator-run, optional — portf only)
 ```
-DATABASE_URL="<neon-portf-direct>"  node_modules/.bin/tsx packages/adapter-postgres/src/scripts/seed.ts "<portf glob>"
-DATABASE_URL="<neon-cosimi-direct>" node_modules/.bin/tsx packages/adapter-postgres/src/scripts/seed.ts "<vi/chatterbot glob>"
+DATABASE_URL="<neon-portf-direct>" node_modules/.bin/tsx packages/adapter-postgres/src/scripts/seed.ts "seeds/portf/*.yaml"
 ```
-
-### 5. Spike (OPTIONAL veto gate)
-`./deploy.sh` -> option 1. Open the printed `workers.dev` URL. Require `{"ok":true,"paramOk":true}`.
-- If `ok:false` -> Hyperdrive/Neon path is broken; fall back (see "Connection fallback").
-- If `paramOk:false` with a prepared-statement error -> set `prepare: false` in `packages/adapter-postgres/src/client.ts` (or behind a `DB_PREPARE` env) before deploying the real worker.
-
-Now redundant for portf: the real worker's `/api/healthz` hits the same postgres.js -> Hyperdrive -> Neon path, so a `db:up` from the deployed worker proves it just as well. Keep the spike only when introducing a NEW Hyperdrive/DB binding.
+(The deploy-time veto "spike" worker was removed — the real worker's `/api/healthz` exercises the
+same postgres.js → Hyperdrive → Neon path, so a `db:up` from the deployed worker proves it. If you
+add a NEW Hyperdrive/DB binding and want a pre-flight, deploy a throwaway worker manually.)
 
 ### 6. Create the Pages project (first time per app — `deploy.sh` does NOT do this)
 `deploy.sh`'s pages deploy assumes the project exists; first time you must create it:
