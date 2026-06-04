@@ -16,6 +16,7 @@
   "scripts": {
     "dev": "pnpm dev:cosimi",
     "dev:cosimi": "bash scripts/dev-cosimi.sh",
+    "dev:neolab": "pnpm --filter @cosimi/neolab dev",
     "dev:portf": "bash scripts/dev-portf.sh",
     "build": "turbo run build",
     "lint": "oxlint",
