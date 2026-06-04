@@ -35,10 +35,15 @@
   },
   "dependencies": {
     "@cosimi/core": "workspace:*",
-    "@cosimi/matcher": "workspace:*",
-    "@cosimi/normalizer": "workspace:*"
+    "@cosimi/normalizer": "workspace:*",
+    "@cosimi/retriever": "workspace:*",
+    "gpt-tokenizer": "^3.4.0",
+    "valibot": "^1.0.0"
   },
   "devDependencies": {
+    "@cosimi/adapter-embed-fake": "workspace:*",
+    "@cosimi/adapter-llm-fake": "workspace:*",
+    "@cosimi/adapter-postgres": "workspace:*",
     "@cosimi/db-core": "workspace:*",
     "@cosimi/tsconfig": "workspace:*",
     "@types/node": "^22.0.0",

@@ -76,30 +76,6 @@ describe("POST /chat — /teach branch", () => {
     expect(err.message).toMatch(/don't know what to teach about/i);
   });
 
-  it("makes the freshly-taught reply matchable to the same session immediately", async () => {
-    const sessionId = newSessionId();
-    await drain(
-      await postJson(app, "/chat", {
-        message: '/teach "secret handshake" => "thumbs up"',
-        session_id: sessionId,
-      }),
-    );
-
-    const res = await postJson(app, "/chat", {
-      message: "secret handshake",
-      session_id: sessionId,
-    });
-    const events = await consumeChatStream(res);
-
-    const metadata = events.find((e) => e.type === "metadata");
-    if (metadata?.type !== "metadata") throw new Error("expected metadata");
-    expect(metadata.tier).toBe("session_teach");
-
-    const tokens = events.filter((e) => e.type === "token");
-    const reply = tokens.map((t) => (t.type === "token" ? t.content : "")).join("");
-    expect(reply).toBe("thumbs up");
-  });
-
   it("does not leak the teach to other sessions (session-scoped cache)", async () => {
     const sessionA = newSessionId();
     const sessionB = newSessionId();

@@ -12,16 +12,23 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.100.1",
+    "@cosimi/adapter-embed-ollama": "workspace:*",
+    "@cosimi/adapter-llm-anthropic": "workspace:*",
     "@cosimi/adapter-postgres": "workspace:*",
+    "@cosimi/adapter-storage": "workspace:*",
     "@cosimi/core": "workspace:*",
     "@cosimi/logger": "workspace:*",
     "@cosimi/normalizer": "workspace:*",
+    "@cosimi/sdk": "workspace:*",
     "@hono/node-server": "^1.19.0",
     "hono": "^4.10.0",
     "pino": "^10.0.0",
     "valibot": "^1.0.0"
   },
   "devDependencies": {
+    "@cosimi/adapter-embed-fake": "workspace:*",
+    "@cosimi/adapter-llm-fake": "workspace:*",
     "@cosimi/db-core": "workspace:*",
     "@cosimi/tsconfig": "workspace:*",
     "@types/node": "^22.0.0",

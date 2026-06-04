@@ -1,0 +1,2 @@
+# Local filesystem object-storage adapter writes ingested doc blobs here (dev).
+.storage/

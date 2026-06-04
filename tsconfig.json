@@ -6,7 +6,7 @@
     { "path": "packages/types" },
     { "path": "packages/normalizer" },
     { "path": "packages/logger" },
-    { "path": "packages/matcher" },
+    { "path": "packages/retriever" },
     { "path": "packages/db" }
   ]
 }

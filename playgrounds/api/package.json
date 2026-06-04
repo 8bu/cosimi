@@ -17,6 +17,8 @@
     "spike": "wrangler deploy -c spike/wrangler.spike.toml"
   },
   "dependencies": {
+    "@cosimi/adapter-embed-ollama": "workspace:*",
+    "@cosimi/adapter-embed-workers-ai": "workspace:*",
     "@cosimi/adapter-postgres": "workspace:*",
     "@cosimi/core": "workspace:*",
     "@cosimi/logger": "workspace:*",

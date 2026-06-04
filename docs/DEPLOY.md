@@ -2,15 +2,22 @@
 
 All deploys are **manual** via `./deploy.sh`. No CI/CD. No VPS/Docker/Caddy/Tunnel.
 
+> **Path note:** the Worker entry + `wrangler.toml` live in `playgrounds/api` (the package is still
+> `@cosimi/api`); request-scoped DB + `runWithRequestDb` live in `@cosimi/adapter-postgres`. The
+> cosimi UI is `@cosimi/lab` (`playgrounds/lab`), which merged the former `web` + `admin` apps —
+> but `deploy.sh`'s `deploy_web_pages` still builds the deleted `@cosimi/web` → `../web/dist`;
+> reconcile it to `@cosimi/lab` → `playgrounds/lab/dist` before the cosimi UI actually ships
+> (cosimi is wired-but-undeployed, so this path has never run).
+
 ## Current state (2026-06-02) — portf is LIVE
 
 **portf is deployed and serving end-to-end at `https://8bu.dev` (pages + chat).**
 - `portf-api` Worker live on route `8bu.dev/api/*` (env.portf), cron `*/5`. `/api/healthz` → `db:up`.
 - `portf` Pages project live; custom domain `8bu.dev` bound at the apex. SPA routes all 200.
 - Neon project `6sf` (`shiny-sky-20616499`, aws-ap-southeast-1, pg17), branch `production`. `portf` DB seeded (459 pairs, 10 batches). `cosimi` DB migrated, not yet deployed.
-- Hyperdrive wired in `apps/api/wrangler.toml`: `portf-hd` `7994710a22e94e3fab65ac8deaa79a59`, `cosimi-hd` `9b92a20da27b4c68a6cc2fc27e7c8bd1`. Both point at the Neon **direct** endpoint (`ep-old-butterfly-aokyc4hs...`, no `-pooler`) so postgres.js prepared statements work.
+- Hyperdrive wired in `playgrounds/api/wrangler.toml`: `portf-hd` `7994710a22e94e3fab65ac8deaa79a59`, `cosimi-hd` `9b92a20da27b4c68a6cc2fc27e7c8bd1`. Both point at the Neon **direct** endpoint (`ep-old-butterfly-aokyc4hs...`, no `-pooler`) so postgres.js prepared statements work.
 
-**cosimi (`apps/web` + `cosimi-api`) is NOT deployed** — Hyperdrive + env.cosimi are wired and ready, but no Pages project / domain bound yet.
+**cosimi (`playgrounds/lab` + `cosimi-api`) is NOT deployed** — Hyperdrive + env.cosimi are wired and ready, but no Pages project / domain bound yet.
 
 ### Two Workers-runtime fixes applied during the first deploy
 See "Workers runtime constraints" below — both are now in code (commits `41bca57`, `639fa2e`):
@@ -22,7 +29,7 @@ See "Workers runtime constraints" below — both are now in code (commits `41bca
 | App | Package | CF product | Build output | Domain |
 |---|---|---|---|---|
 | portf | `@portf/web` | Pages (`portf`) | `apps/portf/dist/client` | `8bu.dev` |
-| web | `@cosimi/web` | Pages (`cosimi-web`) | `apps/web/dist` | `cosimi.8bu.dev` |
+| web | `@cosimi/lab` | Pages (`cosimi-web`) | `playgrounds/lab/dist` | `cosimi.8bu.dev` |
 | api (portf) | `@cosimi/api` | Worker (`portf-api`, `env.portf`) | bundled | route `8bu.dev/api/*` |
 | api (cosimi) | `@cosimi/api` | Worker (`cosimi-api`, `env.cosimi`) | bundled | route `cosimi.8bu.dev/api/*` |
 
@@ -40,7 +47,7 @@ Direct endpoint = the Neon connection string with `-pooler` removed from the hos
 pnpm --filter @cosimi/api exec wrangler hyperdrive create portf-hd  --connection-string="<neon-portf-direct>"
 pnpm --filter @cosimi/api exec wrangler hyperdrive create cosimi-hd --connection-string="<neon-cosimi-direct>"
 ```
-Copy each printed id into `apps/api/wrangler.toml` and `apps/api/spike/wrangler.spike.toml`. (Already done — see "Current state".)
+Copy each printed id into `playgrounds/api/wrangler.toml` and `playgrounds/api/spike/wrangler.spike.toml`. (Already done — see "Current state".)
 
 ### 3. Migrate (direct URL - DDL must run off the pooler)
 `./deploy.sh` -> option 7 -> choose DB(s) -> paste the Neon **direct** URL when prompted.
@@ -48,14 +55,14 @@ Copy each printed id into `apps/api/wrangler.toml` and `apps/api/spike/wrangler.
 
 ### 4. Seed (operator-run, optional)
 ```
-DATABASE_URL="<neon-portf-direct>"  node_modules/.bin/tsx packages/db/src/scripts/seed.ts "<portf glob>"
-DATABASE_URL="<neon-cosimi-direct>" node_modules/.bin/tsx packages/db/src/scripts/seed.ts "<vi/chatterbot glob>"
+DATABASE_URL="<neon-portf-direct>"  node_modules/.bin/tsx packages/adapter-postgres/src/scripts/seed.ts "<portf glob>"
+DATABASE_URL="<neon-cosimi-direct>" node_modules/.bin/tsx packages/adapter-postgres/src/scripts/seed.ts "<vi/chatterbot glob>"
 ```
 
 ### 5. Spike (OPTIONAL veto gate)
 `./deploy.sh` -> option 1. Open the printed `workers.dev` URL. Require `{"ok":true,"paramOk":true}`.
 - If `ok:false` -> Hyperdrive/Neon path is broken; fall back (see "Connection fallback").
-- If `paramOk:false` with a prepared-statement error -> set `prepare: false` in `packages/db/src/client.ts` (or behind a `DB_PREPARE` env) before deploying the real worker.
+- If `paramOk:false` with a prepared-statement error -> set `prepare: false` in `packages/adapter-postgres/src/client.ts` (or behind a `DB_PREPARE` env) before deploying the real worker.
 
 Now redundant for portf: the real worker's `/api/healthz` hits the same postgres.js -> Hyperdrive -> Neon path, so a `db:up` from the deployed worker proves it just as well. Keep the spike only when introducing a NEW Hyperdrive/DB binding.
 
@@ -70,7 +77,7 @@ pnpm --filter @cosimi/api exec wrangler pages project create cosimi-web --produc
 - portf only: `./deploy.sh` -> option 2 (Pages) + option 4 (portf-api Worker).
 - everything: `./deploy.sh` -> option 6 (Deploy ALL).
 
-The pages deploy runs from `apps/api` (where wrangler lives) and warns "we detected a configuration file … missing pages_build_output_dir" — that's the worker `wrangler.toml`; Pages ignores it, harmless. Pass an absolute `dist/client` path and `--commit-dirty=true` when the tree is dirty.
+The pages deploy runs from `playgrounds/api` (where wrangler lives) and warns "we detected a configuration file … missing pages_build_output_dir" — that's the worker `wrangler.toml`; Pages ignores it, harmless. Pass an absolute `dist/client` path and `--commit-dirty=true` when the tree is dirty.
 
 ### 8. Domains + routes (Cloudflare dashboard - DNS changes are operator-confirmed, per change)
 - Pages -> `portf` project -> Custom domains -> add `8bu.dev`.
@@ -89,16 +96,16 @@ The pages deploy runs from `apps/api` (where wrangler lives) and warns "we detec
 
 ## Workers runtime constraints (do not regress)
 The worker bundles the full Hono app via esbuild. Two traps were hit on the first deploy:
-- **No module-level DB connection.** workerd binds each socket to the request that opened it; a shared pool reused across requests throws `Cannot perform I/O on behalf of a different request`. `@cosimi/db` exposes `runWithRequestDb(fn)` (an `AsyncLocalStorage`-scoped per-request client) which `worker.ts` wraps `fetch` and `scheduled` in. `sql()` prefers the request-scoped client, falling back to the process singleton for Node (dev/prod/tests). Any new entrypoint that touches the DB on Workers MUST run inside `runWithRequestDb`.
+- **No module-level DB connection.** workerd binds each socket to the request that opened it; a shared pool reused across requests throws `Cannot perform I/O on behalf of a different request`. `@cosimi/adapter-postgres` exposes `runWithRequestDb(fn)` (an `AsyncLocalStorage`-scoped per-request client) which `worker.ts` wraps `fetch` and `scheduled` in. `sql()` prefers the request-scoped client, falling back to the process singleton for Node (dev/prod/tests). Any new entrypoint that touches the DB on Workers MUST run inside `runWithRequestDb`.
 - **No `loadEnv()` at import time.** Cloudflare runs the worker's global scope during deploy-time startup validation with NO bindings, so `DATABASE_URL` is absent and valibot rejects. Keep `loadEnv()` lazy (called inside handlers). The api logger is a lazy `Proxy` for this reason; `hoistEnv` in `worker.ts` bridges the Hyperdrive binding into `process.env.DATABASE_URL` per request, before any `loadEnv()` runs.
-- **pino logs are invisible to `wrangler tail`.** pino writes to stdout, which workerd does not surface. Only `console.*` shows in `tail`. To debug a deployed worker, add a temporary `console.error` (the SSE catch in `apps/api/src/lib/sse.ts` is the spot for chat errors), deploy, reproduce, then revert.
+- **pino logs are invisible to `wrangler tail`.** pino writes to stdout, which workerd does not surface. Only `console.*` shows in `tail`. To debug a deployed worker, add a temporary `console.error` (the SSE catch in `playgrounds/api/src/lib/sse.ts` is the spot for chat errors), deploy, reproduce, then revert.
 
 ## Ongoing deploys
 `./deploy.sh` -> option 2/3/4/5 for a single target, or 6 for all. Gates run automatically first.
 
 ## Connection fallback (if the Worker -> Hyperdrive -> Neon path fails)
 1. Direct TCP (no Hyperdrive): set a `DATABASE_URL` **secret** (`wrangler secret put DATABASE_URL -e <env>`), remove the `[[hyperdrive]]` block, and the worker's `hoistEnv` picks up the secret string. (Use the Neon pooled URL.)
-2. Last resort: swap `@cosimi/db` to `@neondatabase/serverless` (invasive - separate task).
+2. Last resort: swap `@cosimi/adapter-postgres` to `@neondatabase/serverless` (invasive - separate task).
 
 ## Notes
 - `wrangler` is a deploy-only devtool. If the 7-day dependency embargo (`pnpm-workspace.yaml`) blocks its install, add `wrangler` to `minimumReleaseAgeExclude`.
@@ -106,4 +113,4 @@ The worker bundles the full Hono app via esbuild. Two traps were hit on the firs
 
 ## Autonomous decisions pending operator confirmation
 - **No GitHub Actions** (no gates CI). Still manual. Add later if wanted.
-- **Two worker envs** - `cosimi-api` (env.cosimi) is wired but undeployed. Kept as-is through the portf deploy. Drop `env.cosimi` + its route + the cosimi DB if `apps/web` should ship SPA-only; otherwise deploy it when `apps/web` ships.
+- **Two worker envs** - `cosimi-api` (env.cosimi) is wired but undeployed. Kept as-is through the portf deploy. Drop `env.cosimi` + its route + the cosimi DB if `playgrounds/lab` should ship SPA-only; otherwise deploy it when `playgrounds/lab` ships.

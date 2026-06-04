@@ -45,6 +45,15 @@ describe("GET /unanswered", () => {
     expect(body.items).toEqual([expect.objectContaining({ input: "from-llm", source: "llm" })]);
   });
 
+  it("filters by source=retrieve", async () => {
+    await sql()`INSERT INTO unanswered (input, normalized_input, source, count) VALUES ('miss one', 'miss one', 'retrieve', 3)`;
+    await sql()`INSERT INTO unanswered (input, normalized_input, source, count) VALUES ('chat one', 'chat one', 'chat', 1)`;
+    const res = await app.fetch(new Request("http://localhost/unanswered?source=retrieve"));
+    const body = (await res.json()) as { items: { input: string; source: string }[] };
+    expect(body.items).toHaveLength(1);
+    expect(body.items[0]!.source).toBe("retrieve");
+  });
+
   it("paginates via ?limit & ?offset", async () => {
     await seedUnanswered([
       { input: "a", count: 5 },

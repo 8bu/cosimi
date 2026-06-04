@@ -8,7 +8,7 @@ import { PaginationSchema } from "../lib/pagination";
 
 const QuerySchema = v.object({
   ...PaginationSchema.entries,
-  source: v.optional(v.picklist(["chat", "llm", "all"] as const), "all"),
+  source: v.optional(v.picklist(["chat", "llm", "retrieve", "all"] as const), "all"),
 });
 
 /**

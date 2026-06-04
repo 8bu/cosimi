@@ -1,0 +1,1 @@
+{ "extends": "@cosimi/tsconfig/node.json", "include": ["src", "test"] }

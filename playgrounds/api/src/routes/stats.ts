@@ -3,19 +3,19 @@ import { sql } from "@cosimi/adapter-postgres";
 import type { StatsResponse } from "@cosimi/core";
 
 /**
- * Public, no-auth. Drives the chat header's "pairs learned" counter.
- *
- * The query is `count(*)` over `pairs_normalized_unaccented_idx`, a partial
- * index on `deleted_at IS NULL`, so the scan is index-only and resolves in
- * sub-millisecond at the current scale. Add a 10s in-process TTL cache
- * here only if traffic warrants — for now, keep it simple.
+ * Public, no-auth corpus size counters (documents, chunks, embedded active
+ * pairs). Three index-friendly counts; add a short TTL cache only if traffic
+ * warrants.
  */
 export const statsRoute = new Hono();
 
 statsRoute.get("/", async (c) => {
-  const rows = await sql()<{ total: number }[]>`
-    SELECT count(*)::int AS total FROM pairs WHERE deleted_at IS NULL
+  const [row] = await sql()<StatsResponse[]>`
+    SELECT
+      (SELECT count(*)::int FROM documents) AS documents,
+      (SELECT count(*)::int FROM chunks)    AS chunks,
+      (SELECT count(*)::int FROM pairs WHERE deleted_at IS NULL AND embedding IS NOT NULL) AS pairs
   `;
-  const payload: StatsResponse = { total_pairs_learned: rows[0]?.total ?? 0 };
+  const payload: StatsResponse = row ?? { documents: 0, chunks: 0, pairs: 0 };
   return c.json(payload);
 });

@@ -1,46 +1,29 @@
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
+import type { EmbeddingPort } from "@cosimi/core";
+import { resetCorpus, seedChunk, seedDocument, seedLinkedPair, unitVec } from "./helpers";
 
-import { closeDb, sql } from "@cosimi/adapter-postgres";
+vi.mock("../src/lib/embedder", () => ({
+  resolveEmbedder: (): EmbeddingPort => ({
+    dimension: 1024,
+    embed: (t: string[]) => Promise.resolve(t.map(() => unitVec(0))),
+  }),
+  runWithAi: <T>(_ai: unknown, fn: () => T): T => fn(),
+}));
 
-import { app } from "../src/app";
-import { getJson, resetDb, seedPairs } from "./helpers";
+const { app } = await import("../src/app");
 
-describe("GET /stats", () => {
-  beforeEach(async () => {
-    await resetDb();
-  });
-
-  afterAll(async () => {
-    await closeDb();
-  });
-
-  it("returns total_pairs_learned = 0 for an empty store", async () => {
-    const res = await getJson(app, "/stats");
-    expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ total_pairs_learned: 0 });
-  });
-
-  it("counts only non-deleted pairs", async () => {
-    const ids = await seedPairs([
-      { input: "a", response: "1", source: "seed" },
-      { input: "b", response: "2", source: "seed" },
-      { input: "c", response: "3", source: "seed" },
-    ]);
-    // Soft-delete one.
-    await sql()`UPDATE pairs SET deleted_at = NOW() WHERE id = ${ids[0]!}`;
-
-    const res = await getJson(app, "/stats");
-    expect(await res.json()).toEqual({ total_pairs_learned: 2 });
-  });
+afterEach(async () => {
+  await resetCorpus();
 });
 
-describe("GET /healthz", () => {
-  it("reports db: up while postgres is reachable", async () => {
-    const res = await getJson(app, "/healthz");
-    expect(res.status).toBe(200);
-    const body = (await res.json()) as { ok: boolean; db: string; uptime_s: number };
-    expect(body.ok).toBe(true);
-    expect(body.db).toBe("up");
-    expect(body.uptime_s).toBeGreaterThanOrEqual(0);
-  });
+it("reports documents, chunks, and embedded active pairs", async () => {
+  const doc = await seedDocument();
+  const chunk = await seedChunk(doc, 0, unitVec(0));
+  await seedLinkedPair(chunk, "q", "a", unitVec(0));
+
+  const res = await app.fetch(new Request("http://localhost/stats"));
+  const body = (await res.json()) as { documents: number; chunks: number; pairs: number };
+  expect(body.documents).toBe(1);
+  expect(body.chunks).toBe(1);
+  expect(body.pairs).toBe(1);
 });

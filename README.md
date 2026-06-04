@@ -1,123 +1,137 @@
-# cosimi: SimSimi-style chatbot
+# cosimi — GraphRAG-inspired retrieval SDK
 
-Pattern-matching chatbot in spirit of SimSimi. **No LLM at runtime.**
-Replies from curated/learned pattern store, scored by four-tier
-matching engine (`session_teach → exact → FTS → trigram`).
+A deterministic, **LLM-free-at-query-time** GraphRAG-*inspired* retrieval SDK. Ingest documents
+offline (chunk → build a chunk graph → LLM-generate Q&A pairs → audit → embed); at runtime,
+`retrieve(query)` embeds the query, seeds from the nearest chunks, walks the graph, and
+returns a **ranked, deterministic** structure of chunks with their linked pairs. The consumer
+owns any downstream RAG/LLM step — or uses the pre-generated pairs directly as answers.
 
-## Why I built this
+## The pivot
 
-Curiosity. Wanted play with SimSimi-era chatbot shape: matcher over
-curated pattern store. No reasoning at runtime, no tokens billed per
-turn, hallucinations bounded by what's in table.
+Cosimi began as a SimSimi-style lexical pattern-matching chatbot (an `exact → FTS → trigram`
+cascade over a curated pair store). It is now a **GraphRAG-inspired retrieval SDK**: no tier
+cascade, no runtime LLM, no random jitter — deterministic ranked retrieval over a
+document-derived chunk graph. Same offline spine (LLM generates pairs from source docs);
+completely different query path.
 
-Twist vs classic SimSimi: **LLM is crowd now.** SimSimi sourced
-pairs from users at scale (uncurated). Here, LLM bulk-generates
-pairs offline, admin reviews them; `/teach` flow for incremental
-gap-filling, not seed. LLM stays offline — build/import time only.
-Runtime never calls one.
+> **GraphRAG-*inspired*, not Microsoft GraphRAG.** Retrieval = vector-NN chunk seeds → bounded
+> walk over chunk relations → ranked chunks with their linked pairs. No community detection,
+> hierarchical community summaries, or global/local search modes — the chunk graph is a flat
+> retrieval-expansion structure.
 
-Shape fits domains needing no reasoning: greetings, jokes, FAQs,
-small-talk, canned support replies. Tier 1 leans on Postgres FTS +
-trigram for fuzzy lexical match — `xin chào`, `xin chao`, `xinchao`
-all hit the same row, zero embeddings. Tier 2/3 swap in pgvector to
-cross the paraphrase gap without giving up the offline + admin-review
-spine. See [Architecture tiers](#architecture-tiers).
+## Two surfaces
 
-## Architecture tiers
+- **Offline ingest** — `@cosimi/sdk/offline` (Node-only, **uses an LLM**). Documents →
+  semantic chunks → chunk graph (`chunk_relations`) → LLM-generated Q&A pairs → audit →
+  reverse-check → embeddings. Each pair links to its source chunk (`chunk_pair_map`).
+- **Runtime retrieve** — `@cosimi/sdk` (**no LLM, deterministic, Workers-safe**).
+  `cosimi.retrieve(query, opts)`: embed the query → top-`seedK` nearest chunks as graph seeds
+  → undirected graph expansion (`≤ maxHops`) → rank by `(similarity DESC, hops ASC, id)` →
+  return ranked chunks, each carrying its linked pairs. Same query + same data → same result.
 
-Three progressive takes on the same problem: match a user query to a
-stored reply. Each tier crosses one more gap than the last. Offline
-spine — LLM generates pairs from source docs, admin reviews them —
-is shared across all three. Only the **store** and the **runtime
-match step** change.
+```ts
+import { createCosimi } from "@cosimi/sdk";
+import { sql } from "@cosimi/adapter-postgres";
+import { createOllamaEmbedder } from "@cosimi/adapter-embed-ollama";
 
-### Tier 1 — pure SQL cascade (current)
+const cosimi = createCosimi({ sql, embedder: createOllamaEmbedder({ baseUrl }) }); // embedder MANDATORY
+const result = await cosimi.retrieve("how long do refunds take?", {
+  topK: 8, seedK: 4, maxHops: 2, minSimilarity: 0.45,
+});
+// result.hits: ranked (PairHit | ChunkHit)[] — a pair-hit carries its source chunk
+// + graph-neighbor context; a chunk-hit carries its linked pairs. Pairs and chunks
+// are equal embedded targets (the chunk↔pair link is for context, not gating).
+```
 
-![Tier 1 architecture](./docs/assets/cosimi_tier1_with_doc_processing.svg)
+## Distribution model
 
-Offline: LLM processes source docs into Q&A pairs → admin review →
-Postgres pattern store. Runtime falls through four tiers in order:
-`session_teach → exact → FTS → trigram`. First hit returns its reply;
-all miss returns a fallback.
+Hybrid — `@cosimi/*` **code** packages publish in lockstep (changesets, npm + JSR); **infra
+drivers** (postgres, embedding/LLM/storage clients) are **peerDependencies the consumer
+injects**, never bundled. This keeps the SDK Workers-safe (the DB layer is runtime-split:
+Node pool singleton vs Workers request-scoped client) and makes the adapter pattern *be* the
+npm dependency graph. The embedder is **mandatory** at runtime — retrieval needs a query vector.
 
-Lexical only. Matches shared characters/words, not meaning. Cannot
-cross paraphrase gaps — `"forgot my login"` won't reach a
-`"reset password"` row.
+### Constellation (published `@cosimi/*`)
 
-### Tier 2 — pgvector nearest-neighbor (planned)
+| Package | Role |
+|---|---|
+| `@cosimi/sdk` | Facade `createCosimi(config)` + `./offline` ingest entry. Primary consumer entry. |
+| `@cosimi/core` | Types, env schema, ports (`EmbeddingPort`/`LLMPort`). Dep-free foundation. |
+| `@cosimi/retriever` | The deterministic retrieval algorithm (vector-NN seeds + recursive graph walk). |
+| `@cosimi/db-core` | Repository ports, migrations, `applyMigrations()`. No driver. |
+| `@cosimi/adapter-postgres` | Document/chunk/graph/pair repos over `postgres` + pgvector (peerDep). |
+| `@cosimi/adapter-embed-ollama` | `EmbeddingPort` over a local ollama daemon (bge-m3 / 1024) — dev + offline. |
+| `@cosimi/adapter-embed-workers-ai` | `EmbeddingPort` over a Cloudflare Workers AI binding (bge-m3) — prod. |
+| `@cosimi/adapter-embed-fake` | Deterministic in-process embedder for tests. |
+| `@cosimi/adapter-llm-anthropic` | `LLMPort` over Anthropic Messages (offline generate/audit). |
+| `@cosimi/adapter-llm-fake` | Scripted `LLMPort` for tests. |
+| `@cosimi/adapter-storage` / `@cosimi/adapter-r2` | `StorageRepository` (local FS dev / R2 prod). |
+| `@cosimi/logger` | pino + `redactInput()` PII redaction. |
 
-![Tier 2 architecture](./docs/assets/cosimi_tier2_with_doc_processing.svg)
+Workspace-private (never published): `tsconfig`, `oxlint-config`, `template`. (Branding lives in
+`@cosimi/core`; there is no shared UI-token package — shadcn primitives are copied per app.)
 
-Same offline pair generation, but store becomes pgvector. Each
-approved question is embedded by a sentence model; runtime embeds the
-incoming query with the same model and matches by nearest-neighbor
-cosine distance, gated by a similarity threshold.
+## Playgrounds (reference apps — consume `@cosimi/sdk`, not published)
 
-Crosses the semantic gap — paraphrases now match — at the cost of
-auditability and threshold tuning.
+| App | Role | Port |
+|---|---|---|
+| `playgrounds/api` | Public retrieval REST — `POST /retrieve` (deterministic JSON). Node + Cloudflare Workers entries. | 3000 |
+| `playgrounds/admin-api` | Internal ingest + corpus REST — `POST /ingest`, `GET /documents`, chunk/pair/fallback reads. Loopback-only. | 3001 |
+| `playgrounds/lab` | Single internal lab UI — Retrieve, Ingest, Documents, Fallback, Corpus. shadcn-ui + TanStack Router; calls both backends via a dev proxy. | 5173 |
 
-### Tier 3 — pairs + semantic chunks (planned)
+The two API processes are **separate** by design: admin-api binds `127.0.0.1` — the process
+split + network gate IS the auth contract (no app-layer auth on the admin surface).
 
-![Tier 3 architecture](./docs/assets/cosimi_tier3_docs_pairs_and_chunks.svg)
+## Tech stack
 
-Extends Tier 2's offline step. LLM reads docs and produces both Q&A
-pairs **and** semantic chunks; both are embedded into pgvector.
-Runtime nearest-neighbor searches across pairs and chunks together.
-Chunks act as coverage insurance for questions the LLM didn't
-anticipate as pairs.
-
-New tuning knob: whether pairs and chunks share one threshold, or
-chunks are held to a stricter cutoff.
-
-## Docs
-
-- **[Architecture](./docs/ARCHITECTURE.md)**: process split, matcher cascade, repo layout
-- **[Setup](./docs/SETUP.md)**: first-time install, seed, dev commands
-- **[Configuration](./docs/CONFIGURATION.md)**: env vars, logging, PII
-- **[API](./docs/API.md)**: `curl` recipes + deployment security model
-- **[LLM Import Format](./docs/LLM_IMPORT_FORMAT.md)**: bulk-import file shape
-- **[CLAUDE.md](./CLAUDE.md)**: conventions, invariants, "don't repeat this mistake" rules
-- **`docs/SPEC_PHASE_*.md`**: per-phase specs, in build order
+- **Runtime:** Node.js 22, pnpm 11, Turbo 2.
+- **Backend:** Hono on Node + Cloudflare Workers. Postgres 16 + `pgvector`.
+- **Embeddings:** ollama `bge-m3` (dev) / Cloudflare Workers AI `@cf/baai/bge-m3` (prod) — one 1024-dim vector space.
+- **Offline LLM:** Anthropic (Sonnet generate / Haiku audit). Never on the query path.
+- **Frontend:** Vite + React, shadcn-ui + TanStack Router/Query, Tailwind v4. TypeScript 5.7, oxlint + oxfmt, vitest.
 
 ## Quickstart
 
 ```bash
-nvm use && corepack enable
+corepack enable
 pnpm install
 cp .env.example .env
-pnpm dev:all                       # postgres → migrate → api + admin-api + web
-pnpm --filter @cosimi/admin dev     # admin SPA on :5174
-pnpm seed                          # vi + chatterbot corpus
+
+# Embeddings need a local ollama with the bge-m3 model:
+ollama serve            # or the desktop app
+ollama pull bge-m3
+
+pnpm dev                # docker guard → postgres → migrate → api + admin-api + lab
 ```
 
-Full setup: [`docs/SETUP.md`](./docs/SETUP.md).
+Then drive the loop in the **lab** (http://localhost:5173):
+1. **Ingest** → paste your Anthropic API key (stored in your browser, sent per-request — never to
+   the server's env) + a markdown document → run it through the offline pipeline.
+2. **Retrieve** → ask a question → see the ranked chunks + pre-generated answer, with a **Details**
+   sheet of the full retrieval structure and a live tuning panel (`topK`/`seedK`/`maxHops`/`minSimilarity`).
+3. **Documents** / **Corpus** browse what was ingested; **Fallback** shows retrieval misses.
 
 ## Project status
 
-**Work in progress.** Phases 0–16 merged on `main`, standing
-gates (`typecheck`, `lint`, `format:check`, `test`) green, but repo
-also trial run for larger portfolio app I'm building, so expect churn.
-Matcher, schema, admin surface most likely to shift as
-I pull patterns out into portfolio project and feed lessons back here.
+GraphRAG pivot in progress on branch `phase-sdk-sp2-m1` (milestones stacked, no per-phase PR).
+**Shipped:** the deterministic retrieval engine + the async offline ingest pipeline + the lab
+product (Retrieve / Ingest / Documents / Fallback / Corpus) + the Workers AI embedder.
+Standing gates green (`typecheck`, `lint`, `format:check`, `test`).
 
-**Tier roadmap.** Tier 1 (pure SQL cascade) is the implemented
-baseline. Tier 2 (pgvector pairs) and Tier 3 (pairs + chunks) are
-planned evolutions, not rewrites — each is a deliberate step up the
-precision/capability ladder over the same offline pair-generation
-spine.
+**Next:** remove the dormant lexical surface (`/chat`, `/teach`, FTS/trigram, sessions — still in
+the env schema and early migrations); a fresh GraphRAG schema baseline. Publishing the `@cosimi/*`
+packages is operator-gated (packages stay `private` until go-live).
 
-Out of scope for now (may change):
+**Out of scope (for now):** runtime RAG/LLM answer synthesis (the consumer's job); hybrid
+vector+keyword retrieval; cross-document graph links; re-ranking models; multi-user accounts;
+UI-chrome i18n (admin chrome English-only).
 
-- Internationalization of UI chrome. Chat content bilingual (vi/en) but
-  admin chrome English-only.
-- Multi-user accounts / sharing. Single-user-per-browser by design.
-- Telemetry / observability dashboards. Pino → stdout → your log pipeline
-  v1 story.
+## Docs
 
-## Credits
+- [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) — canonical architecture: retrieval algorithm, ingest pipeline, data model, the constellation.
+- [`CLAUDE.md`](./CLAUDE.md) — codebase map, conventions, invariants (for AI agents + humans).
+- [`docs/DEPLOY.md`](./docs/DEPLOY.md) — Cloudflare Workers + Hyperdrive + Neon runbook.
 
-- Vietnamese seed data: hand-curated.
-- English seed data: [chatterbot-corpus](https://github.com/gunthercox/chatterbot-corpus)
-  by Gunther Cox, BSD-3 license. See
-  [`seeds/chatterbot/LICENSE`](./seeds/chatterbot/LICENSE) and
-  [`seeds/chatterbot/NOTICE`](./seeds/chatterbot/NOTICE).
+## License
+
+SEE [`LICENSE.md`](./LICENSE.md).

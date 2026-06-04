@@ -25,6 +25,30 @@ export interface InsertPairInput {
 export interface PairRepository {
   insertPair(p: InsertPairInput, tx?: unknown): Promise<{ id: number }>;
   insertManyPairs(rows: InsertPairInput[], tx?: unknown): Promise<number>;
+  /**
+   * Vector read: nearest pairs by cosine. `status` defaults to `'pass'`
+   * (safe-by-default — the runtime never serves unaudited/rejected pairs); pass
+   * an explicit status only for non-serving callers. `locale` defaults to
+   * `'und'` (universal pool only); runtime callers pass a concrete locale.
+   */
+  findNearest(
+    embedding: number[],
+    limit: number,
+    opts?: { status?: AuditStatus; locale?: string },
+  ): Promise<ScoredPair[]>;
+  /** Graph read: pairs mapped from the given chunk ids, re-ranked by cosine. */
+  findByChunks(chunkIds: string[], embedding: number[], limit: number): Promise<ScoredPair[]>;
+  /** Pipeline read: pairs in a given audit status (e.g. 'pending' for the audit step). */
+  findByStatus(
+    status: AuditStatus,
+    limit: number,
+  ): Promise<{ id: number; input: string; response: string }[]>;
+  /** Pipeline write: set the vector + provenance + audit status on a pair after insertPair. */
+  setPairVector(
+    id: number,
+    v: { embedding: number[]; sourceChunk?: string | null; auditStatus?: AuditStatus },
+    tx?: unknown,
+  ): Promise<void>;
 }
 
 export interface BatchRepository {
@@ -37,9 +61,8 @@ export interface AppConfigRepository {
   setAppConfig(key: string, value: string): Promise<void>;
 }
 
-// ─── Tier 2/3 seams (SP2) ─────────────────────────────────────────────────
-// Type-only placeholders. Filled with full signatures + concrete adapters in
-// SP2 (see docs/NEW_ARCHITECTURE.md). No implementation in SP1.
+// ─── Graph / vector retrieval ports ────────────────────────────────────────
+// Repository ports for the document-retrieval schema (see docs/ARCHITECTURE.md).
 
 export type RelationType = "PARENT_OF" | "REFERENCES" | "ELABORATES" | "CONTRADICTS";
 export type AuditStatus = "pending" | "pass" | "fail" | "rewrite" | "flagged";
@@ -74,6 +97,15 @@ export interface Chunk {
 export type NewChunk = Omit<Chunk, "id" | "createdAt">;
 export interface ScoredChunk extends Chunk {
   /** Cosine similarity to the query embedding, [0, 1]. */
+  similarity: number;
+}
+
+/** A pair row with its cosine similarity to a query embedding, [0, 1]. */
+export interface ScoredPair {
+  id: number;
+  input: string;
+  response: string;
+  locale: string;
   similarity: number;
 }
 

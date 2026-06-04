@@ -5,12 +5,12 @@
 #   1. docker daemon guard (fail fast if Docker isn't reachable)
 #   2. db:up --wait (compose postgres service; bake-in --wait makes this idempotent)
 #   3. migrate (idempotent — applies anything new, no-op if up-to-date)
-#   4. count active rows in `pairs`; if 0, ask the operator before seeding
-#   5. exec `turbo run dev` (replaces this shell with the dev runner)
+#   4. exec `turbo run dev` scoped to the cosimi playgrounds (api + admin-api +
+#      web + admin) — NOT apps/portf (its own dev:portf), which would also bind 3000.
 #
-# All steps short-circuit on failure (`set -e`). The seed prompt is the
-# ONLY interactive step — pick `y` to seed (vi + chatterbot, both stamped
-# per the root `seed` script), anything else to skip.
+# All steps short-circuit on failure (`set -e`). GraphRAG content comes from the
+# offline ingest pipeline (admin → Ingest), not seed files — there is no seed step.
+# Embeddings need a local ollama with bge-m3 (`ollama serve` + `ollama pull bge-m3`).
 
 set -euo pipefail
 
@@ -36,14 +36,4 @@ fi
 
 pnpm migrate
 
-count=$(pnpm --silent exec tsx --env-file=.env packages/adapter-postgres/src/scripts/pairs-count.ts)
-if [ "$count" = "0" ]; then
-  printf "cosimi pairs table is empty. Seed now (vi + chatterbot)? (y/N) "
-  read -r answer
-  case "$answer" in
-    [yY]|[yY][eE][sS]) pnpm seed ;;
-    *) echo "Skipping seed. Run pnpm seed manually when ready." ;;
-  esac
-fi
-
-exec turbo run dev
+exec turbo run dev --filter='./playgrounds/*'

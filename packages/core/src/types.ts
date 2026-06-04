@@ -1,27 +1,10 @@
 export type Source = "seed" | "user" | "chat" | "llm";
-export type MatchTier = "session_teach" | "exact" | "fts" | "trigram";
-
-export interface MatchResult {
-  response: string;
-  tier: MatchTier;
-  confidence: number;
-  pairId: number | null;
-  // `pairs.score` (vote tally — INTEGER, can be negative). null for the
-  // session_teach tier (no underlying pair), populated for exact/fts/trigram.
-  score: number | null;
-  lowConfidence: boolean;
-  // The locale actually carried by the matched row (BCP-47, with 'und'
-  // for universal). Distinct from the *requested* primary locale: a Vi
-  // request that falls through to an 'und' row reports locale='und'
-  // here, which is what the UI badge surfaces (gated by
-  // EXPOSE_MATCH_INSIGHTS like tier/confidence/score).
-  locale: string;
-  // Operator-assigned topic slug on the matched pair (e.g.
-  // "portfolio/artifact/wegopro"). null for session_teach tier (no
-  // underlying pair) and for pairs without a topic. Used by portf's
-  // matchArtifact as an unambiguous discriminator ahead of matchPatterns.
-  topic: string | null;
-}
+// Tier label carried on the chat `metadata` SSE event (playground chat
+// product; wire-exposure gated by EXPOSE_MATCH_INSIGHTS). "2"/"3" were the SP2
+// semantic tier ids alongside the Tier-1 lexical names. The lexical match path
+// is retired (GraphRAG pivot); this union survives only for the legacy chat UI
+// until that product is replaced.
+export type MatchTier = "session_teach" | "exact" | "fts" | "trigram" | "2" | "3";
 
 export interface ChatRequest {
   message: string;
@@ -104,8 +87,12 @@ export interface FeedbackResponse {
   was_pruned: boolean;
 }
 
+/** Corpus size counters for the api `/stats` endpoint (GraphRAG era). */
 export interface StatsResponse {
-  total_pairs_learned: number;
+  documents: number;
+  chunks: number;
+  /** Active (`deleted_at IS NULL`) pairs that have an embedding. */
+  pairs: number;
 }
 
 export interface HealthResponse {
@@ -134,7 +121,7 @@ export interface AdminUnanswered {
   id: number;
   input: string;
   normalized_input: string;
-  source: "chat" | "llm";
+  source: "chat" | "llm" | "retrieve";
   count: number;
   last_seen: string;
 }
@@ -149,4 +136,54 @@ export interface AdminTeachQueueItem {
   flagged: boolean;
   flag_reason: string | null;
   created_at: string;
+}
+
+// ─── GraphRAG retrieval (runtime, LLM-free) ─────────────────────────────────
+// The result of cosimi.retrieve(): ranked chunks (graph-retrieved context),
+// each carrying the offline-generated Q&A pairs linked to it. The consumer owns
+// the RAG step (feed `content`/`pairs` to their own LLM) — the SDK never
+// generates an answer at query time.
+/** A chunk returned as context (or as a chunk-hit). `hops` 0 = the matched/source chunk. */
+export interface RelatedChunk {
+  id: string;
+  documentId: string;
+  content: string;
+  sectionTitle: string | null;
+  /** Min graph distance from the matched/source chunk (0 = it). */
+  hops: number;
+  /** The chunk's own cosine similarity to the query (informational). */
+  similarity: number;
+}
+
+/** A chunk's linked Q&A pair, briefly (used inside a chunk-hit). */
+export interface PairBrief {
+  input: string;
+  response: string;
+  /** Cosine similarity of the pair's embedding to the query. */
+  similarity: number;
+}
+
+/** The query matched a generated Q&A pair. Its `response` IS the answer; `context` augments. */
+export interface PairHit {
+  kind: "pair";
+  similarity: number;
+  input: string;
+  response: string;
+  /** Source chunk (hops 0) + graph neighbors (≤ maxHops), for downstream context. */
+  context: RelatedChunk[];
+}
+
+/** The query matched a chunk directly. */
+export interface ChunkHit {
+  kind: "chunk";
+  similarity: number;
+  chunk: RelatedChunk;
+  pairs: PairBrief[];
+}
+
+export type RetrievalHit = PairHit | ChunkHit;
+
+export interface RetrievalResult {
+  /** Ranked best-first by similarity; deterministic; [] when nothing clears the floor. */
+  hits: RetrievalHit[];
 }

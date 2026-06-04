@@ -6,7 +6,7 @@
     [
       "@cosimi/core",
       "@cosimi/normalizer",
-      "@cosimi/matcher",
+      "@cosimi/retriever",
       "@cosimi/db-core",
       "@cosimi/adapter-postgres",
       "@cosimi/logger",
