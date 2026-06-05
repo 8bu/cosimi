@@ -10,7 +10,13 @@
       "@cosimi/db-core",
       "@cosimi/adapter-postgres",
       "@cosimi/logger",
-      "@cosimi/sdk"
+      "@cosimi/sdk",
+      "@cosimi/adapter-embed-ollama",
+      "@cosimi/adapter-embed-workers-ai",
+      "@cosimi/adapter-embed-fake",
+      "@cosimi/adapter-llm-anthropic",
+      "@cosimi/adapter-llm-fake",
+      "@cosimi/adapter-storage"
     ]
   ],
   "linked": [],

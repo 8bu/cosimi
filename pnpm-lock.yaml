@@ -139,6 +139,9 @@ importers:
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.17
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(@swc/core@1.15.40)(jiti@2.7.0)(postcss@8.5.14)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.4)
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -158,6 +161,9 @@ importers:
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.17
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(@swc/core@1.15.40)(jiti@2.7.0)(postcss@8.5.14)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.4)
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -177,6 +183,9 @@ importers:
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.17
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(@swc/core@1.15.40)(jiti@2.7.0)(postcss@8.5.14)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.4)
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -199,6 +208,9 @@ importers:
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.17
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(@swc/core@1.15.40)(jiti@2.7.0)(postcss@8.5.14)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.4)
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -218,6 +230,9 @@ importers:
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.17
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(@swc/core@1.15.40)(jiti@2.7.0)(postcss@8.5.14)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.4)
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -249,6 +264,9 @@ importers:
       postgres:
         specifier: ^3.4.0
         version: 3.4.9
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(@swc/core@1.15.40)(jiti@2.7.0)(postcss@8.5.14)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.4)
       tsx:
         specifier: ^4.19.0
         version: 4.21.0
@@ -271,6 +289,9 @@ importers:
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.17
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(@swc/core@1.15.40)(jiti@2.7.0)(postcss@8.5.14)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.4)
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -290,6 +311,9 @@ importers:
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.17
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(@swc/core@1.15.40)(jiti@2.7.0)(postcss@8.5.14)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.4)
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -309,6 +333,9 @@ importers:
       postgres:
         specifier: ^3.4.0
         version: 3.4.9
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(@swc/core@1.15.40)(jiti@2.7.0)(postcss@8.5.14)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.4)
       tsx:
         specifier: ^4.19.0
         version: 4.21.0
@@ -334,6 +361,9 @@ importers:
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.17
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(@swc/core@1.15.40)(jiti@2.7.0)(postcss@8.5.14)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.4)
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -343,6 +373,9 @@ importers:
       '@cosimi/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(@swc/core@1.15.40)(jiti@2.7.0)(postcss@8.5.14)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.4)
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -376,6 +409,9 @@ importers:
       postgres:
         specifier: ^3.4.0
         version: 3.4.9
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(@swc/core@1.15.40)(jiti@2.7.0)(postcss@8.5.14)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.4)
       typescript:
         specifier: ^5.7.0
         version: 5.9.3

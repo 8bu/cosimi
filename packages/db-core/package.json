@@ -1,7 +1,6 @@
 {
   "name": "@cosimi/db-core",
   "version": "0.1.0",
-  "private": true,
   "license": "SEE LICENSE IN LICENSE.md",
   "repository": {
     "type": "git",
@@ -9,7 +8,8 @@
     "directory": "packages/db-core"
   },
   "files": [
-    "src"
+    "dist",
+    "migrations"
   ],
   "type": "module",
   "main": "./src/index.ts",
@@ -25,9 +25,22 @@
     }
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./ports": {
+        "types": "./dist/ports.d.ts",
+        "default": "./dist/ports.js"
+      }
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts"
   },
   "scripts": {
+    "build": "tsup",
     "typecheck": "tsc --noEmit",
     "migrate": "tsx --env-file=../../.env src/migrate.ts",
     "test": "vitest run"
@@ -39,6 +52,7 @@
     "@cosimi/tsconfig": "workspace:*",
     "@types/node": "^22.0.0",
     "postgres": "^3.4.0",
+    "tsup": "^8.0.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
