@@ -2,37 +2,6 @@
 // legacy origins still present on existing rows.
 export type Source = "seed" | "user" | "chat" | "llm";
 
-// ─── Legacy chat DTOs — retained ONLY for apps/portf's SimSimi chat UI ──────
-// The lexical match path + the api /chat surface are gone (GraphRAG pivot).
-// These three survive solely because apps/portf still imports them; remove when
-// portf is extracted to its own repo (it will own its chat types + backend).
-export type MatchTier = "session_teach" | "exact" | "fts" | "trigram" | "2" | "3";
-
-export interface ChatRequest {
-  message: string;
-  session_id?: string;
-  locales?: string[];
-  locale?: string;
-}
-
-export type ChatStreamEvent =
-  | { type: "session"; session_id: string }
-  | {
-      type: "metadata";
-      tier: MatchTier | null;
-      confidence: number | null;
-      pairId: number | null;
-      score: number | null;
-      lowConfidence: boolean;
-      locale: string | null;
-      topic: string | null;
-    }
-  | { type: "no_match" }
-  | { type: "token"; content: string }
-  | { type: "teach_ack"; queue_id: number }
-  | { type: "done" }
-  | { type: "error"; message: string };
-
 /** Corpus size counters for the api `/stats` endpoint (GraphRAG era). */
 export interface StatsResponse {
   documents: number;

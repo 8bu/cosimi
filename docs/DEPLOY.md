@@ -7,7 +7,9 @@ All deploys are **manual** via `./deploy.sh`. No CI/CD. No VPS/Docker/Caddy/Tunn
 > cosimi UI is `@cosimi/lab` (`playgrounds/lab`), which merged the former `web` + `admin` apps —
 > but `deploy.sh`'s `deploy_web_pages` still builds the deleted `@cosimi/web` → `../web/dist`;
 > reconcile it to `@cosimi/lab` → `playgrounds/lab/dist` before the cosimi UI actually ships
-> (cosimi is wired-but-undeployed, so this path has never run).
+> (cosimi is wired-but-undeployed, so this path has never run). Note: `@cosimi/neolab`
+> (`playgrounds/neolab`, the Pavilion redesign) is the lab successor — when the cosimi UI ships it
+> will likely be neolab's `dist`, not lab's. Neither is deployed yet.
 
 ## Current state (2026-06-02) — portf is LIVE
 

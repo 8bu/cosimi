@@ -15,8 +15,8 @@ constellation + reference playground apps.
 It began as a SimSimi-style lexical matcher (`exact → FTS → trigram`) with a `/chat` + `/teach`
 surface. That whole lexical/teach surface is **deleted** (`@cosimi/matcher` → `@cosimi/retriever`;
 chat/teach routes, sessions, the `teach_queue`/`votes`/`sessions`/`session_teaches` tables, and the
-SimSimi seeds are gone). The old chat frontend lives on only in `apps/portf`, which gets its own
-backend in a separate repo.
+SimSimi seeds are gone). The old chat frontend was extracted to its own repo (`8bu.dev`, with its
+own backend) and removed from cosimi.
 
 ## Tech stack
 
@@ -49,9 +49,7 @@ playgrounds/               # reference apps that consume @cosimi/sdk (NOT publis
   api/         # public retrieval REST; POST /retrieve (+ /stats, /healthz). Node + Workers entries
   admin-api/   # internal ingest + corpus REST; binds 127.0.0.1
   lab/         # single internal UI (Vite + React + shadcn-ui): Retrieve, Ingest, Documents, Fallback, Corpus
-apps/
-  portf/       # portfolio app (TanStack Start) — leave alone; gets its own repo + backend in a later cycle
-seeds/portf/               # portf's seed data (the only seeds left; cosimi SimSimi corpora removed)
+  neolab/      # KB-console rebuild (Pavilion redesign): React 19 + Base UI + TanStack + zustand; same 5 screens; the lab successor (runs beside lab until cutover, :5174)
 docs/
   ARCHITECTURE.md  # canonical SDK/GraphRAG architecture (read this first)
   DEPLOY.md        # Cloudflare + Hyperdrive + Neon runbook
@@ -76,8 +74,9 @@ Full design in **`docs/ARCHITECTURE.md`** (retrieval algorithm, ingest pipeline,
 
 ## Commands
 
-- `pnpm dev` (= `dev:cosimi`) — Docker guard → `db:up --wait` → `migrate` → turbo dev for the
-  cosimi playgrounds (api + admin-api + lab). `pnpm dev:portf` runs the portfolio stack separately.
+- `pnpm dev` — Docker guard → `db:up --wait` → `migrate` → turbo dev for ALL cosimi playgrounds
+  (api + admin-api + lab + neolab; filter `./playgrounds/*`). The portf stack (still in `apps/portf`,
+  pending extraction-cleanup) runs separately via `bash scripts/dev-portf.sh`.
 - `pnpm db:up` / `db:down` / `db:reset` — Postgres dev container (`cosimi-postgres`).
 - `pnpm migrate` (up) — applies all numbered migrations incl. the pgvector graph schema; no flag.
   For `status`/`reset` use `pnpm --filter @cosimi/db-core migrate <sub>`.
@@ -252,8 +251,10 @@ that stripped the SimSimi lexical/teach/chat surface (routes, services, tables, 
 `pnpm format:check`, `pnpm -r --workspace-concurrency=1 test`.
 
 **Deploy:** all-Cloudflare (Pages + Workers → Hyperdrive → Neon), manual via `./deploy.sh`; see
-`docs/DEPLOY.md`. **Next:** extract `apps/portf` to its own repo (with its own backend) — until
-then portf is left untouched and its `/chat`/`/teach` endpoints 404 (the SimSimi backend is gone).
+`docs/DEPLOY.md`. portf has been extracted to its own repo (`8bu.dev`, own backend) and removed from
+cosimi; the only portf remnants here are the **held deploy config** (`env.portf` in
+`playgrounds/api/wrangler.toml`, the `deploy:portf`/`tail:portf` scripts, and `deploy.sh`'s portf
+steps), kept until `8bu.dev` deploys `8bu.dev/api/*` from its own repo — drop them then.
 
 **Out of scope (for now):** runtime RAG/LLM answer synthesis (the consumer's job); hybrid
 vector+keyword retrieval; cross-document graph links; re-ranking models; multi-user accounts;

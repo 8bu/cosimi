@@ -4,20 +4,16 @@ import postgres from "postgres";
  * CLI: emit the row count of `pairs` (active only — `deleted_at IS NULL`)
  * to stdout. Exit non-zero only on DB connection / query failure.
  *
- * Usage (env-file selects which DB):
- *   tsx --env-file=.env       packages/adapter-postgres/src/scripts/pairs-count.ts   # cosimi
- *   tsx --env-file=.env.portf packages/adapter-postgres/src/scripts/pairs-count.ts   # portf
+ * Usage:
+ *   tsx --env-file=.env packages/adapter-postgres/src/scripts/pairs-count.ts
  *
- * Used by `scripts/dev-cosimi.sh` / `scripts/dev-portf.sh` to decide
- * whether to prompt the operator about seeding before launching the
- * stack. Counts active rows so a soft-deleted corpus still triggers
- * the prompt (a re-seed on top of soft-deletes is the recovery path
- * anyway).
+ * Counts active rows so a soft-deleted corpus still reads as non-empty
+ * (a re-seed on top of soft-deletes is the recovery path anyway).
  */
 async function main(): Promise<void> {
   const url = process.env.DATABASE_URL;
   if (!url) {
-    console.error("DATABASE_URL not set — pass --env-file=.env or .env.portf");
+    console.error("DATABASE_URL not set — pass --env-file=.env");
     process.exit(2);
   }
   const sql = postgres(url);

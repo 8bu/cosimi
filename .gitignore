@@ -15,11 +15,3 @@ docs/superpowers/*
 .agents/
 *.original.md
 skills-lock.json
-
-# TanStack Router auto-generated route tree (portf).
-apps/portf/src/routeTree.gen.ts
-
-# TanStack Start scratch dir (portf).
-apps/portf/.tanstack/
-
-apps/portf/public/og/.cache/

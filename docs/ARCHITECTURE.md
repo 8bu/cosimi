@@ -148,6 +148,7 @@ throw.
 | `playgrounds/api` | Public retrieval REST — `POST /retrieve` (deterministic JSON). Node + Workers entries. | 3000 |
 | `playgrounds/admin-api` | Internal ingest + corpus REST — async `/ingest`, `/documents`, `/import`, chunk/pair/fallback reads. Loopback-only. | 3001 |
 | `playgrounds/lab` | Single internal UI — Retrieve, Ingest, Documents, Fallback, Corpus. Vite + React + shadcn-ui + TanStack Router/Query, Tailwind v4. | 5173 |
+| `playgrounds/neolab` | KB-console rebuild (Pavilion redesign) — same 5 screens. React 19 + Base UI + TanStack Router/Query + zustand, Tailwind v4. The lab successor; runs beside lab until cutover. | 5174 |
 
 The two API processes are **separate by design**: admin-api binds `127.0.0.1` — the process
 split + network gate **is** the auth contract (no app-layer auth on the admin surface, no
@@ -163,5 +164,6 @@ Postgres. Full runbook + Workers traps in [`DEPLOY.md`](./DEPLOY.md).
 GraphRAG-only. Shipped: the retrieval engine, the async offline ingest pipeline, the lab product,
 the Workers AI embedder, and the subtraction pass that removed the SimSimi lexical/teach/chat
 surface (routes, services, the `teach_queue`/`votes`/`sessions`/`session_teaches` tables + their
-migrations, env keys, seeds, `adapter-r2`). **Next:** extract `apps/portf` to its own repo with its
-own backend. Publishing is operator-gated (packages stay `private` until go-live).
+migrations, env keys, seeds, `adapter-r2`). The portfolio app has been **extracted** to its own repo
+(`8bu.dev`, own backend) and removed from cosimi (only its held Cloudflare deploy config remains,
+pending 8bu.dev's own deploy). Publishing is operator-gated (packages stay `private` until go-live).

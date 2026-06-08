@@ -1,5 +1,4 @@
 packages:
-  - "apps/*"
   - "playgrounds/*"
   - "packages/*"
 
@@ -10,7 +9,7 @@ allowBuilds:
   "@swc/core": true # @vitejs/plugin-react-swc uses @swc/core; the postinstall fetches the platform-specific native binary. Without it, Vite's React transform can't load.
   esbuild: true # tsx ships esbuild and needs its native-binary postinstall
   msw: set this to true or false
-  sharp: false # transitive of wrangler; nothing on our build/deploy path does image processing (portf og PNGs use resvg, not sharp). Deny the native-binary postinstall.
+  sharp: false # transitive of wrangler; nothing on our build/deploy path does image processing. Deny the native-binary postinstall.
   workerd: false # wrangler's local-dev runtime; deploy/dry-run/tail bundle via esbuild and never need workerd's native binary. Flip to true only if you start using `wrangler dev`.
 
 # Supply-chain mitigation — refuse to resolve any package version

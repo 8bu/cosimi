@@ -5,8 +5,8 @@
 #   1. docker daemon guard (fail fast if Docker isn't reachable)
 #   2. db:up --wait (compose postgres service; bake-in --wait makes this idempotent)
 #   3. migrate (idempotent — applies anything new, no-op if up-to-date)
-#   4. exec `turbo run dev` scoped to the cosimi playgrounds (api + admin-api +
-#      web + admin) — NOT apps/portf (its own dev:portf), which would also bind 3000.
+#   4. exec `turbo run dev` scoped to ALL cosimi playgrounds (api + admin-api +
+#      lab + neolab).
 #
 # All steps short-circuit on failure (`set -e`). GraphRAG content comes from the
 # offline ingest pipeline (admin → Ingest), not seed files — there is no seed step.
@@ -17,7 +17,7 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
 if ! docker info > /dev/null 2>&1; then
-  echo "Docker daemon not reachable. Start Docker Desktop (or colima) and re-run pnpm dev:cosimi." >&2
+  echo "Docker daemon not reachable. Start Docker Desktop (or colima) and re-run pnpm dev." >&2
   exit 1
 fi
 

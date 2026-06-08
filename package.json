@@ -14,10 +14,7 @@
   ],
   "license": "SEE LICENSE IN LICENSE.md",
   "scripts": {
-    "dev": "pnpm dev:cosimi",
-    "dev:cosimi": "bash scripts/dev-cosimi.sh",
-    "dev:neolab": "pnpm --filter @cosimi/neolab dev",
-    "dev:portf": "bash scripts/dev-portf.sh",
+    "dev": "bash scripts/dev-cosimi.sh",
     "build": "turbo run build",
     "lint": "oxlint",
     "typecheck": "turbo run typecheck",
@@ -31,10 +28,7 @@
     "db:up": "docker compose -f docker-compose.dev.yml up -d --wait postgres",
     "db:down": "docker compose -f docker-compose.dev.yml down",
     "db:reset": "docker compose -f docker-compose.dev.yml down -v && pnpm db:up",
-    "migrate": "tsx --env-file=.env packages/db-core/src/migrate.ts up",
-    "migrate:portf": "tsx --env-file=.env.portf packages/db-core/src/migrate.ts up",
-    "seed:portf": "tsx --env-file=.env.portf packages/adapter-postgres/src/scripts/seed.ts seeds/portf/*.yaml --locale=en",
-    "provision:portf": "tsx --env-file=.env.portf packages/adapter-postgres/src/scripts/provision-portf-db.ts"
+    "migrate": "tsx --env-file=.env packages/db-core/src/migrate.ts up"
   },
   "devDependencies": {
     "@changesets/cli": "^2.31.0",

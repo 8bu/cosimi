@@ -78,6 +78,7 @@ Workspace-private (never published): `tsconfig`, `oxlint-config`, `template`. (B
 | `playgrounds/api` | Public retrieval REST — `POST /retrieve` (deterministic JSON). Node + Cloudflare Workers entries. | 3000 |
 | `playgrounds/admin-api` | Internal ingest + corpus REST — `POST /ingest`, `GET /documents`, chunk/pair/fallback reads. Loopback-only. | 3001 |
 | `playgrounds/lab` | Single internal lab UI — Retrieve, Ingest, Documents, Fallback, Corpus. shadcn-ui + TanStack Router; calls both backends via a dev proxy. | 5173 |
+| `playgrounds/neolab` | KB-console rebuild (Pavilion redesign) — same 5 screens. React 19 + Base UI + TanStack Router/Query + zustand. The lab successor; runs beside lab until cutover. | 5174 |
 
 The two API processes are **separate** by design: admin-api binds `127.0.0.1` — the process
 split + network gate IS the auth contract (no app-layer auth on the admin surface).
@@ -101,7 +102,7 @@ cp .env.example .env
 ollama serve            # or the desktop app
 ollama pull bge-m3
 
-pnpm dev                # docker guard → postgres → migrate → api + admin-api + lab
+pnpm dev                # docker guard → postgres → migrate → api + admin-api + lab + neolab
 ```
 
 Then drive the loop in the **lab** (http://localhost:5173):
@@ -119,9 +120,10 @@ product (Retrieve / Ingest / Documents / Fallback / Corpus) + the Workers AI emb
 Standing gates green (`typecheck`, `lint`, `format:check`, `test`).
 
 The SimSimi lexical/teach/chat surface has been **removed** (routes, services, the
-`teach_queue`/`votes`/`sessions`/`session_teaches` tables, env keys, seeds, `adapter-r2`). **Next:**
-extract `apps/portf` to its own repo with its own backend. Publishing the `@cosimi/*` packages is
-operator-gated (packages stay `private` until go-live).
+`teach_queue`/`votes`/`sessions`/`session_teaches` tables, env keys, seeds, `adapter-r2`). The
+portfolio app has been **extracted** to its own repo (`8bu.dev`, own backend) and removed from
+cosimi (only its held Cloudflare deploy config remains, pending 8bu.dev's own deploy). Publishing
+the `@cosimi/*` packages is operator-gated (packages stay `private` until go-live).
 
 **Out of scope (for now):** runtime RAG/LLM answer synthesis (the consumer's job); hybrid
 vector+keyword retrieval; cross-document graph links; re-ranking models; multi-user accounts;
