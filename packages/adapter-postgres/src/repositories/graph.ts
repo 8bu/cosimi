@@ -49,7 +49,7 @@ export async function addEdge(
 export async function getParent(chunkId: string): Promise<Chunk | null> {
   // The pipeline links each child to exactly one PARENT_OF parent, so `LIMIT 1`
   // is unambiguous in practice. The schema doesn't enforce single-parent (the
-  // graph model stays flexible); if a future writer adds multiple parents this
+  // link model stays flexible); if a future writer adds multiple parents this
   // returns one arbitrarily — revisit then.
   const [row] = await sql()<Row[]>`
     SELECT c.* FROM chunks c
@@ -76,7 +76,7 @@ export async function getChildren(chunkId: string): Promise<Chunk[]> {
  * form cycles, so the recursive CTE uses Postgres' `CYCLE` clause: traversal
  * stops as soon as a node repeats on a path (`is_cycle`), which both guarantees
  * termination independent of `maxHops` and avoids redundant re-expansion. The
- * seed is excluded from the result. Acceptable for shallow intra-document graphs
+ * seed is excluded from the result. Acceptable for shallow intra-document link sets
  * (<50 chunks/doc) — the AgeGraphAdapter is the migration path for deep/wide ones.
  *
  * The `${chunkId}::uuid` cast in the anchor is required: postgres.js binds the

@@ -2,9 +2,9 @@
  * Strip a leading `/api` segment from an incoming request URL.
  *
  * The Cloudflare zone Worker route is `<domain>/api/*`, but the Hono app
- * (apps/api/src/app.ts) mounts routes with no `/api` prefix. The worker
+ * (playgrounds/api/src/app.ts) mounts routes with no `/api` prefix. The worker
  * rewrites the URL before delegating to `app.fetch`. `/api` -> `/`,
- * `/api/chat` -> `/chat`; anything not under `/api` is returned untouched.
+ * `/api/retrieve` -> `/retrieve`; anything not under `/api` is returned untouched.
  */
 export function stripApiPrefix(req: Request): Request {
   const url = new URL(req.url);

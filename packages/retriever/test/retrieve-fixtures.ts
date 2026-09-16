@@ -14,11 +14,11 @@ export interface RetrieveFixtureIds {
 }
 
 /**
- * Graph:  chunkA --REFERENCES--> chunkB --REFERENCES--> chunkC ;  chunkD isolated.
+ * Links:  chunkA --REFERENCES--> chunkB --REFERENCES--> chunkC ;  chunkD isolated.
  * Vectors: A=e0 (sim 1), B approx e0 (cos 0.96), C=e1 (sim 0), D=e7 (sim 0).
  * Query=e0. With minSimilarity 0.5: seeds={A,B}; walk reaches C (1 hop from B);
  * D unreachable + sub-threshold. retrieve returns [A,B,C] ranked, NOT D -- and C
- * proves graph neighbors ride along below the seed floor.
+ * proves linked chunks ride along below the seed floor.
  */
 export async function seedRetrieveFixtures(): Promise<RetrieveFixtureIds> {
   const db = sql();
@@ -71,14 +71,14 @@ export async function seedRetrieveFixtures(): Promise<RetrieveFixtureIds> {
 export interface HitFixtureIds {
   docId: string;
   chunkA: string; // source of pairP; vector e1 (orthogonal to query e0 -> low chunk sim)
-  chunkB: string; // graph neighbor of chunkA
+  chunkB: string; // linked chunk of chunkA
   chunkC: string; // vector ~e0 (high chunk sim -> a chunk-hit)
   pairP: number; // vector ~e0 (high pair sim -> a pair-hit); linked to chunkA
   queryVec: number[]; // e0
 }
 
 /**
- * Graph: chunkA --REFERENCES--> chunkB.  chunkC is separate.
+ * Links: chunkA --REFERENCES--> chunkB.  chunkC is separate.
  * Vectors (query = e0):
  *   chunkA = e1            -> chunk sim ~0   (so chunkA only surfaces via pairP's context)
  *   chunkB = e7            -> chunk sim ~0

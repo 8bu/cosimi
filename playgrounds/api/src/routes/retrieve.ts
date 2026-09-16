@@ -19,9 +19,10 @@ const RetrieveBodySchema = v.object({
 export const retrieveRoute = new Hono();
 
 /**
- * GraphRAG retrieval. Deterministic, LLM-free: embed the query, seed from the
- * nearest chunks, expand the graph, return ranked chunks with their linked
- * pairs as JSON. No session, no SSE. On an empty result (no seed cleared the
+ * Retrieval. Deterministic, LLM-free: the SDK embeds the query once and returns
+ * the top-K nearest pairs and chunks by cosine similarity. A pair hit carries its
+ * source chunk plus its linked chunks (within maxHops); a chunk hit carries its
+ * linked pairs. No session, no SSE. On an empty result (nothing cleared the
  * similarity floor) we upsert the query into `unanswered` (source='retrieve')
  * — the seed for the future fallback-curation UI (spec P2-D6).
  */

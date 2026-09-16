@@ -1,95 +1,48 @@
-# cosimi — GraphRAG-inspired retrieval SDK
+# cosimi
 
-A deterministic, **LLM-free-at-query-time** GraphRAG-*inspired* retrieval SDK. Ingest documents
-offline (chunk → build a chunk graph → LLM-generate Q&A pairs → audit → embed); at runtime,
-`retrieve(query)` embeds the query, seeds from the nearest chunks, walks the graph, and
-returns a **ranked, deterministic** structure of chunks with their linked pairs. The consumer
-owns any downstream RAG/LLM step — or uses the pre-generated pairs directly as answers.
+Corpus distillation + LLM-generated Q&A pairs for better RAG answers.
 
-## The pivot
+cosimi distills a document corpus into retrievable knowledge for RAG. Offline (Node, uses an LLM) documents are chunked, an LLM generates Q&A pairs from each chunk, and a second LLM pass audits them; chunks and pairs are both embedded (bge-m3, 1024-dim, pgvector). At query time (Node or Cloudflare Workers, no LLM) `retrieve(query)` embeds the query once and returns the top-K nearest pairs and chunks by cosine similarity — deterministic: same query + same data → same result. Consumers feed the hits to their own RAG/LLM step, or use the pair answers directly. Chunk links (`chunk_relations`) exist only as context for a hit, never for ranking — ranking is cosine only.
 
-Cosimi began as a SimSimi-style lexical pattern-matching chatbot (an `exact → FTS → trigram`
-cascade over a curated pair store). It is now a **GraphRAG-inspired retrieval SDK**: no tier
-cascade, no runtime LLM, no random jitter — deterministic ranked retrieval over a
-document-derived chunk graph. Same offline spine (LLM generates pairs from source docs);
-completely different query path.
+## How it works
 
-> **GraphRAG-*inspired*, not Microsoft GraphRAG.** Retrieval = vector-NN chunk seeds → bounded
-> walk over chunk relations → ranked chunks with their linked pairs. No community detection,
-> hierarchical community summaries, or global/local search modes — the chunk graph is a flat
-> retrieval-expansion structure.
-
-## Two surfaces
-
-- **Offline ingest** — `@cosimi/sdk/offline` (Node-only, **uses an LLM**). Documents →
-  semantic chunks → chunk graph (`chunk_relations`) → LLM-generated Q&A pairs → audit →
-  reverse-check → embeddings. Each pair links to its source chunk (`chunk_pair_map`).
-- **Runtime retrieve** — `@cosimi/sdk` (**no LLM, deterministic, Workers-safe**).
-  `cosimi.retrieve(query, opts)`: embed the query → top-`seedK` nearest chunks as graph seeds
-  → undirected graph expansion (`≤ maxHops`) → rank by `(similarity DESC, hops ASC, id)` →
-  return ranked chunks, each carrying its linked pairs. Same query + same data → same result.
+- **Offline ingest** (`@cosimi/sdk/offline`, Node, uses an LLM): store → chunk → LLM chunk links → LLM Q&A pairs per chunk → LLM audit → embed chunks and pairs.
+- **Runtime retrieve** (`@cosimi/sdk`, Node or Workers, no LLM): embed the query once, take the top-`seedK` nearest pairs and chunks, floor by `minSimilarity`, rank by cosine, return the top `topK` hits. A pair hit's `context` carries its source chunk plus linked chunks within `maxHops`.
 
 ```ts
 import { createCosimi } from "@cosimi/sdk";
 import { sql } from "@cosimi/adapter-postgres";
 import { createOllamaEmbedder } from "@cosimi/adapter-embed-ollama";
 
-const cosimi = createCosimi({ sql, embedder: createOllamaEmbedder({ baseUrl }) }); // embedder MANDATORY
-const result = await cosimi.retrieve("how long do refunds take?", {
-  topK: 8, seedK: 4, maxHops: 2, minSimilarity: 0.45,
+const cosimi = createCosimi({
+  sql, embedder: createOllamaEmbedder({ baseUrl: "http://localhost:11434" }), // sql = accessor; embedder mandatory
 });
-// result.hits: ranked (PairHit | ChunkHit)[] — a pair-hit carries its source chunk
-// + graph-neighbor context; a chunk-hit carries its linked pairs. Pairs and chunks
-// are equal embedded targets (the chunk↔pair link is for context, not gating).
+await cosimi.retrieve("how long do refunds take?", { topK: 8, seedK: 4, maxHops: 2, minSimilarity: 0.45 });
 ```
 
-## Distribution model
-
-Hybrid — `@cosimi/*` **code** packages publish in lockstep (changesets, npm + JSR); **infra
-drivers** (postgres, embedding/LLM/storage clients) are **peerDependencies the consumer
-injects**, never bundled. This keeps the SDK Workers-safe (the DB layer is runtime-split:
-Node pool singleton vs Workers request-scoped client) and makes the adapter pattern *be* the
-npm dependency graph. The embedder is **mandatory** at runtime — retrieval needs a query vector.
-
-### Constellation (published `@cosimi/*`)
+## Packages
 
 | Package | Role |
 |---|---|
-| `@cosimi/sdk` | Facade `createCosimi(config)` + `./offline` ingest entry. Primary consumer entry. |
-| `@cosimi/core` | Types, env schema, ports (`EmbeddingPort`/`LLMPort`). Dep-free foundation. |
-| `@cosimi/retriever` | The deterministic retrieval algorithm (vector-NN seeds + recursive graph walk). |
-| `@cosimi/db-core` | Repository ports, migrations, `applyMigrations()`. No driver. |
-| `@cosimi/adapter-postgres` | Document/chunk/graph/pair repos over `postgres` + pgvector (peerDep). |
-| `@cosimi/adapter-embed-ollama` | `EmbeddingPort` over a local ollama daemon (bge-m3 / 1024) — dev + offline. |
-| `@cosimi/adapter-embed-workers-ai` | `EmbeddingPort` over a Cloudflare Workers AI binding (bge-m3) — prod. |
-| `@cosimi/adapter-embed-fake` | Deterministic in-process embedder for tests. |
-| `@cosimi/adapter-llm-anthropic` | `LLMPort` over Anthropic Messages (offline generate/audit). |
-| `@cosimi/adapter-llm-fake` | Scripted `LLMPort` for tests. |
-| `@cosimi/adapter-storage` | `StorageRepository` (local FS, dev/offline). |
-| `@cosimi/logger` | pino + `redactInput()` PII redaction. |
+| `@cosimi/sdk` | Facade `createCosimi(config)` plus the Node-only `./offline` ingest entry. |
+| `@cosimi/core` | Types, env schema, ports (`EmbeddingPort`, `LLMPort`). |
+| `@cosimi/retriever` | The deterministic retrieval algorithm over pairs and chunks. |
+| `@cosimi/db-core` | Repository ports, numbered SQL migrations, migrate CLI. |
+| `@cosimi/normalizer` | Text normalization (NFC, lowercase, whitespace) for ingest and retrieval. |
+| `@cosimi/adapter-postgres` | Repositories over postgres + pgvector, request-scoped or pooled. |
+| `@cosimi/adapter-embed-ollama`, `@cosimi/adapter-embed-workers-ai`, `@cosimi/adapter-embed-fake` | `EmbeddingPort` over ollama (dev), a Workers AI binding (prod), or a deterministic test embedder. |
+| `@cosimi/adapter-llm-anthropic`, `@cosimi/adapter-llm-fake` | `LLMPort` over Anthropic Messages (offline generate/audit) or scripted for tests. |
+| `@cosimi/adapter-storage`, `@cosimi/logger` | Local-FS `StorageRepository`; pino logging with `redactInput()` PII redaction. |
 
-Workspace-private (never published): `tsconfig`, `oxlint-config`, `template`. (Branding lives in
-`@cosimi/core`; there is no shared UI-token package — shadcn primitives are copied per app.)
+Workspace-private tooling (never published): `@cosimi/tsconfig`, `@cosimi/oxlint-config`, `@cosimi/template`. Distribution is hybrid: `@cosimi/*` code packages publish in lockstep via changesets, while infra drivers (`postgres`, the Anthropic SDK) are peerDependencies the consumer injects. Publishing is operator-gated (`pnpm release`) and has not run yet.
 
-## Playgrounds (reference apps — consume `@cosimi/sdk`, not published)
+## Playgrounds
 
-| App | Role | Port |
+| App | Port | Role |
 |---|---|---|
-| `playgrounds/api` | Public retrieval REST — `POST /retrieve` (deterministic JSON). Node + Cloudflare Workers entries. | 3000 |
-| `playgrounds/admin-api` | Internal ingest + corpus REST — `POST /ingest`, `GET /documents`, chunk/pair/fallback reads. Loopback-only. | 3001 |
-| `playgrounds/lab` | Single internal lab UI — Retrieve, Ingest, Documents, Fallback, Corpus. shadcn-ui + TanStack Router; calls both backends via a dev proxy. | 5173 |
-| `playgrounds/neolab` | KB-console rebuild (Pavilion redesign) — same 5 screens. React 19 + Base UI + TanStack Router/Query + zustand. The lab successor; runs beside lab until cutover. | 5174 |
-
-The two API processes are **separate** by design: admin-api binds `127.0.0.1` — the process
-split + network gate IS the auth contract (no app-layer auth on the admin surface).
-
-## Tech stack
-
-- **Runtime:** Node.js 22, pnpm 11, Turbo 2.
-- **Backend:** Hono on Node + Cloudflare Workers. Postgres 16 + `pgvector`.
-- **Embeddings:** ollama `bge-m3` (dev) / Cloudflare Workers AI `@cf/baai/bge-m3` (prod) — one 1024-dim vector space.
-- **Offline LLM:** Anthropic (Sonnet generate / Haiku audit). Never on the query path.
-- **Frontend:** Vite + React, shadcn-ui + TanStack Router/Query, Tailwind v4. TypeScript 5.7, oxlint + oxfmt, vitest.
+| `playgrounds/api` | 3000 | Public retrieval REST: `POST /retrieve`, `/stats`, `/healthz`. Node + Cloudflare Workers entries. |
+| `playgrounds/admin-api` | 3001 | Internal ingest + corpus REST. Loopback-only (`127.0.0.1`). |
+| `playgrounds/lab` | 5173 | The internal UI (`@cosimi/lab`): Retrieve, Ingest, Documents, Fallback, Corpus. |
 
 ## Quickstart
 
@@ -97,44 +50,30 @@ split + network gate IS the auth contract (no app-layer auth on the admin surfac
 corepack enable
 pnpm install
 cp .env.example .env
-
 # Embeddings need a local ollama with the bge-m3 model:
-ollama serve            # or the desktop app
+ollama serve
 ollama pull bge-m3
-
-pnpm dev                # docker guard → postgres → migrate → api + admin-api + lab + neolab
+pnpm dev # docker guard → postgres up → migrate → api + admin-api + lab
 ```
 
-Then drive the loop in the **lab** (http://localhost:5173):
-1. **Ingest** → paste your Anthropic API key (stored in your browser, sent per-request — never to
-   the server's env) + a markdown document → run it through the offline pipeline.
-2. **Retrieve** → ask a question → see the ranked chunks + pre-generated answer, with a **Details**
-   sheet of the full retrieval structure and a live tuning panel (`topK`/`seedK`/`maxHops`/`minSimilarity`).
-3. **Documents** / **Corpus** browse what was ingested; **Fallback** shows retrieval misses.
+Then drive the lab at http://localhost:5173:
 
-## Project status
+1. **Ingest** — paste your Anthropic API key (kept in the browser, sent per request as `X-Anthropic-Key`, never read from server env) with a markdown document.
+2. **Retrieve** — ask a question and inspect the ranked pairs and chunks.
+3. **Documents** / **Corpus** / **Fallback** — browse what was ingested and review retrieval misses.
 
-GraphRAG pivot in progress on branch `phase-sdk-sp2-m1` (milestones stacked, no per-phase PR).
-**Shipped:** the deterministic retrieval engine + the async offline ingest pipeline + the lab
-product (Retrieve / Ingest / Documents / Fallback / Corpus) + the Workers AI embedder.
-Standing gates green (`typecheck`, `lint`, `format:check`, `test`).
+## Commands
 
-The SimSimi lexical/teach/chat surface has been **removed** (routes, services, the
-`teach_queue`/`votes`/`sessions`/`session_teaches` tables, env keys, seeds, `adapter-r2`). The
-portfolio app has been **extracted** to its own repo (`8bu.dev`, own backend) and removed from
-cosimi (only its held Cloudflare deploy config remains, pending 8bu.dev's own deploy). Publishing
-the `@cosimi/*` packages is operator-gated (packages stay `private` until go-live).
-
-**Out of scope (for now):** runtime RAG/LLM answer synthesis (the consumer's job); hybrid
-vector+keyword retrieval; cross-document graph links; re-ranking models; multi-user accounts;
-UI-chrome i18n (admin chrome English-only).
+- `pnpm dev` — full local stack (docker guard → `db:up` → `migrate` → turbo dev for `./playgrounds/*`).
+- `pnpm db:up` / `db:down` / `db:reset` — dev postgres container.
+- `pnpm migrate` — apply pending migrations.
+- `pnpm typecheck` / `lint` / `format:check` / `test` / `build` — turbo fan-out (`pnpm -r --workspace-concurrency=1 test` for DB-touching suites).
 
 ## Docs
 
-- [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) — canonical architecture: retrieval algorithm, ingest pipeline, data model, the constellation.
-- [`CLAUDE.md`](./CLAUDE.md) — codebase map, conventions, invariants (for AI agents + humans).
-- [`docs/DEPLOY.md`](./docs/DEPLOY.md) — Cloudflare Workers + Hyperdrive + Neon runbook.
+- [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) — retrieval algorithm, ingest pipeline, data model.
+- [`CLAUDE.md`](./CLAUDE.md) — codebase map, conventions, invariants.
 
 ## License
 
-SEE [`LICENSE.md`](./LICENSE.md).
+See [`LICENSE.md`](./LICENSE.md).

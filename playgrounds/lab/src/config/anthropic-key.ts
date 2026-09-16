@@ -3,8 +3,7 @@ const STORAGE_KEY = "cosimi.config.anthropicKey";
 /**
  * Operator's Anthropic API key, managed entirely client-side and sent per
  * request as X-Anthropic-Key (ingest). The server holds no LLM secret. NEVER
- * log this. localStorage is acceptable here — admin-api is loopback + single
- * operator, so the XSS-exfiltration surface is bounded.
+ * log this. localStorage is acceptable — admin-api is loopback + single operator.
  */
 export function getAnthropicKey(): string {
   try {

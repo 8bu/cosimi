@@ -1,49 +1,52 @@
-import { toast } from "sonner";
 import { create } from "zustand";
+import { toast } from "sonner";
 import { retrieve } from "@/lib/api/retrieve-client";
+import { toRetrieveVM } from "@/lib/adapters";
+import type { HitVM, RetrieveVM } from "@/lib/adapters";
+import type { TuningParams } from "@/lib/api/raw-types";
 import { getLocales } from "@/config/locale";
-import type { TuningParams } from "@/lib/api/types";
-import type { RetrievalTurn } from "./types";
 
-// minSimilarity 0.45 (benchmarked): bge-m3 relevant ~0.45–0.7, off-topic ~0.32–0.43;
-// 0.45 separates them. Lower via the panel for more recall, raise for tighter precision.
-const DEFAULT_TUNING: TuningParams = { topK: 8, seedK: 4, maxHops: 2, minSimilarity: 0.45 };
-const newId = () => crypto.randomUUID();
+type DocTitleFn = (docId: string) => string | null;
 
-interface RetrievalState {
-  turns: RetrievalTurn[];
+interface RetrieveState {
+  result: RetrieveVM | null;
   isLoading: boolean;
   tuning: TuningParams;
-  submit: (rawQuery: string) => Promise<void>;
-  setTuning: <K extends keyof TuningParams>(key: K, value: TuningParams[K]) => void;
+  activeHit: HitVM | null;
+  submit: (query: string, docTitle: DocTitleFn) => Promise<void>;
+  setTuning: <K extends keyof TuningParams>(key: K, val: TuningParams[K]) => void;
+  setActiveHit: (hit: HitVM | null) => void;
 }
 
-export const useRetrieval = create<RetrievalState>((set, get) => ({
-  turns: [],
+const DEFAULT_TUNING: TuningParams = { topK: 5, seedK: 4, maxHops: 2, minSimilarity: 0.45 };
+
+export const useRetrieveStore = create<RetrieveState>((set, get) => ({
+  result: null,
   isLoading: false,
   tuning: DEFAULT_TUNING,
-  async submit(rawQuery) {
-    if (get().isLoading) return;
-    const query = rawQuery.trim();
-    if (!query) return;
-    const id = newId();
-    set((s) => ({ turns: [...s.turns, { id, query, status: "loading" }], isLoading: true }));
+  activeHit: null,
+
+  async submit(query, docTitle) {
+    const trimmed = query.trim();
+    if (get().isLoading || trimmed.length === 0) return;
+    set({ isLoading: true });
+    const t0 = performance.now();
     try {
-      const result = await retrieve(query, get().tuning, getLocales());
-      set((s) => ({
-        turns: s.turns.map((t) => (t.id === id ? { id, query, status: "done", result } : t)),
-      }));
+      const raw = await retrieve(trimmed, get().tuning, getLocales());
+      const tookMs = Math.round(performance.now() - t0);
+      set({ result: toRetrieveVM(trimmed, raw, docTitle, tookMs), activeHit: null });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "request failed";
-      set((s) => ({
-        turns: s.turns.map((t) => (t.id === id ? { id, query, status: "error", message } : t)),
-      }));
-      toast.error("Retrieval failed", { description: message });
+      toast.error(err instanceof Error ? err.message : "Retrieval failed");
     } finally {
       set({ isLoading: false });
     }
   },
-  setTuning(key, value) {
-    set((s) => ({ tuning: { ...s.tuning, [key]: value } }));
+
+  setTuning(key, val) {
+    set((s) => ({ tuning: { ...s.tuning, [key]: val } }));
+  },
+
+  setActiveHit(hit) {
+    set({ activeHit: hit });
   },
 }));

@@ -1,26 +1,35 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { deleteDocument, listDocuments } from "@/lib/api/admin-client";
+import { useQuery } from "@tanstack/react-query";
+import { listDocuments, adminStats } from "@/lib/api/admin-client";
+import { corpusStats } from "@/lib/api/retrieve-client";
+import { toDocVM } from "@/lib/adapters";
+import type { DocVM } from "@/lib/adapters";
 
 export function useDocuments() {
-  return useQuery({ queryKey: ["documents"], queryFn: listDocuments });
+  return useQuery<DocVM[]>({
+    queryKey: ["documents"],
+    queryFn: async () => (await listDocuments()).map(toDocVM),
+  });
 }
 
-export function useDeleteDocument() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: deleteDocument,
-    onSuccess: (data) => {
-      qc.invalidateQueries({ queryKey: ["documents"] });
-      qc.invalidateQueries({ queryKey: ["chunks"] });
-      qc.invalidateQueries({ queryKey: ["stats"] });
-      toast.success(
-        data.deletedPairs > 0
-          ? `Document deleted — purged ${data.deletedPairs} pairs`
-          : "Document deleted",
-      );
+export interface Totals {
+  docs: number;
+  chunks: number;
+  pairs: number;
+  misses: number;
+}
+
+/** Sidebar + stat-strip counters: corpus counts (/api/stats) + open misses (/admin/stats). */
+export function useStats() {
+  return useQuery<Totals>({
+    queryKey: ["stats"],
+    queryFn: async () => {
+      const [corpus, admin] = await Promise.all([corpusStats(), adminStats()]);
+      return {
+        docs: corpus.documents,
+        chunks: corpus.chunks,
+        pairs: corpus.pairs,
+        misses: admin.total_unanswered,
+      };
     },
-    onError: (e) =>
-      toast.error(`Delete failed — ${e instanceof Error ? e.message : "request failed"}`),
   });
 }

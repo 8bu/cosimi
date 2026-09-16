@@ -19,7 +19,7 @@ export async function listMigrationFiles(dir: string = MIGRATIONS_DIR): Promise<
  * caller is expected to have a clean schema (vitest global-setups DROP `public`
  * first). For incremental, tracked application use the `migrate` CLI.
  *
- * The full schema — including the pgvector graph/retrieval tables — is one
+ * The full schema — including the pgvector retrieval tables — is one
  * sequence: retrieve() is the SDK's core, so every target gets it (Neon, the
  * dev container, and the test image all have the `vector` extension). The SQL is
  * `IF NOT EXISTS`, so re-running is safe. Extracted here so the vitest

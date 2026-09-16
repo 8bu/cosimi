@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import { stripApiPrefix } from "../src/lib/worker-url";
 
-const url = (path: string) => new Request(`https://8bu.dev${path}`);
+const url = (path: string) => new Request(`https://cosimi.8bu.dev${path}`);
 const pathOf = (req: Request) => new URL(req.url).pathname;
 
 describe("stripApiPrefix", () => {
   it("strips a leading /api/ segment", () => {
-    expect(pathOf(stripApiPrefix(url("/api/chat")))).toBe("/chat");
+    expect(pathOf(stripApiPrefix(url("/api/retrieve")))).toBe("/retrieve");
   });
 
   it("maps bare /api to /", () => {
@@ -22,7 +22,7 @@ describe("stripApiPrefix", () => {
   });
 
   it("preserves method and headers", () => {
-    const req = new Request("https://8bu.dev/api/chat", {
+    const req = new Request("https://cosimi.8bu.dev/api/retrieve", {
       method: "POST",
       headers: { "X-Session-Id": "abc" },
     });
@@ -32,7 +32,7 @@ describe("stripApiPrefix", () => {
   });
 
   it("does NOT strip a non-/api path", () => {
-    expect(pathOf(stripApiPrefix(url("/chat")))).toBe("/chat");
+    expect(pathOf(stripApiPrefix(url("/retrieve")))).toBe("/retrieve");
   });
 
   it("does NOT strip a path that merely starts with 'api'", () => {

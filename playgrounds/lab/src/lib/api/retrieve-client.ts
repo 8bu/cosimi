@@ -1,5 +1,5 @@
 import { API_BASE } from "@/config/bases";
-import type { RetrievalResult, TuningParams } from "./types";
+import type { CorpusStats, RetrievalResult, TuningParams } from "./raw-types";
 
 async function jsonOrThrow<T>(res: Response): Promise<T> {
   if (!res.ok) {
@@ -23,11 +23,6 @@ export async function retrieve(
   return jsonOrThrow<RetrievalResult>(res);
 }
 
-export interface CorpusStats {
-  documents: number;
-  chunks: number;
-  pairs: number;
-}
-export async function stats(): Promise<CorpusStats> {
+export async function corpusStats(): Promise<CorpusStats> {
   return jsonOrThrow<CorpusStats>(await fetch(`${API_BASE}/stats`));
 }

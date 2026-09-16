@@ -15,7 +15,7 @@ afterAll(async () => {
   await sql().end({ timeout: 5 });
 });
 
-// The graph-schema migration created pairs.embedding as vector(1024) + its hnsw
+// The retrieval-schema migration created pairs.embedding as vector(1024) + its hnsw
 // index. One test drops the column to simulate an un-migrated DB; restore it
 // idempotently after every test so later test files (shared cosimi_test DB) are
 // unaffected.
@@ -25,7 +25,7 @@ afterEach(async () => {
 });
 
 describe("cosimi.healthcheck()", () => {
-  it("matching embedder + graph-schema migrations applied → schema ready, ok", async () => {
+  it("matching embedder + retrieval-schema migrations applied → schema ready, ok", async () => {
     const report = await createCosimi({ sql, embedder: fakeEmbedder(DIM) }).healthcheck();
     expect(report.db).toBe("up");
     expect(report.schema).toBe("ready");

@@ -16,7 +16,7 @@ beforeAll(async () => {
   await admin.unsafe("CREATE DATABASE cosimi_graph_unit");
   await admin.end();
   db = postgres(url.toString(), { max: 1, onnotice: () => {} });
-  await applyMigrations(db); // the full sequence — graph schema included, no flag
+  await applyMigrations(db); // the full sequence — retrieval schema included, no flag
 });
 
 afterAll(async () => {
@@ -31,7 +31,7 @@ afterAll(async () => {
   }
 });
 
-it("ships the graph/retrieval migrations in the default numbered sequence", async () => {
+it("ships the retrieval migrations in the default numbered sequence", async () => {
   const files = await listMigrationFiles();
   expect(files).toContain("012_graph_schema.sql");
   expect(files).toContain("013_ingest_jobs.sql");

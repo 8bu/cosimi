@@ -1,62 +1,77 @@
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { DocumentsTable } from "@/features/documents/components/DocumentsTable";
+import type { DocVM } from "@/lib/adapters";
 
-const mocks = vi.hoisted(() => ({
-  q: { data: undefined as unknown, isLoading: false },
-  del: { mutate: vi.fn(), isPending: false },
-}));
-vi.mock("../hooks", () => ({
-  useDocuments: () => mocks.q,
-  useDeleteDocument: () => mocks.del,
-}));
-vi.mock("@tanstack/react-router", () => ({
-  Link: (p: { children: React.ReactNode }) => <a>{p.children}</a>,
-}));
+afterEach(() => cleanup());
 
-afterEach(() => {
-  cleanup();
-  mocks.del.mutate.mockClear();
-});
+const docs: DocVM[] = [
+  {
+    id: "a",
+    type: "md",
+    title: "Alpha",
+    source: null,
+    status: "indexed",
+    chunks: 4,
+    pairs: 2,
+    tokens: null,
+    added: "2026-06-01",
+    by: null,
+    tags: [],
+    error: null,
+  },
+  {
+    id: "b",
+    type: "pdf",
+    title: "Beta",
+    source: null,
+    status: "indexed",
+    chunks: 9,
+    pairs: 5,
+    tokens: null,
+    added: "2026-06-02",
+    by: null,
+    tags: [],
+    error: null,
+  },
+];
 
-it("renders document rows with counts", async () => {
-  mocks.q.data = [
-    {
-      id: "d1",
-      title: "Alpha",
-      mime_type: "text/markdown",
-      created_at: "2026-01-01",
-      chunkCount: 3,
-      pairCount: 9,
-    },
-  ];
-  const { DocumentsTable } = await import("./DocumentsTable");
-  render(<DocumentsTable />);
-  expect(screen.getByText("Alpha")).toBeTruthy();
-  expect(screen.getByText("3")).toBeTruthy();
-  expect(screen.getByText("9")).toBeTruthy();
-});
-it("empty state", async () => {
-  mocks.q.data = [];
-  const { DocumentsTable } = await import("./DocumentsTable");
-  render(<DocumentsTable />);
-  expect(screen.getByText(/no documents/i)).toBeTruthy();
-});
-it("deletes a document after confirming", async () => {
+const noop = () => {};
+
+test("search filters rows", async () => {
   const user = userEvent.setup();
-  mocks.q.data = [
-    {
-      id: "d1",
-      title: "Alpha",
-      mime_type: "text/markdown",
-      created_at: "2026-01-01",
-      chunkCount: 3,
-      pairCount: 9,
-    },
-  ];
-  const { DocumentsTable } = await import("./DocumentsTable");
-  render(<DocumentsTable />);
-  await user.click(screen.getByLabelText("Delete Alpha"));
-  await user.click(screen.getByRole("button", { name: "Delete" }));
-  expect(mocks.del.mutate).toHaveBeenCalledWith("d1");
+  render(<DocumentsTable docs={docs} onOpen={noop} onIngest={noop} onRemove={noop} />);
+  await user.type(screen.getByPlaceholderText(/search title/i), "alpha");
+  expect(screen.getByText("Alpha")).toBeInTheDocument();
+  expect(screen.queryByText("Beta")).toBeNull();
+});
+
+test("tokens null renders em dash", () => {
+  render(<DocumentsTable docs={docs} onOpen={noop} onIngest={noop} onRemove={noop} />);
+  // both rows have null tokens → at least two em-dashes in the table
+  expect(screen.getAllByText("—").length).toBeGreaterThan(0);
+});
+
+test("row click opens the document", async () => {
+  const user = userEvent.setup();
+  const onOpen = vi.fn();
+  render(<DocumentsTable docs={docs} onOpen={onOpen} onIngest={noop} onRemove={noop} />);
+  await user.click(screen.getByText("Alpha"));
+  expect(onOpen).toHaveBeenCalledWith("a");
+});
+
+test("selecting a row reveals a Remove-only bulk bar that calls onRemove", async () => {
+  const user = userEvent.setup();
+  const onRemove = vi.fn();
+  render(<DocumentsTable docs={docs} onOpen={noop} onIngest={noop} onRemove={onRemove} />);
+  // select Alpha's row via its row checkbox (sort-order independent)
+  const alphaRow = screen.getByText("Alpha").closest("tr")!;
+  await user.click(alphaRow.querySelector(".ck")!);
+  expect(screen.getByText("selected")).toBeInTheDocument();
+  // no Re-ingest / Re-embed controls exist
+  expect(screen.queryByRole("button", { name: /re-ingest/i })).toBeNull();
+  expect(screen.queryByRole("button", { name: /re-embed/i })).toBeNull();
+  await user.click(screen.getByRole("button", { name: /remove/i }));
+  expect(onRemove).toHaveBeenCalledWith(["a"]);
 });

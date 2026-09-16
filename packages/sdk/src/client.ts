@@ -13,14 +13,14 @@ import { RetrievalService, type RetrieveInput } from "./services/retrieval";
  */
 export interface CosimiClient {
   /**
-   * Probe the database for reachability and GraphRAG schema readiness. OPT-IN:
+   * Probe the database for reachability and retrieval-schema readiness. OPT-IN:
    * call once after startup (NOT at construction — the SDK does no I/O at build
    * time to stay Workers-safe). Returns a report; never throws on a not-ready DB.
    */
   healthcheck(): Promise<HealthReport>;
   /**
-   * GraphRAG retrieval: embed the query, seed from nearest chunks, expand the
-   * graph, return ranked chunks with their linked pairs.
+   * Retrieval: embed the query, take the nearest pairs and chunks, attach
+   * linked chunks to a pair hit's context, and return the ranked hits.
    */
   retrieve(query: string, input?: RetrieveInput): Promise<RetrievalResult>;
 }

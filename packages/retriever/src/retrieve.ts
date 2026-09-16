@@ -9,7 +9,7 @@ export interface RetrieveOptions {
   topK: number;
   /** Candidates pulled from EACH pool (pairs, chunks) before merge. */
   seedK: number;
-  /** Graph expansion (hops) for a pair-hit's context chunks. */
+  /** Linked-chunk expansion (hops) for a pair-hit's context chunks. */
   maxHops: number;
   /** Cosine floor on hits. */
   minSimilarity: number;
@@ -22,8 +22,8 @@ type HitRow = { kind: "pair" | "chunk"; id: string; similarity: number };
 /**
  * Unified retrieval (runtime, LLM-free, deterministic). Searches pairs AND chunks
  * as equal embedded targets: top-seedK of each pool by cosine, merged + floored +
- * ranked into one hit list (topK). A pair-hit carries its source chunk + graph
- * neighbors (<= maxHops) as context; a chunk-hit carries its linked pairs.
+ * ranked into one hit list (topK). A pair-hit carries its source chunk + linked
+ * chunks (<= maxHops) as context; a chunk-hit carries its linked pairs.
  * Reverses the old chunk-anchored model (umbrella D5).
  */
 export async function retrieve(sql: SqlAccessor, opts: RetrieveOptions): Promise<RetrievalResult> {
@@ -89,7 +89,7 @@ export async function retrieve(sql: SqlAccessor, opts: RetrieveOptions): Promise
       : [];
   const pairById = new Map(pairDetails.map((p) => [p.id, p]));
 
-  // 3. Graph neighbors of every pair source chunk (root-carrying recursive walk).
+  // 3. Linked chunks of every pair source chunk (root-carrying recursive walk).
   type WalkRow = { root: string; id: string; hops: number };
   const sourceChunkIds = pairDetails.map((p) => p.source_chunk);
   const walkRows: WalkRow[] =

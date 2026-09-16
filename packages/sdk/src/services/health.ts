@@ -4,7 +4,7 @@ import type { SqlAccessor } from "@cosimi/retriever";
  * A point-in-time readiness probe for a {@link CosimiClient}'s database. Opt-in:
  * the consumer calls it once after startup (never at construction — the SDK does
  * no I/O at build time, staying Workers-safe). Reports whether the DB is
- * reachable and migrated for GraphRAG retrieval.
+ * reachable and migrated for retrieval.
  */
 export interface HealthReport {
   /** True when there are no blocking issues. */
@@ -12,7 +12,7 @@ export interface HealthReport {
   /** Database reachability. */
   db: "up" | "down";
   /**
-   * GraphRAG schema readiness:
+   * Retrieval-schema readiness:
    *  - "ready"  — `pairs.embedding` (matching dimension) + `chunks` +
    *               `chunk_pair_map` all present.
    *  - "absent" — one or more of the above is missing or mismatched; see `issues`.
@@ -44,7 +44,7 @@ export class HealthService {
   async check(): Promise<HealthReport> {
     const issues: string[] = [];
 
-    // DB reachability + GraphRAG schema (embedding column dimension + chunk
+    // DB reachability + retrieval schema (embedding column dimension + chunk
     // tables). A connection failure is terminal — we can't probe anything else.
     let colDim: number | null = null;
     let hasChunkTables = false;
@@ -74,17 +74,17 @@ export class HealthService {
 
     if (colDim === null || colDim <= 0) {
       issues.push(
-        "GraphRAG schema missing: run the migrations (pnpm migrate / applyMigrations) " +
+        "Retrieval schema missing: run the migrations (pnpm migrate / applyMigrations) " +
           "(pairs.embedding column absent).",
       );
     } else if (colDim !== this.#dim) {
       issues.push(
-        `GraphRAG dimension mismatch: pairs.embedding is vector(${colDim}) but the ` +
-          `configured embedder is ${this.#dim}. Re-migrate or use a matching embedder.`,
+        `Embedding dimension mismatch: pairs.embedding is vector(${colDim}) but ` +
+          `the configured embedder is ${this.#dim}. Re-migrate or use a matching embedder.`,
       );
     } else if (!hasChunkTables) {
       issues.push(
-        "GraphRAG schema incomplete: chunks/chunk_pair_map tables absent " +
+        "Retrieval schema incomplete: chunks/chunk_pair_map tables absent " +
           "(run the migrations: pnpm migrate / applyMigrations).",
       );
     }

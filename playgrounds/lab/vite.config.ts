@@ -6,7 +6,7 @@ import { tanstackRouter } from "@tanstack/router-plugin/vite";
 
 // The TanStack Router plugin MUST come before the react plugin. The dev proxy
 // fronts the two cosimi backends: /api → the public retrieve api (:3000),
-// /admin → the loopback ingest/admin api (:3001). Both env-overridable.
+// /admin → the loopback admin api (:3001).
 export default defineConfig({
   plugins: [tanstackRouter({ target: "react", autoCodeSplitting: true }), react(), tailwindcss()],
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },

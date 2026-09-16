@@ -5,7 +5,7 @@ import { Hono } from "hono";
 import { resolveEmbedder } from "../lib/embedder";
 
 /**
- * Liveness + GraphRAG schema readiness via the SDK's healthcheck(). Shape:
+ * Liveness + retrieval-schema readiness via the SDK's healthcheck(). Shape:
  * `{ ok, db: 'up'|'down', schema: 'ready'|'absent', issues: string[] }`.
  * 200 when ok, 503 otherwise — the orchestrator's "up but dependency down"
  * signal. healthcheck() never throws on a not-ready DB.

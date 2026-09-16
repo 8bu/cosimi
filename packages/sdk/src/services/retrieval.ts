@@ -5,9 +5,9 @@ import { retrieve, type SqlAccessor } from "@cosimi/retriever";
 export interface RetrieveInput {
   /** Max chunks returned (default env RETRIEVE_TOP_K). */
   topK?: number;
-  /** Nearest chunks used as graph seeds (default env RETRIEVE_SEED_K). */
+  /** Nearest chunks used as seeds (default env RETRIEVE_SEED_K). */
   seedK?: number;
-  /** Graph expansion hops (default env RETRIEVE_MAX_HOPS). */
+  /** Linked-chunk expansion hops (default env RETRIEVE_MAX_HOPS). */
   maxHops?: number;
   /** Seed similarity floor (default env RETRIEVE_MIN_SIMILARITY). */
   minSimilarity?: number;
@@ -21,7 +21,7 @@ export interface RetrievalServiceDeps {
 }
 
 /**
- * Runtime GraphRAG retrieval. Embeds the RAW query ONCE (the offline pipeline
+ * Runtime retrieval. Embeds the RAW query ONCE (the offline pipeline
  * embedded pairs/chunks from raw text too), resolves env defaults for the
  * numeric knobs, and calls the pure retriever retrieve(). The embedder is
  * mandatory — `createCosimi` rejects a config without one, so this service is

@@ -1,20 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
-import { listDocuments, listChunks, listChunkPairs } from "@/lib/api/admin-client";
+import { listChunks, listChunkPairs } from "@/lib/api/admin-client";
+import { toChunkVM, toPairVM } from "@/lib/adapters";
+import type { ChunkVM, PairVM } from "@/lib/adapters";
 
-export function useCorpusDocuments() {
-  return useQuery({ queryKey: ["documents"], queryFn: listDocuments });
-}
-export function useChunks(documentId: string | null) {
-  return useQuery({
-    queryKey: ["chunks", documentId],
-    queryFn: () => listChunks(documentId!),
-    enabled: !!documentId,
+export function useChunks(docId: string | null) {
+  return useQuery<ChunkVM[]>({
+    queryKey: ["chunks", docId],
+    queryFn: async () => (await listChunks(docId!)).map(toChunkVM),
+    enabled: !!docId,
   });
 }
+
 export function useChunkPairs(chunkId: string | null) {
-  return useQuery({
-    queryKey: ["chunk-pairs", chunkId],
-    queryFn: () => listChunkPairs(chunkId!),
+  return useQuery<PairVM[]>({
+    queryKey: ["chunkPairs", chunkId],
+    queryFn: async () => (await listChunkPairs(chunkId!)).map(toPairVM),
     enabled: !!chunkId,
   });
 }

@@ -31,17 +31,18 @@ export const EnvSchema = v.object({
   DATABASE_URL: v.pipe(v.string(), v.url()),
   LOG_LEVEL: enumEnv(["debug", "info", "warn", "error"] as const, "info"),
 
-  // The embedding dimension the GraphRAG schema's `vector(N)` column was created
+  // The embedding dimension the schema's `vector(N)` column was created
   // with. The SDK asserts the injected embedder's `dimension` equals this at
   // construction — a wrong-dimension embedder must fail loudly, never write
   // incompatible vectors.
   EMBEDDING_DIM: intRangeEnv(1024, 1),
 
-  // ─── GraphRAG retrieval defaults (runtime) ────────────────────────────────
-  // Max chunks returned by retrieve(). Seed count = nearest chunks used as graph
-  // anchors. maxHops = undirected graph expansion from each seed. minSimilarity
-  // is the cosine floor applied to SEEDS ONLY — graph neighbors are included
-  // regardless (the GraphRAG value-add), then everything is ranked by similarity.
+  // ─── Retrieval defaults (runtime) ─────────────────────────────────────────
+  // Max chunks returned by retrieve(). Seed count = nearest chunks used as
+  // seeds. maxHops = undirected expansion over linked chunks from each seed.
+  // minSimilarity is the cosine floor applied to SEEDS ONLY — linked chunks are
+  // included regardless (the context-enrichment step), then everything is ranked
+  // by similarity.
   RETRIEVE_TOP_K: intRangeEnv(8, 1),
   RETRIEVE_SEED_K: intRangeEnv(4, 1),
   RETRIEVE_MAX_HOPS: intRangeEnv(2, 0),

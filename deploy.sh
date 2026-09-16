@@ -3,6 +3,13 @@ set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel)"
 
+# All deploys are manual, and all of them are Cloudflare: Cloudflare Pages for
+# the lab (`cosimi-web`) and a Cloudflare Worker for `cosimi-api`, which reaches
+# Neon through the `cosimi-hd` Hyperdrive config. First-time setup — creating the
+# Pages project `cosimi-web`, the Hyperdrive config `cosimi-hd`, and the custom
+# domain — is done once in the Cloudflare dashboard or CLI and is not automated
+# here.
+
 # -- output helpers ---------------------------------------------------------
 RED=$'\033[0;31m'; GREEN=$'\033[0;32m'; YELLOW=$'\033[0;33m'; BLUE=$'\033[0;34m'; NC=$'\033[0m'
 print_success() { printf '%s\n' "${GREEN}✓ $*${NC}"; }
@@ -18,9 +25,7 @@ run_gates() {
   pnpm -r typecheck \
     && pnpm lint \
     && pnpm format:check \
-    && pnpm -r --workspace-concurrency=1 test \
-    && pnpm --filter @portf/web build \
-    && pnpm --filter @portf/web test:ssg
+    && pnpm -r --workspace-concurrency=1 test
   print_success "Gates green."
 }
 
@@ -30,94 +35,68 @@ confirm() {
   [[ "$reply" == "y" || "$reply" == "Y" ]]
 }
 
+# -- deploy bodies (no gates) ----------------------------------------------
 
-deploy_portf_pages() {
-  run_gates
-  print_info "Building @portf/web…"
-  pnpm --filter @portf/web build
-  print_info "Deploying portf → Pages…"
+deploy_lab_pages() {
+  print_info "Building @cosimi/lab…"
+  pnpm --filter @cosimi/lab build
+  print_info "Deploying lab → Pages (cosimi-web)…"
   # shellcheck disable=SC2086
-  $WRANGLER pages deploy ../portf/dist/client --project-name portf
-  print_success "portf Pages deployed."
+  $WRANGLER pages deploy "$(pwd)/playgrounds/lab/dist" --project-name cosimi-web --commit-dirty=true
+  print_success "Lab deployed to cosimi-web."
 }
 
-deploy_web_pages() {
-  run_gates
-  print_info "Building @cosimi/web…"
-  pnpm --filter @cosimi/web build
-  print_info "Deploying web → Pages…"
-  # shellcheck disable=SC2086
-  $WRANGLER pages deploy ../web/dist --project-name cosimi-web
-  print_success "web Pages deployed."
-}
-
-deploy_portf_api() {
-  run_gates
-  print_info "Deploying portf-api Worker (env.portf)…"
-  (cd playgrounds/api && pnpm exec wrangler deploy -e portf)
-  print_success "portf-api deployed."
-}
-
-deploy_cosimi_api() {
-  run_gates
+deploy_api_worker() {
   print_info "Deploying cosimi-api Worker (env.cosimi)…"
   (cd playgrounds/api && pnpm exec wrangler deploy -e cosimi)
   print_success "cosimi-api deployed."
 }
 
-deploy_all() {
+# -- steps ------------------------------------------------------------------
+
+step_deploy_lab() {
   run_gates
-  pnpm --filter @portf/web build
-  # shellcheck disable=SC2086
-  $WRANGLER pages deploy ../portf/dist/client --project-name portf
-  pnpm --filter @cosimi/web build
-  # shellcheck disable=SC2086
-  $WRANGLER pages deploy ../web/dist --project-name cosimi-web
-  (cd playgrounds/api && pnpm exec wrangler deploy -e portf && pnpm exec wrangler deploy -e cosimi)
+  deploy_lab_pages
+}
+
+step_deploy_api() {
+  run_gates
+  deploy_api_worker
+}
+
+step_deploy_both() {
+  run_gates
+  deploy_lab_pages
+  deploy_api_worker
   print_success "Full deploy complete."
 }
 
-run_migrations() {
-  local target db_url
-  local -a targets
-  printf 'Migrate which DB? [1] portf  [2] cosimi  [3] both: '
-  read -r target
-  case "$target" in
-    1) targets=("portf") ;;
-    2) targets=("cosimi") ;;
-    3) targets=("portf" "cosimi") ;;
-    *) print_error "Invalid choice."; return 1 ;;
-  esac
-  for t in "${targets[@]}"; do
-    print_info "Paste the Neon DIRECT (non-pooled) URL for the ${t} DB (input hidden):"
-    read -rsp "  ${t} DATABASE_URL: " db_url; printf '\n'
-    if [[ -z "$db_url" ]]; then print_error "Empty URL — skipping ${t}."; continue; fi
-    print_info "Running migrations against ${t}…"
-    DATABASE_URL="$db_url" node_modules/.bin/tsx packages/db/src/migrate.ts up
-    print_success "Migrations applied to ${t}."
-    unset db_url
-  done
+step_migrate() {
+  local url
+  printf 'Neon cosimi DIRECT connection URL (not -pooler): '
+  read -rs url; printf '\n'
+  if [[ -z "$url" ]]; then print_error "Empty URL — aborting."; return 1; fi
+  print_info "Running migrations against the cosimi DB…"
+  DATABASE_URL="$url" pnpm --filter @cosimi/db-core migrate up
+  unset url
+  print_success "Migrations applied."
 }
 
-tail_logs() {
-  local choice
-  printf 'Tail which worker? [1] portf-api  [2] cosimi-api: '
-  read -r choice
-  case "$choice" in
-    1) (cd playgrounds/api && pnpm exec wrangler tail -e portf) ;;
-    2) (cd playgrounds/api && pnpm exec wrangler tail -e cosimi) ;;
-    *) print_error "Invalid choice." ;;
-  esac
+step_tail() {
+  (cd playgrounds/api && pnpm exec wrangler tail -e cosimi)
 }
 
-status() {
+step_status() {
+  print_info "Cloudflare account:"
   # shellcheck disable=SC2086
-  { print_info "wrangler account:"; $WRANGLER whoami || true; }
-  # shellcheck disable=SC2086
-  { print_info "Pages projects:"; $WRANGLER pages project list || true; }
-  print_info "portf /healthz:";   curl -fsS https://8bu.dev/api/healthz || print_warning "portf health unreachable"
+  $WRANGLER whoami || true
   printf '\n'
-  print_info "cosimi /healthz:";  curl -fsS https://cosimi.8bu.dev/api/healthz || print_warning "cosimi health unreachable"
+  print_info "cosimi-api deployments:"
+  # shellcheck disable=SC2086
+  $WRANGLER deployments list -e cosimi || true
+  printf '\n'
+  print_info "cosimi /healthz:"
+  curl -fsS https://cosimi.8bu.dev/api/healthz || print_warning "cosimi health unreachable"
   printf '\n'
 }
 
@@ -125,38 +104,43 @@ menu() {
   cat <<'MENU'
 
 cosimi deploy - Cloudflare + Neon (manual)
-  2) Deploy portf  → Pages (8bu.dev)
-  3) Deploy web    → Pages (cosimi.8bu.dev)
-  4) Deploy portf-api  → Worker (env.portf)
-  5) Deploy cosimi-api → Worker (env.cosimi)
-  6) Deploy ALL (gates → 2,3,4,5)
-  7) Run Neon migrations
-  8) Tail logs
-  9) Status
- 10) Run standing gates only
-  0) Exit
+  1) Run gates
+  2) Deploy lab → Pages (cosimi-web)
+  3) Deploy cosimi-api Worker (env.cosimi)
+  4) Deploy both (gates → 2,3)
+  5) Migrate Neon cosimi DB
+  6) Tail cosimi-api
+  7) Status
+  q) Quit
 MENU
   printf 'Choose: '
 }
 
+run_choice() {
+  case "$1" in
+    1) run_gates ;;
+    2) step_deploy_lab ;;
+    3) step_deploy_api ;;
+    4) confirm "Deploy the lab AND the cosimi-api Worker to production?" && step_deploy_both ;;
+    5) step_migrate ;;
+    6) step_tail ;;
+    7) step_status ;;
+    q|Q|quit|exit) print_info "Bye."; exit 0 ;;
+    *) print_error "Invalid choice: $1"; return 1 ;;
+  esac
+}
+
 main() {
-  local choice
+  local choice="${1:-}"
+  # An option number passed as $1 runs that step once and exits; otherwise menu.
+  if [[ -n "$choice" ]]; then
+    run_choice "$choice"
+    return
+  fi
   while true; do
     menu
     read -r choice
-    case "$choice" in
-      2) deploy_portf_pages ;;
-      3) deploy_web_pages ;;
-      4) deploy_portf_api ;;
-      5) deploy_cosimi_api ;;
-      6) confirm "Deploy EVERYTHING to production?" && deploy_all ;;
-      7) run_migrations ;;
-      8) tail_logs ;;
-      9) status ;;
-      10) run_gates ;;
-      0) print_info "Bye."; exit 0 ;;
-      *) print_error "Invalid choice." ;;
-    esac
+    run_choice "$choice" || true
   done
 }
 

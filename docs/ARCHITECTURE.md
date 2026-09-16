@@ -1,169 +1,150 @@
-# Cosimi — Architecture
+# cosimi — Architecture
 
-> Canonical architecture doc for the SDK / GraphRAG era. Replaces the old
-> SimSimi-app docs and the former `NEW_ARCHITECTURE.md` umbrella.
-
-## What it is
-
-Cosimi is a deterministic, **LLM-free-at-query-time**, GraphRAG-*inspired* retrieval SDK. You
-ingest documents **offline** (an LLM turns source text into a chunk graph + Q&A pairs); at
-**runtime** `retrieve(query)` returns a ranked, deterministic structure — no LLM, no random
-jitter, same query + same data → same result. The consumer owns any downstream RAG/LLM step,
-or uses the pre-generated pairs directly as answers.
-
-> **GraphRAG-*inspired*, not Microsoft GraphRAG.** No entity extraction, community detection,
-> hierarchical summaries, or global/local search modes. The "graph" is a flat chunk-relation
-> structure used only for **retrieval expansion** and context augmentation.
-
-It began as a SimSimi-style lexical matcher (`exact → FTS → trigram` cascade over a curated
-pair store). That cascade is **deleted**. Same offline spine (an LLM generates pairs from
-source docs); a completely different query path (vector + graph, not lexical tiers).
+cosimi distills a document corpus into retrievable knowledge for RAG. Offline, on Node, an LLM splits
+documents into chunks, generates Q&A pairs from each chunk, and audits them with a second LLM pass; chunks
+and pairs are embedded into one 1024-dim space (bge-m3 via pgvector) in Postgres. At query time — on Node
+or Cloudflare Workers, with no LLM — `retrieve(query)` embeds the query once and returns the top-K nearest
+pairs and chunks by cosine similarity: same query, same data, same hits. Consumers feed the hits into their
+own RAG/LLM step, or use the pair answers directly.
 
 ## Two surfaces
 
 | Surface | Entry | Runtime | Uses an LLM? |
 |---|---|---|---|
-| **Offline ingest** | `@cosimi/sdk/offline` | Node only | **Yes** (generate + audit) |
-| **Runtime retrieve** | `@cosimi/sdk` | Node **or** Cloudflare Workers | No — deterministic |
+| **Offline ingest** | `@cosimi/sdk/offline` | Node only | Yes — pairs, chunk links, audit |
+| **Runtime retrieve** | `@cosimi/sdk` | Node or Cloudflare Workers | No — deterministic |
 
-The subpath `exports` keep the LLM-heavy offline deps out of the Workers runtime bundle.
+The subpath `exports` in `packages/sdk/package.json` keep the LLM-heavy offline deps out of the Workers bundle.
 
 ```ts
 import { createCosimi } from "@cosimi/sdk";
 import { sql } from "@cosimi/adapter-postgres";
 import { createOllamaEmbedder } from "@cosimi/adapter-embed-ollama";
 
-const cosimi = createCosimi({ sql, embedder: createOllamaEmbedder({ baseUrl }) }); // embedder MANDATORY
-const result = await cosimi.retrieve("how long do refunds take?", {
-  topK: 8, seedK: 4, maxHops: 2, minSimilarity: 0.45,
-});
-// result.hits: ranked (PairHit | ChunkHit)[] — see "Retrieval" below.
+const cosimi = createCosimi({ sql, embedder: createOllamaEmbedder({ baseUrl }) }); // embedder mandatory
+const { hits } = await cosimi.retrieve("how long do refunds take?", { topK: 8, seedK: 4, maxHops: 2, minSimilarity: 0.45 });
 ```
 
-`createCosimi(config)` does **no I/O at construction** (Workers-safe). It validates the embedder
-dimension against `EMBEDDING_DIM` and returns a client with `retrieve()` and an opt-in
-`healthcheck()`. `config.sql` is an **accessor** (`() => client`), resolved at call time so the
-SDK holds no module-level connection.
+`createCosimi(config)` does no database I/O at construction. `config.sql` is the postgres **accessor**
+(`SqlAccessor`), so the Workers request scope resolves at call time; `config.embedder` is mandatory, and
+construction asserts `embedder.dimension === EMBEDDING_DIM` (1024). The client also exposes `healthcheck()`.
 
-## Retrieval (`@cosimi/retriever`)
+## Retrieval
 
-Pairs and chunks are **equal, first-class embedded targets** — the chunk↔pair link exists only
-for context augmentation, not gating (this reverses the earlier chunk-anchored model). One
-`retrieve(sql, opts)` call:
+`retrieve(sql, opts)` lives in `@cosimi/retriever`; the SDK calls it. `RetrievalService` embeds the raw
+query once and passes the vector down; pairs and chunks are equal embedded targets.
 
-1. **Seed (two ANN pools).** Two index-friendly sub-selects — top-`seedK` nearest **pairs**
-   (`audit_status='pass'`, `deleted_at IS NULL`, locale-filtered) and top-`seedK` nearest
-   **chunks** — each keeps its hnsw index. Floor by `minSimilarity`, `UNION ALL`, rank by
-   `(similarity DESC, kind ASC, id ASC)`, take `topK`.
-2. **Augment.** A **pair-hit** carries its source chunk + that chunk's graph neighbors
-   (`≤ maxHops`, via a root-carrying recursive CTE with `CYCLE` guard). A **chunk-hit** carries
-   its linked pairs.
-3. **Return** `{ hits: (PairHit | ChunkHit)[] }`.
+1. **Rank.** Two index-friendly ANN sub-selects run in one query, each keeping its hnsw index: the top
+   `seedK` nearest **pairs** (`embedding IS NOT NULL AND deleted_at IS NULL AND audit_status = 'pass'`, plus
+   a locale filter that keeps rows in `locales` and rows tagged `'und'`) and the top `seedK` nearest
+   **chunks**. Similarity is `1 - (embedding <=> q)`. Both pools are floored at `minSimilarity`, merged by
+   `UNION ALL`, ranked `(similarity DESC, kind ASC, id ASC)`, and cut to `topK`.
+2. **Attach context.** A **pair hit** carries `context`: its source chunk (via `chunk_pair_map`) plus the
+   chunks linked from it within `maxHops` — an undirected recursive walk over `chunk_relations` with a
+   `CYCLE` guard. A **chunk hit** carries `pairs`: its live, passing, locale-eligible pairs, sorted by
+   similarity. Links never affect ranking; ranking is cosine only.
+3. **Return** `{ hits }` — a `PairHit` (`kind`, `similarity`, `input`, `response`, `context`) or a
+   `ChunkHit` (`kind`, `similarity`, `chunk`, `pairs`). Nothing clearing the floor returns `{ hits: [] }`,
+   and the public api then upserts the query into `unanswered` with `source = 'retrieve'`.
 
-Cosine similarity is `1 - (embedding <=> q)`. Deterministic: no top-K random pick, no jitter.
-The numeric knobs default from env (`RETRIEVE_TOP_K`, `RETRIEVE_SEED_K`, `RETRIEVE_MAX_HOPS`,
-`RETRIEVE_MIN_SIMILARITY` = 0.45) and are overridable per call.
+Knobs default from `EnvSchema` in `@cosimi/core` — `RETRIEVE_TOP_K` (8), `RETRIEVE_SEED_K` (4),
+`RETRIEVE_MAX_HOPS` (2), `RETRIEVE_MIN_SIMILARITY` (0.45) — and are overridable per call.
 
-## Offline ingest (`@cosimi/sdk/offline`)
+## Offline ingest
 
-`createIngestService(deps, options).ingest(input)` — pure orchestrator, all I/O injected:
+`createIngestService(deps, options).ingest(input)` is a pure orchestrator with all I/O injected.
 
-1. **Store + record** the raw document (object storage + `documents` row).
-2. **Chunk** (single-axis dispatch): headed markdown → structural `chunkMarkdown` (one chunk per
-   `##`/`###` section; over-token sections split into a `PARENT_OF` parent + sentence-grouped
-   children; **no text overlap** — continuity is the graph; empty container headings emit no
-   chunk). Headingless text → semantic `chunkByEmbedding` (sentence embeddings, cut on cosine
-   drop). Embed + persist chunks.
-3. **Relations** — an LLM links leaf chunks (`REFERENCES`/`ELABORATES`/`CONTRADICTS` edges).
-4. **Generate** — an LLM emits Q&A pairs per leaf chunk. Fact-poor chunks are skipped (token
-   gate `minGenTokens`, default 12) and the prompt may return `[]`; each pair links to its
-   source chunk (`chunk_pair_map`) + embeds.
-5. **Audit** — a stricter LLM pass: `pass` keeps, `fail` soft-deletes, `rewrite` fixes +
-   re-embeds. Optional **reverse-check** flags pairs whose answer doesn't round-trip to a
-   matching question.
+1. **Store** — upload the bytes through `StorageRepository`, then create the `documents` row.
+2. **Chunk and embed** — `chunk(text, mimeType, embedder, opts)` dispatches on one axis. Markdown with
+   headings goes to `chunkMarkdown`: one chunk per `##`/`###` section, and a section above `splitThreshold`
+   tokens (default 600) becomes a parent holding the heading plus lead sentence with sentence-grouped
+   children linked `PARENT_OF` — no text overlap. Headingless text goes to `chunkByEmbedding`, which cuts
+   sentence embeddings at the weakest seam. Chunks are embedded and persisted parent-first, with `PARENT_OF`
+   edges written as they are created.
+3. **Chunk links (LLM)** — `extractRelations` runs over leaf chunks and writes
+   `REFERENCES`/`ELABORATES`/`CONTRADICTS` edges to `chunk_relations`; structural parents are not a source.
+4. **Generate pairs (LLM)** — per leaf chunk. Chunks below `minGenTokens` (default 12) are skipped before
+   the call and the prompt may return none; each pair is inserted, embedded from its `question: answer`
+   text, mapped to its source chunk, and left `pending`.
+5. **Audit (LLM)** — `auditPair` per candidate: `pass` keeps, `fail` soft-deletes, `rewrite` replaces the
+   response and re-embeds the pair.
+6. **Reverse-check (optional)** — `reverseCheck` flags passed pairs whose answer misses its question.
 
-Two models: Sonnet (generate/relations), Haiku (audit/reverse). **Async by default** — see below.
+`INGEST_GENERATE_MODEL` (`claude-sonnet-4-6`) drives pair generation and chunk links; `INGEST_AUDIT_MODEL`
+(`claude-haiku-4-5-20251001`) drives audit and reverse-check.
 
 ### Async ingest jobs
 
-`POST /ingest` (admin-api) returns `202 { jobId }` immediately; the pipeline runs **detached in
-the process** and mirrors progress to a durable `ingest_jobs` row (`stage` + chunk/pair
-counters). The UI polls `GET /ingest/jobs/:id`. Execution is **in-process on purpose**: the
-Anthropic key lives only in the job's memory closure and is never persisted, so a durable
-cross-process queue (which would have to store the key to resume) is the wrong fit. On boot,
-admin-api sweeps any leftover `running` job → `error` (in-memory work can't survive a restart).
+`POST /ingest` (admin-api) returns `202 { jobId }` immediately; the pipeline runs detached in the process and
+mirrors progress to the `ingest_jobs` row that the UI polls via `GET /ingest/jobs/:id` (`GET /ingest/jobs`
+lists recent jobs). In-process execution is deliberate: the Anthropic key arrives in the `X-Anthropic-Key`
+header and lives only in the job's memory closure — never in env, a row, or a log. Since that work cannot
+survive a restart, admin-api boot sweeps leftover `running` jobs to `error`.
 
 ## Data model
 
-All migrations in `packages/db-core/migrations/` (numbered, additive, never rewritten after
-merge). The graph/vector schema is part of the **default sequence** (`012_graph_schema.sql`,
-`013_ingest_jobs.sql`) — every target gets it; every target needs the `vector` extension (the
-dev container, the test image, and Neon all have it). There is no separate gated migration set.
+Migrations in `packages/db-core/migrations/` are numbered, additive, and never rewritten after merge.
+`012_graph_schema.sql` and `013_ingest_jobs.sql` ship in the default sequence, so every target needs the
+`vector` extension.
 
-- `documents` — metadata; raw bytes in object storage.
-- `chunks` — `content`, `section_title`, `embedding vector(1024)` (hnsw `vector_cosine_ops`).
-- `chunk_relations` — directed edges (`PARENT_OF`, `REFERENCES`, …) backing the graph walk.
-- `pairs` — the Q&A store: `input`/`response` + `embedding vector(1024)`, `audit_status`,
-  `source_chunk`. Reuses the original BIGSERIAL-keyed table (extended, not replaced).
-- `chunk_pair_map` — pair ↔ source chunk.
-- `ingest_jobs` — async ingest status/progress (no key, ever).
+- `documents` — title, mime type, storage key; bytes stay in object storage.
+- `chunks` — `content`, `chunk_index`, `section_title`, `embedding vector(1024)` (hnsw cosine index).
+- `chunk_relations` — one row per directed link (`from_chunk_id`, `to_chunk_id`, `relation_type`).
+- `pairs` — `input`/`response`, `embedding vector(1024)`, `audit_status`, `source_chunk`, `locale`.
+- `chunk_pair_map` — pair ↔ source chunk; serves pair-hit context and chunk-hit pairs.
+- `unanswered` — queries that produced no hits, with `source` (including `'retrieve'`) and a counter.
+- `ingest_jobs` — status, stage, counters, error; no key material, no foreign key on `document_id`.
 
-## The constellation
+## Packages
 
-Hybrid distribution: `@cosimi/*` **code** packages publish in lockstep (changesets, npm + JSR);
-**infra drivers** (postgres, embedding/LLM/storage clients) are **peerDependencies the consumer
-injects**, never bundled — the adapter pattern *is* the dependency graph, and the SDK stays
-Workers-safe.
+`@cosimi/*` code packages publish in lockstep (one changesets `fixed` group; `pnpm release` builds
+`packages/*` then runs `changeset publish`). Infra drivers are peerDependencies the consumer injects.
 
 | Package | Role |
 |---|---|
-| `@cosimi/sdk` | Facade `createCosimi(config)` + `./offline` ingest entry. Primary consumer entry. |
-| `@cosimi/core` | DTOs, valibot env schema, ports (`EmbeddingPort`/`LLMPort`), branding. Dep-free. |
-| `@cosimi/retriever` | The deterministic retrieval algorithm (two-pool ANN + recursive graph walk). |
-| `@cosimi/normalizer` | NFC + lowercase + whitespace (preserves diacritics). |
-| `@cosimi/db-core` | Repository ports, migrations, migrate CLI, `applyMigrations()`. No driver. |
-| `@cosimi/adapter-postgres` | Document/chunk/graph/pair repos over `postgres` + pgvector (peerDep). |
-| `@cosimi/adapter-embed-ollama` / `-workers-ai` / `-fake` | `EmbeddingPort` — dev/offline, prod, tests. |
-| `@cosimi/adapter-llm-anthropic` / `-fake` | `LLMPort` — offline generate/audit, tests. |
-| `@cosimi/adapter-storage` / `@cosimi/adapter-r2` | `StorageRepository` — local FS dev, R2 prod. |
-| `@cosimi/logger` | pino + `redactInput()` PII redaction. |
+| `@cosimi/sdk` | Facade `createCosimi(config)` plus the `./offline` ingest entry. |
+| `@cosimi/core` | DTOs, valibot `EnvSchema`, `EmbeddingPort`/`LLMPort` ports. |
+| `@cosimi/retriever` | The deterministic retrieval algorithm and `SqlAccessor`. |
+| `@cosimi/normalizer` | NFC, lowercase, whitespace normalization (diacritics preserved). |
+| `@cosimi/db-core` | Repository ports, migrations, `applyMigrations()`, migrate CLI. |
+| `@cosimi/adapter-postgres` | `sql()` / `runWithRequestDb()` plus the postgres repositories. |
+| `@cosimi/adapter-embed-ollama` | `EmbeddingPort` over a local ollama daemon (bge-m3). |
+| `@cosimi/adapter-embed-workers-ai` | `EmbeddingPort` over a Workers AI binding (production). |
+| `@cosimi/adapter-embed-fake` | Deterministic in-process embedder for tests. |
+| `@cosimi/adapter-llm-anthropic` | `LLMPort` over the Anthropic Messages API (offline only). |
+| `@cosimi/adapter-llm-fake` | Scripted `LLMPort` for tests. |
+| `@cosimi/adapter-storage` | `StorageRepository` over the local filesystem. |
+| `@cosimi/logger` | pino factory plus `redactInput()` PII redaction. |
 
-Workspace-private tooling (never published): `tsconfig`, `oxlint-config`, `template`.
+Private tooling, never published: `@cosimi/tsconfig`, `@cosimi/oxlint-config`, `@cosimi/template`.
 
-## Runtime DB split (Node vs Workers)
+## Playgrounds
 
-`sql()` from `@cosimi/adapter-postgres` returns a **process-level singleton pool** on Node
-(dev/prod/tests) and a **request-scoped client** on Cloudflare Workers. workerd binds each
-socket to the request that opened it, so a Worker entry wraps `fetch`/`scheduled` in
-`runWithRequestDb(fn)` (an `AsyncLocalStorage` per-request client). **Never** create a
-module-level connection; any Workers entrypoint touching the DB must run inside
-`runWithRequestDb`. `loadEnv()` is called once at startup, never at import time — on Workers,
-deploy-time global-scope validation runs with no bindings, so an import-time `loadEnv()` would
-throw.
-
-## Playgrounds (reference apps — consume `@cosimi/sdk`, not published)
-
-| App | Role | Port |
+| App | Port | Role |
 |---|---|---|
-| `playgrounds/api` | Public retrieval REST — `POST /retrieve` (deterministic JSON). Node + Workers entries. | 3000 |
-| `playgrounds/admin-api` | Internal ingest + corpus REST — async `/ingest`, `/documents`, `/import`, chunk/pair/fallback reads. Loopback-only. | 3001 |
-| `playgrounds/lab` | Single internal UI — Retrieve, Ingest, Documents, Fallback, Corpus. Vite + React + shadcn-ui + TanStack Router/Query, Tailwind v4. | 5173 |
-| `playgrounds/neolab` | KB-console rebuild (Pavilion redesign) — same 5 screens. React 19 + Base UI + TanStack Router/Query + zustand, Tailwind v4. The lab successor; runs beside lab until cutover. | 5174 |
+| `@cosimi/api` | 3000 | Public retrieval REST: `POST /retrieve`, `GET /stats`, `GET /healthz`; Node entry `src/index.ts`, Workers entry `src/worker.ts`. |
+| `@cosimi/admin-api` | 3001 | Internal ingest and corpus REST: `/ingest` (async), `/documents` (+ `DELETE /:id`), `/pairs`, `/stats`, `/unanswered`, `/documents/:id/chunks`, `/chunks/:id/pairs`, `/healthz`. |
+| `@cosimi/lab` | 5173 | Internal UI — Retrieve, Ingest, Documents, Fallback, Corpus — on React 19, Base UI, TanStack Router/Query, zustand, Tailwind v4; Vite proxies `/api` → :3000 and `/admin` → :3001. |
 
-The two API processes are **separate by design**: admin-api binds `127.0.0.1` — the process
-split + network gate **is** the auth contract (no app-layer auth on the admin surface, no
-`/admin/*` route prefix).
+The two API processes are separate by design: admin-api binds `127.0.0.1`, so the process split plus the
+network gate is the auth boundary — no app-layer auth on the admin surface and no `/admin/*` prefix.
+
+## Cloudflare Workers constraints
+
+- **Request-scoped database.** `sql()` returns the client installed by `runWithRequestDb(fn)` (an
+  `AsyncLocalStorage` scope), else the Node process singleton. The Worker wraps its whole `fetch` handler in
+  `runWithRequestDb`; never open a module-level connection and never `end()` the request client.
+- **No `loadEnv()` at import time.** Deploy-time startup validation runs global scope with no bindings, so
+  `playgrounds/api/src/lib/logger.ts` builds pino behind a lazy `Proxy` and `createCosimi` runs per request.
+- **pino output is invisible to `wrangler tail`** — only `console.*` reaches the log stream.
+- **Hyperdrive points at the Neon direct endpoint**, not the pooler, so postgres.js prepared statements work.
 
 ## Deploy
 
-All-Cloudflare, manual via `./deploy.sh` — Pages (lab/UI) + Workers (api) → Hyperdrive → Neon
-Postgres. Full runbook + Workers traps in [`DEPLOY.md`](./DEPLOY.md).
-
-## Status
-
-GraphRAG-only. Shipped: the retrieval engine, the async offline ingest pipeline, the lab product,
-the Workers AI embedder, and the subtraction pass that removed the SimSimi lexical/teach/chat
-surface (routes, services, the `teach_queue`/`votes`/`sessions`/`session_teaches` tables + their
-migrations, env keys, seeds, `adapter-r2`). The portfolio app has been **extracted** to its own repo
-(`8bu.dev`, own backend) and removed from cosimi (only its held Cloudflare deploy config remains,
-pending 8bu.dev's own deploy). Publishing is operator-gated (packages stay `private` until go-live).
+Everything runs on Cloudflare and deploys manually through `./deploy.sh`: 1 run gates, 2 deploy lab → Pages
+project `cosimi-web` (built from `playgrounds/lab/dist`), 3 deploy the `cosimi-api` Worker
+(`wrangler deploy -e cosimi`), 4 deploy both, 5 migrate the Neon database (prompts for the Neon direct
+connection URL, then `DATABASE_URL=<url> pnpm --filter @cosimi/db-core migrate up`), 6 tail `cosimi-api`,
+7 status. The Worker reaches Neon through Hyperdrive config `cosimi-hd`, and `playgrounds/api/wrangler.toml`
+defines only `[env.cosimi]`. Creating the Pages project, the Hyperdrive config, and the Neon database is
+one-time dashboard/CLI setup, outside the menu.

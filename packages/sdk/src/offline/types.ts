@@ -11,7 +11,7 @@ import type {
 /**
  * A node in the chunk forest produced by the chunkers. A node with `children`
  * is a section that exceeded the token-split threshold: it becomes a structural
- * PARENT_OF parent (embedded + graphed, but NOT a pair source — spec §5 step 4),
+ * PARENT_OF parent (embedded + linked, but NOT a pair source — spec §5 step 4),
  * and its children carry the body. A leaf node (no children) is a pair source.
  */
 export interface ChunkNode {

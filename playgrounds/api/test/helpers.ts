@@ -83,7 +83,7 @@ export async function seedLinkedPair(
   return id;
 }
 
-/** Truncate the GraphRAG corpus tables between retrieve tests. */
+/** Truncate the corpus tables between retrieve tests. */
 export async function resetCorpus(): Promise<void> {
   await sql()`TRUNCATE documents CASCADE`;
   await sql()`DELETE FROM pairs`;

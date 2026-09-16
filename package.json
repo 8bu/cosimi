@@ -1,13 +1,13 @@
 {
   "name": "cosimi",
   "private": true,
-  "description": "GraphRAG retrieval SDK + reference playgrounds — deterministic, LLM-free query-time retrieval over a document-derived chunk graph.",
+  "description": "Corpus distillation + LLM-generated Q&A pairs for better RAG answers — deterministic, LLM-free vector retrieval over chunks and pairs.",
   "keywords": [
     "cloudflare-workers",
     "embeddings",
-    "graphrag",
     "pgvector",
     "postgres",
+    "question-answering",
     "rag",
     "retrieval",
     "sdk"

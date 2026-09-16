@@ -8,11 +8,8 @@
     "start": "tsx --env-file=../../.env src/index.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "deploy:portf": "wrangler deploy -e portf",
     "deploy:cosimi": "wrangler deploy -e cosimi",
-    "tail:portf": "wrangler tail -e portf",
-    "tail:cosimi": "wrangler tail -e cosimi",
-    "spike": "wrangler deploy -c spike/wrangler.spike.toml"
+    "tail:cosimi": "wrangler tail -e cosimi"
   },
   "dependencies": {
     "@cosimi/adapter-embed-ollama": "workspace:*",

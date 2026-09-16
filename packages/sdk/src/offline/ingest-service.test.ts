@@ -75,7 +75,7 @@ it("ingests a markdown doc end to end: documents, chunks, passed pairs, map rows
   expect(mapCount!.n).toBe(2);
 });
 
-it("persists cross-reference relations as REFERENCES graph edges", async () => {
+it("persists cross-reference relations as REFERENCES links", async () => {
   const deps = makeDeps((system) => {
     if (system.includes("Q&A pair generator")) return '[{"q":"q","a":"a"}]';
     if (system.includes("cross-references")) return '[{"from":0,"to":2,"type":"references"}]';

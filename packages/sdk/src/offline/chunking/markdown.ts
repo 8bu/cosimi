@@ -48,7 +48,7 @@ function sectionize(md: string): RawSection[] {
  * `splitThreshold` tokens become a structural parent (heading + lead sentence)
  * with sentence-grouped children linked PARENT_OF.
  *
- * No text overlap: cross-chunk continuity is the `chunk_relations` graph
+ * No text overlap: cross-chunk continuity lives in the `chunk_relations` links
  * (REFERENCES / PARENT_OF edges), so each chunk stays grounded in exactly its
  * own section — borrowing the next section's first sentence used to inject
  * foreign facts (e.g. one job's location into another's chunk) that the auditor

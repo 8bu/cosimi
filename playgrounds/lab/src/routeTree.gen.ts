@@ -9,12 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RetrieveRouteImport } from './routes/retrieve'
 import { Route as IngestRouteImport } from './routes/ingest'
 import { Route as FallbackRouteImport } from './routes/fallback'
 import { Route as DocumentsRouteImport } from './routes/documents'
 import { Route as CorpusRouteImport } from './routes/corpus'
 import { Route as IndexRouteImport } from './routes/index'
 
+const RetrieveRoute = RetrieveRouteImport.update({
+  id: '/retrieve',
+  path: '/retrieve',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IngestRoute = IngestRouteImport.update({
   id: '/ingest',
   path: '/ingest',
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/documents': typeof DocumentsRoute
   '/fallback': typeof FallbackRoute
   '/ingest': typeof IngestRoute
+  '/retrieve': typeof RetrieveRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/documents': typeof DocumentsRoute
   '/fallback': typeof FallbackRoute
   '/ingest': typeof IngestRoute
+  '/retrieve': typeof RetrieveRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,27 @@ export interface FileRoutesById {
   '/documents': typeof DocumentsRoute
   '/fallback': typeof FallbackRoute
   '/ingest': typeof IngestRoute
+  '/retrieve': typeof RetrieveRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/corpus' | '/documents' | '/fallback' | '/ingest'
+  fullPaths:
+    | '/'
+    | '/corpus'
+    | '/documents'
+    | '/fallback'
+    | '/ingest'
+    | '/retrieve'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/corpus' | '/documents' | '/fallback' | '/ingest'
-  id: '__root__' | '/' | '/corpus' | '/documents' | '/fallback' | '/ingest'
+  to: '/' | '/corpus' | '/documents' | '/fallback' | '/ingest' | '/retrieve'
+  id:
+    | '__root__'
+    | '/'
+    | '/corpus'
+    | '/documents'
+    | '/fallback'
+    | '/ingest'
+    | '/retrieve'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,10 +99,18 @@ export interface RootRouteChildren {
   DocumentsRoute: typeof DocumentsRoute
   FallbackRoute: typeof FallbackRoute
   IngestRoute: typeof IngestRoute
+  RetrieveRoute: typeof RetrieveRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/retrieve': {
+      id: '/retrieve'
+      path: '/retrieve'
+      fullPath: '/retrieve'
+      preLoaderRoute: typeof RetrieveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ingest': {
       id: '/ingest'
       path: '/ingest'
@@ -125,6 +155,7 @@ const rootRouteChildren: RootRouteChildren = {
   DocumentsRoute: DocumentsRoute,
   FallbackRoute: FallbackRoute,
   IngestRoute: IngestRoute,
+  RetrieveRoute: RetrieveRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

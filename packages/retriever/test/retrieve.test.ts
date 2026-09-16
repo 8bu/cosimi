@@ -26,7 +26,7 @@ describe("retrieve (unified hits)", () => {
     expect(res.hits[0]!.similarity).toBeGreaterThan(res.hits[1]!.similarity);
   });
 
-  it("a pair-hit carries its source chunk (hops 0) + graph neighbors as context", async () => {
+  it("a pair-hit carries its source chunk (hops 0) + linked chunks as context", async () => {
     const f = await seedHitFixtures();
     const res = await retrieve(sql, opts(f.queryVec));
     const pairHit = res.hits.find((h) => h.kind === "pair");

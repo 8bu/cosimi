@@ -36,7 +36,7 @@ export interface PairRepository {
     limit: number,
     opts?: { status?: AuditStatus; locale?: string },
   ): Promise<ScoredPair[]>;
-  /** Graph read: pairs mapped from the given chunk ids, re-ranked by cosine. */
+  /** Linked read: pairs mapped from the given chunk ids, re-ranked by cosine. */
   findByChunks(chunkIds: string[], embedding: number[], limit: number): Promise<ScoredPair[]>;
   /** Pipeline read: pairs in a given audit status (e.g. 'pending' for the audit step). */
   findByStatus(
@@ -61,7 +61,7 @@ export interface AppConfigRepository {
   setAppConfig(key: string, value: string): Promise<void>;
 }
 
-// ─── Graph / vector retrieval ports ────────────────────────────────────────
+// ─── Retrieval ports ───────────────────────────────────────────────────────
 // Repository ports for the document-retrieval schema (see docs/ARCHITECTURE.md).
 
 export type RelationType = "PARENT_OF" | "REFERENCES" | "ELABORATES" | "CONTRADICTS";

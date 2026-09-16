@@ -1,19 +1,14 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { getIngestJob, ingest, type IngestArgs } from "@/lib/api/admin-client";
+import { useQuery } from "@tanstack/react-query";
+import { getIngestJob } from "@/lib/api/admin-client";
+import type { IngestJob } from "@/lib/api/raw-types";
 
-/** Kicks off an async ingest; resolves to { jobId }. Poll it with useIngestJob. */
-export function useIngest() {
-  return useMutation<{ jobId: string }, Error, IngestArgs>({
-    mutationFn: ingest,
-    onError: (e) =>
-      toast.error(`Ingest failed — ${e instanceof Error ? e.message : "request failed"}`),
-  });
-}
-
-/** Polls a job every 1.5s while it's running; stops once it settles (done|error). */
+/**
+ * Poll a single ingest job. Refetches every 1.5s while the job is `running`,
+ * stops once it settles to `done`/`error`. Returns the live job row; the route
+ * invalidates `["documents"]` on settle (kept in the component for clarity).
+ */
 export function useIngestJob(jobId: string | null) {
-  return useQuery({
+  return useQuery<IngestJob>({
     queryKey: ["ingest-job", jobId],
     queryFn: () => getIngestJob(jobId!),
     enabled: !!jobId,

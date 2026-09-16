@@ -2,7 +2,7 @@
 // legacy origins still present on existing rows.
 export type Source = "seed" | "user" | "chat" | "llm";
 
-/** Corpus size counters for the api `/stats` endpoint (GraphRAG era). */
+/** Corpus size counters for the api `/stats` endpoint. */
 export interface StatsResponse {
   documents: number;
   chunks: number;
@@ -41,18 +41,18 @@ export interface AdminUnanswered {
   last_seen: string;
 }
 
-// ─── GraphRAG retrieval (runtime, LLM-free) ─────────────────────────────────
-// The result of cosimi.retrieve(): ranked chunks (graph-retrieved context),
-// each carrying the offline-generated Q&A pairs linked to it. The consumer owns
-// the RAG step (feed `content`/`pairs` to their own LLM) — the SDK never
-// generates an answer at query time.
+// ─── Retrieval (runtime, LLM-free) ──────────────────────────────────────────
+// The result of cosimi.retrieve(): ranked chunks and pairs (with linked-chunk
+// context), each carrying the offline-generated Q&A pairs linked to it. The
+// consumer owns the RAG step (feed `content`/`pairs` to their own LLM) — the SDK
+// never generates an answer at query time.
 /** A chunk returned as context (or as a chunk-hit). `hops` 0 = the matched/source chunk. */
 export interface RelatedChunk {
   id: string;
   documentId: string;
   content: string;
   sectionTitle: string | null;
-  /** Min graph distance from the matched/source chunk (0 = it). */
+  /** Link distance from the matched/source chunk (0 = it). */
   hops: number;
   /** The chunk's own cosine similarity to the query (informational). */
   similarity: number;
@@ -72,7 +72,7 @@ export interface PairHit {
   similarity: number;
   input: string;
   response: string;
-  /** Source chunk (hops 0) + graph neighbors (≤ maxHops), for downstream context. */
+  /** Source chunk (hops 0) + linked chunks (≤ maxHops), for downstream context. */
   context: RelatedChunk[];
 }
 

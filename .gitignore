@@ -2,8 +2,8 @@ node_modules/
 dist/
 .turbo/
 .env
-.env.portf
-.env.local
+.env.*
+!.env.example
 *.log
 .DS_Store
 coverage/

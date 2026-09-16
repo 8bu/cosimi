@@ -34,7 +34,7 @@ describe("chunkMarkdown", () => {
     const md = "## Alpha\nAlpha body.\n## Beta\nBeta first. Beta second.";
     const nodes = chunkMarkdown(md, { splitThreshold: 600 });
     // Each chunk is grounded in exactly its own section — cross-chunk continuity
-    // is the chunk_relations graph, not duplicated text.
+    // lives in the chunk_relations links, not duplicated text.
     expect(nodes[0]!.content).toBe("Alpha\nAlpha body.");
     expect(nodes[0]!.content).not.toContain("Beta");
     expect(nodes[1]!.content).toBe("Beta\nBeta first. Beta second.");

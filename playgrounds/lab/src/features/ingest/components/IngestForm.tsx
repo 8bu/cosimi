@@ -1,167 +1,253 @@
-import { useEffect, useRef, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { Key } from "@phosphor-icons/react";
-import { useIngest, useIngestJob } from "../hooks";
-import { JobProgress } from "./JobProgress";
+/* Ingest — left column: Source card + Chunking & embedding card.
+   Ported from the design handoff (screen-ingest.jsx), reconciled to the real backend
+   (spec §4.3): only Upload + Paste are wired; chunking config is display-only
+   disabled (the SDK auto-chunks with bge-m3). */
+import { useRef, useState } from "react";
+import { Btn, Field, Select } from "@/components/shell/atoms";
+import { Icon } from "@/lib/icon";
 import { getAnthropicKey, setAnthropicKey } from "@/config/anthropic-key";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { IngestArgs, IngestOptions } from "@/lib/api/admin-client";
 
-type Mode = "paste" | "upload";
+type SrcTab = "url" | "file" | "paste" | "repo";
 
-export function IngestForm() {
-  const [mode, setMode] = useState<Mode>("paste");
+const TABS: { key: SrcTab; label: string; enabled: boolean }[] = [
+  { key: "url", label: "URL / Crawl", enabled: false },
+  { key: "file", label: "Upload", enabled: true },
+  { key: "paste", label: "Paste text", enabled: true },
+  { key: "repo", label: "Repo sync", enabled: false },
+];
+
+/** Pairs/chunk picker label → numeric pairsPerChunk (undefined = SDK auto). */
+const PAIRS_OPTIONS = ["Off", "Auto", "Exactly 1", "Exactly 3"];
+function pairsPerChunkFor(label: string): number | undefined {
+  switch (label) {
+    case "Off":
+      return 0;
+    case "Exactly 1":
+      return 1;
+    case "Exactly 3":
+      return 3;
+    default:
+      return undefined; // Auto
+  }
+}
+
+export function IngestForm({
+  onStart,
+  running,
+  done,
+  onReset,
+}: {
+  onStart: (args: IngestArgs) => void;
+  running: boolean;
+  done: boolean;
+  onReset: () => void;
+}) {
+  const [srcTab, setSrcTab] = useState<SrcTab>("file");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [apiKey, setApiKeyState] = useState(() => getAnthropicKey());
+  const [pairsLabel, setPairsLabel] = useState("Auto");
   const [reverseCheck, setReverseCheck] = useState(false);
-  const [jobId, setJobId] = useState<string | null>(null);
-  const ingest = useIngest();
-  const job = useIngestJob(jobId);
-  const qc = useQueryClient();
+  const [keyInput, setKeyInput] = useState("");
+  const [hasKey, setHasKey] = useState(() => !!getAnthropicKey());
+  const fileInput = useRef<HTMLInputElement>(null);
 
-  // Fire the toast + refresh the document list exactly once when a job settles.
-  const settledRef = useRef<string | null>(null);
-  const status = job.data?.status;
-  useEffect(() => {
-    if (!jobId || !status || status === "running" || settledRef.current === jobId) return;
-    settledRef.current = jobId;
-    if (status === "done") {
-      toast.success(`Ingested — ${job.data!.pairsPassed} pairs`);
-      qc.invalidateQueries({ queryKey: ["documents"] });
-    } else if (status === "error") {
-      toast.error(`Ingest failed — ${job.data!.error ?? "unknown error"}`);
+  function buildOptions(): IngestOptions | undefined {
+    const pairsPerChunk = pairsPerChunkFor(pairsLabel);
+    const opts: IngestOptions = {};
+    if (pairsPerChunk !== undefined) opts.pairsPerChunk = pairsPerChunk;
+    if (reverseCheck) opts.reverseCheck = true;
+    return Object.keys(opts).length ? opts : undefined;
+  }
+
+  function saveKeyIfEntered() {
+    if (keyInput.trim()) {
+      setAnthropicKey(keyInput.trim());
+      setHasKey(true);
+      setKeyInput("");
     }
-  }, [jobId, status, job.data, qc]);
+  }
 
-  const isBusy = ingest.isPending || status === "running";
-  const hasKey = apiKey.trim().length > 0;
-  const canSubmit =
-    !isBusy && hasKey && (mode === "paste" ? !!title.trim() && !!content.trim() : !!file);
-  const onKey = (v: string) => {
-    setApiKeyState(v);
-    setAnthropicKey(v);
-  };
-  const start = (args: Parameters<typeof ingest.mutate>[0]) => {
-    settledRef.current = null;
-    ingest.mutate(args, { onSuccess: ({ jobId: id }) => setJobId(id) });
-  };
-  const submit = () => {
-    const options = { reverseCheck };
-    if (mode === "paste") {
-      if (!title.trim() || !content.trim()) return;
-      start({ mode: "paste", title: title.trim(), content, options });
-    } else if (file) start({ mode: "upload", file, options });
-  };
+  function handleStart() {
+    saveKeyIfEntered();
+    const options = buildOptions();
+    if (srcTab === "file") {
+      if (!file) return;
+      onStart({ mode: "upload", file, options });
+    } else {
+      if (!content.trim()) return;
+      onStart({ mode: "paste", title: title.trim() || "Untitled", content, options });
+    }
+  }
 
   return (
-    <div className="flex max-w-2xl flex-col gap-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Ingest a document</CardTitle>
-          <CardDescription>
-            Runs the offline pipeline: chunk &rarr; build the chunk graph &rarr; LLM-generate
-            question/answer pairs &rarr; audit &rarr; embed.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-6">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="anthropic-key" className="flex items-center gap-1.5">
-              <Key className="size-3.5" /> Anthropic API key
-            </Label>
-            <Input
-              id="anthropic-key"
-              type="password"
-              autoComplete="off"
-              value={apiKey}
-              aria-label="Anthropic API key"
-              placeholder="sk-ant-…"
-              onChange={(e) => onKey(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              Stored in this browser only; sent per request, never to the server.
-            </p>
+    <div className="col" style={{ gap: 22 }}>
+      {/* ── Source card ── */}
+      <div className="card">
+        <div className="card-head">
+          <Icon name="link" size={17} style={{ color: "var(--accent)" }} />
+          <div>
+            <div className="card-head-t">Source</div>
+            <div className="card-head-sub">Where the content comes from</div>
+          </div>
+        </div>
+        <div className="card-body">
+          <div className="src-tabs" role="tablist" aria-label="Ingest source">
+            {TABS.map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                role="tab"
+                aria-selected={srcTab === t.key}
+                disabled={!t.enabled}
+                title={t.enabled ? undefined : "not supported yet"}
+                className={"src-tab" + (srcTab === t.key ? " on" : "")}
+                style={t.enabled ? undefined : { opacity: 0.45, cursor: "not-allowed" }}
+                onClick={() => t.enabled && setSrcTab(t.key)}
+              >
+                {t.label}
+              </button>
+            ))}
           </div>
 
-          <Tabs value={mode} onValueChange={(v) => setMode(v as Mode)}>
-            <TabsList>
-              <TabsTrigger value="paste">Paste</TabsTrigger>
-              <TabsTrigger value="upload">Upload</TabsTrigger>
-            </TabsList>
-            <TabsContent value="paste" className="flex flex-col gap-4 pt-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="doc-title">Title</Label>
-                <Input
-                  id="doc-title"
-                  value={title}
-                  aria-label="Title"
-                  placeholder="Refund Policy"
-                  onChange={(e) => setTitle(e.target.value)}
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="doc-content">Content (markdown)</Label>
-                <Textarea
-                  id="doc-content"
-                  rows={12}
-                  value={content}
-                  aria-label="Content"
-                  placeholder={"## Section\nParagraph text…"}
-                  className="font-mono text-sm"
-                  onChange={(e) => setContent(e.target.value)}
-                />
-              </div>
-            </TabsContent>
-            <TabsContent value="upload" className="flex flex-col gap-2 pt-4">
-              <Label htmlFor="doc-file">File</Label>
-              <Input
-                id="doc-file"
+          {srcTab === "file" && (
+            <>
+              <input
+                ref={fileInput}
                 type="file"
-                accept=".md,.markdown,.txt"
-                aria-label="File"
+                accept=".pdf,.md,.txt,.docx,text/markdown,text/plain,application/pdf"
+                style={{ display: "none" }}
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               />
-              <p className="text-xs text-muted-foreground">Title is taken from the filename.</p>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-        <CardFooter className="flex items-center justify-between border-t pt-6">
-          <Label className="flex items-start gap-2 font-normal">
+              <div
+                className="drop"
+                role="button"
+                tabIndex={0}
+                onClick={() => fileInput.current?.click()}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") fileInput.current?.click();
+                }}
+              >
+                <Icon
+                  name="upload"
+                  size={30}
+                  className="drop-ico"
+                  style={{ margin: "0 auto 10px" }}
+                />
+                <div className="drop-t">{file ? file.name : "Drop a file or click to browse"}</div>
+                <div className="drop-d">PDF, Markdown, TXT, DOCX</div>
+              </div>
+            </>
+          )}
+
+          {srcTab === "paste" && (
+            <Field label="Raw text">
+              <textarea
+                className="textarea"
+                placeholder="Paste document text here…"
+                rows={6}
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+              />
+            </Field>
+          )}
+
+          {(srcTab === "paste" || srcTab === "file") && (
+            <div style={{ marginTop: 16 }}>
+              <Field
+                label="Document title"
+                hint={srcTab === "file" ? "Defaults to the file name" : undefined}
+              >
+                <input
+                  className="input"
+                  placeholder="e.g. SSO & SAML Integration Guide"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </Field>
+            </div>
+          )}
+
+          {!hasKey && (
+            <div style={{ marginTop: 16 }}>
+              <Field
+                label="Anthropic API key"
+                hint="Stored locally in this browser; sent only with the ingest request."
+              >
+                <input
+                  className="input input-mono"
+                  type="password"
+                  autoComplete="off"
+                  placeholder="sk-ant-…"
+                  value={keyInput}
+                  onChange={(e) => setKeyInput(e.target.value)}
+                />
+              </Field>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Chunking & embedding card ── */}
+      <div className="card">
+        <div className="card-head">
+          <Icon name="sliders" size={17} style={{ color: "var(--accent)" }} />
+          <div>
+            <div className="card-head-t">Chunking &amp; embedding</div>
+            <div className="card-head-sub">How the source is split and vectorized</div>
+          </div>
+        </div>
+        <div className="card-body">
+          <div className="frow-3">
+            <Field label="Strategy" hint="Auto-selected by the SDK">
+              <Select value="Auto" onChange={() => {}} options={["Auto"]} disabled />
+            </Field>
+            <Field label="Chunk size" hint="tokens">
+              <input className="input input-mono" value="auto" disabled readOnly />
+            </Field>
+            <Field label="Overlap" hint="graph, not text">
+              <input className="input input-mono" value="0" disabled readOnly />
+            </Field>
+          </div>
+          <div className="frow" style={{ marginTop: 14 }}>
+            <Field label="Embedding model">
+              <Select value="bge-m3" onChange={() => {}} options={["bge-m3"]} disabled />
+            </Field>
+            <Field label="Pairs / chunk" hint="Q/A synthesis">
+              <Select value={pairsLabel} onChange={setPairsLabel} options={PAIRS_OPTIONS} />
+            </Field>
+          </div>
+
+          <label className="row" style={{ marginTop: 16, gap: 9, cursor: "pointer" }}>
             <input
               type="checkbox"
               checked={reverseCheck}
-              aria-label="Verify each question matches its answer"
               onChange={(e) => setReverseCheck(e.target.checked)}
-              className="mt-0.5 size-4 rounded border-input accent-primary"
             />
-            <span className="flex flex-col leading-tight">
-              <span className="text-foreground">Verify each question matches its answer</span>
-              <span className="text-xs text-muted-foreground">
-                Re-derives a question from every answer and flags mismatches. Slower — an extra
-                model call per pair.
-              </span>
-            </span>
-          </Label>
-          <Button onClick={submit} disabled={!canSubmit}>
-            {isBusy ? "Ingesting…" : "Ingest"}
-          </Button>
-        </CardFooter>
-      </Card>
+            <span style={{ fontSize: 13 }}>Verify question matches answer</span>
+          </label>
 
-      {job.data && <JobProgress job={job.data} />}
+          <hr className="hrule" />
+          <div className="row" style={{ justifyContent: "flex-end" }}>
+            {!running && !done && (
+              <Btn kind="pri" icon="bolt" onClick={handleStart}>
+                Start ingestion
+              </Btn>
+            )}
+            {running && (
+              <Btn icon="clock" disabled>
+                Running…
+              </Btn>
+            )}
+            {done && (
+              <Btn icon="refresh" onClick={onReset}>
+                Run again
+              </Btn>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -6,10 +6,10 @@
 #   2. db:up --wait (compose postgres service; bake-in --wait makes this idempotent)
 #   3. migrate (idempotent — applies anything new, no-op if up-to-date)
 #   4. exec `turbo run dev` scoped to ALL cosimi playgrounds (api + admin-api +
-#      lab + neolab).
+#      lab).
 #
-# All steps short-circuit on failure (`set -e`). GraphRAG content comes from the
-# offline ingest pipeline (admin → Ingest), not seed files — there is no seed step.
+# All steps short-circuit on failure (`set -e`). Corpus content comes from the
+# offline ingest pipeline (lab → Ingest), not seed files — there is no seed step.
 # Embeddings need a local ollama with bge-m3 (`ollama serve` + `ollama pull bge-m3`).
 
 set -euo pipefail
