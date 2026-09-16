@@ -1,11 +1,15 @@
 # cosimi — Architecture
 
-cosimi distills a document corpus into retrievable knowledge for RAG. Offline, on Node, an LLM splits
-documents into chunks, generates Q&A pairs from each chunk, and audits them with a second LLM pass; chunks
-and pairs are embedded into one 1024-dim space (bge-m3 via pgvector) in Postgres. At query time — on Node
-or Cloudflare Workers, with no LLM — `retrieve(query)` embeds the query once and returns the top-K nearest
-pairs and chunks by cosine similarity: same query, same data, same hits. Consumers feed the hits into their
-own RAG/LLM step, or use the pair answers directly.
+cosimi is a self-hosted answer engine: it distils documents into an LLM-verified Q&A index offline and
+answers from it deterministically — no LLM in the request path. Offline, on Node, an LLM splits documents
+into chunks, generates Q&A pairs from each chunk, and audits them with a second LLM pass; chunks and pairs
+are embedded into one 1024-dim space (bge-m3 via pgvector) in Postgres. At query time `retrieve(query)`
+embeds the query once and returns the top-K nearest pairs and chunks by cosine similarity: same query,
+same data, same hits.
+
+> This document describes the tree **as it is today** (SDK constellation + Cloudflare Workers entry). The
+> target shape and the phases to get there are in [`ROADMAP.md`](./ROADMAP.md); this file is rewritten as
+> Phase 0 lands.
 
 ## Two surfaces
 

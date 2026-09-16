@@ -1,8 +1,11 @@
 # cosimi
 
-Corpus distillation + LLM-generated Q&A pairs for better RAG answers.
+A self-hosted answer engine: it distils your documents into an LLM-verified Q&A index offline and answers from it deterministically — no LLM in the request path.
 
-cosimi distills a document corpus into retrievable knowledge for RAG. Offline (Node, uses an LLM) documents are chunked, an LLM generates Q&A pairs from each chunk, and a second LLM pass audits them; chunks and pairs are both embedded (bge-m3, 1024-dim, pgvector). At query time (Node or Cloudflare Workers, no LLM) `retrieve(query)` embeds the query once and returns the top-K nearest pairs and chunks by cosine similarity — deterministic: same query + same data → same result. Consumers feed the hits to their own RAG/LLM step, or use the pair answers directly. Chunk links (`chunk_relations`) exist only as context for a hit, never for ranking — ranking is cosine only.
+Offline (Node, uses an LLM) documents are chunked, an LLM generates Q&A pairs from each chunk, and a second LLM pass audits them; chunks and pairs are both embedded (bge-m3, 1024-dim, pgvector). At query time (no LLM) `retrieve(query)` embeds the query once and returns the top-K nearest pairs and chunks by cosine similarity — deterministic: same query + same data → same result. Chunk links (`chunk_relations`) exist only as context for a hit, never for ranking — ranking is cosine only.
+
+> **Direction:** cosimi is moving from an SDK constellation to a single self-hosted app. The current
+> tree still has the SDK shape described below; the target and phases are in [`docs/ROADMAP.md`](./docs/ROADMAP.md).
 
 ## How it works
 
